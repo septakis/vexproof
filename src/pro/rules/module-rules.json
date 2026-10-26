@@ -1,0 +1,141 @@
+{
+  "schema": 1,
+  "version": "2026.09.26",
+  "license": "LicenseRef-vexproof-Pro (see src/pro/LICENSE.md)",
+  "note": "Each advisory lists every file that contains the vulnerable code or is the public entry to it. A finding is settled only when none of these files, and no monolith build of the package, survived into the output.",
+  "packages": {
+    "lodash-es": {
+      "monoliths": [
+        "lodash.default.js"
+      ],
+      "advisories": {
+        "GHSA-35jh-r3h4-6jhm": {
+          "files": [
+            "template.js"
+          ],
+          "affects": "_.template (command injection via options.variable)",
+          "source": "https://github.com/advisories/GHSA-35jh-r3h4-6jhm",
+          "aliases": [
+            "CVE-2021-23337"
+          ]
+        },
+        "GHSA-r5fr-rjxr-66jc": {
+          "files": [
+            "template.js"
+          ],
+          "affects": "_.template (code injection via options.imports key names)",
+          "source": "https://github.com/advisories/GHSA-r5fr-rjxr-66jc",
+          "aliases": [
+            "CVE-2026-4800"
+          ]
+        },
+        "GHSA-29mw-wpgm-hmr9": {
+          "files": [
+            "toNumber.js",
+            "trim.js",
+            "trimEnd.js"
+          ],
+          "affects": "toNumber, trim, trimEnd (ReDoS in the whitespace-trimming regexes defined in these files)",
+          "source": "https://github.com/advisories/GHSA-29mw-wpgm-hmr9",
+          "aliases": [
+            "CVE-2020-28500"
+          ]
+        },
+        "GHSA-xxjr-mmjv-4gpg": {
+          "files": [
+            "_baseUnset.js",
+            "unset.js",
+            "omit.js"
+          ],
+          "affects": "_.unset, _.omit (prototype pollution in baseUnset; also reachable via pullAt/remove)",
+          "source": "https://github.com/advisories/GHSA-xxjr-mmjv-4gpg",
+          "aliases": [
+            "CVE-2025-13465"
+          ]
+        },
+        "GHSA-f23m-r3pf-42rh": {
+          "files": [
+            "_baseUnset.js",
+            "unset.js",
+            "omit.js"
+          ],
+          "affects": "_.unset, _.omit (array-path bypass of the baseUnset fix)",
+          "source": "https://github.com/advisories/GHSA-f23m-r3pf-42rh",
+          "aliases": [
+            "CVE-2026-2950"
+          ]
+        }
+      }
+    },
+    "lodash": {
+      "monoliths": [
+        "lodash.js",
+        "lodash.min.js",
+        "core.js",
+        "core.min.js",
+        "fp.js"
+      ],
+      "monolithDirs": [
+        "fp/"
+      ],
+      "advisories": {
+        "GHSA-35jh-r3h4-6jhm": {
+          "files": [
+            "template.js"
+          ],
+          "affects": "_.template",
+          "source": "https://github.com/advisories/GHSA-35jh-r3h4-6jhm",
+          "aliases": [
+            "CVE-2021-23337"
+          ]
+        },
+        "GHSA-r5fr-rjxr-66jc": {
+          "files": [
+            "template.js"
+          ],
+          "affects": "_.template",
+          "source": "https://github.com/advisories/GHSA-r5fr-rjxr-66jc",
+          "aliases": [
+            "CVE-2026-4800"
+          ]
+        },
+        "GHSA-29mw-wpgm-hmr9": {
+          "files": [
+            "toNumber.js",
+            "trim.js",
+            "trimEnd.js"
+          ],
+          "affects": "toNumber, trim, trimEnd",
+          "source": "https://github.com/advisories/GHSA-29mw-wpgm-hmr9",
+          "aliases": [
+            "CVE-2020-28500"
+          ]
+        },
+        "GHSA-xxjr-mmjv-4gpg": {
+          "files": [
+            "_baseUnset.js",
+            "unset.js",
+            "omit.js"
+          ],
+          "affects": "_.unset, _.omit",
+          "source": "https://github.com/advisories/GHSA-xxjr-mmjv-4gpg",
+          "aliases": [
+            "CVE-2025-13465"
+          ]
+        },
+        "GHSA-f23m-r3pf-42rh": {
+          "files": [
+            "_baseUnset.js",
+            "unset.js",
+            "omit.js"
+          ],
+          "affects": "_.unset, _.omit",
+          "source": "https://github.com/advisories/GHSA-f23m-r3pf-42rh",
+          "aliases": [
+            "CVE-2026-2950"
+          ]
+        }
+      }
+    }
+  }
+}

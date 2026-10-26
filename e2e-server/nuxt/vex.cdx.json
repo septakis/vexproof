@@ -1,0 +1,619 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:b3f18647-72b0-453b-8473-f4bc4c498480",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-09-27T18:14:05.131Z",
+    "tools": {
+      "components": [
+        {
+          "type": "application",
+          "name": "vexproof",
+          "version": "0.9.0"
+        }
+      ]
+    },
+    "component": {
+      "type": "application",
+      "bom-ref": "pkg:npm/status-board@1.0.0",
+      "purl": "pkg:npm/status-board@1.0.0",
+      "name": "pkg:npm/status-board@1.0.0"
+    },
+    "properties": [
+      {
+        "name": "vexproof:bundleSbomSerial",
+        "value": "null"
+      },
+      {
+        "name": "vexproof:lockfileSbomSerial",
+        "value": "urn:uuid:f68b1455-06a5-4c2f-ae5e-0b782421d92a"
+      },
+      {
+        "name": "vexproof:bundleComponentCount",
+        "value": "50"
+      },
+      {
+        "name": "vexproof:lockfileComponentCount",
+        "value": "627"
+      },
+      {
+        "name": "vexproof:input:lockfile-sbom:sha256",
+        "value": "5c8e4699b131705044ceffda4f055e8e3ad5ac7145ef07f9266a5262303d2bbb"
+      },
+      {
+        "name": "vexproof:input:findings-npm-audit:sha256",
+        "value": "b991752b7803e09c8525dd5c9fb39b33f1e876e57ed568f5fd4e9bf180297c50"
+      },
+      {
+        "name": "vexproof:input:deployment:sha256",
+        "value": "-"
+      },
+      {
+        "name": "vexproof:licensee",
+        "value": "Demo Org"
+      }
+    ]
+  },
+  "vulnerabilities": [
+    {
+      "id": "GHSA-67hx-6x53-jw92",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/@babel/traverse@7.22.0 appears in the lockfile SBOM but no component named npm/@babel/traverse appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+        "firstIssued": "2026-09-27T18:14:05.131Z",
+        "lastUpdated": "2026-09-27T18:14:05.131Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:f68b1455-06a5-4c2f-ae5e-0b782421d92a/1#status-board%401.0.0%7C%40babel%2Ftraverse%407.22.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/%40babel/traverse@7.22.0"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "package"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-mh29-5h37-fv8m",
+      "analysis": {
+        "state": "in_triage",
+        "detail": "npm/js-yaml (4.1.0) is present in the shipped bundle; requires manual review. Module-level check: no module rules for js-yaml.",
+        "firstIssued": "2026-09-27T18:14:05.131Z",
+        "lastUpdated": "2026-09-27T18:14:05.131Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:f68b1455-06a5-4c2f-ae5e-0b782421d92a/1#status-board%401.0.0%7Cjs-yaml%404.1.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/js-yaml@4.1.0"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:evidence-files",
+          "value": "dist/js-yaml.mjs=16f210b939b359b6 package.json=ae85d36c81ac4bd2"
+        },
+        {
+          "name": "vexproof:evidence-files-digest",
+          "value": "2d32c8c27149624a"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-h67p-54hq-rp68",
+      "analysis": {
+        "state": "in_triage",
+        "detail": "npm/js-yaml (4.1.0) is present in the shipped bundle; requires manual review. Module-level check: no module rules for js-yaml.",
+        "firstIssued": "2026-09-27T18:14:05.131Z",
+        "lastUpdated": "2026-09-27T18:14:05.131Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:f68b1455-06a5-4c2f-ae5e-0b782421d92a/1#status-board%401.0.0%7Cjs-yaml%404.1.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/js-yaml@4.1.0"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:evidence-files",
+          "value": "dist/js-yaml.mjs=16f210b939b359b6 package.json=ae85d36c81ac4bd2"
+        },
+        {
+          "name": "vexproof:evidence-files-digest",
+          "value": "2d32c8c27149624a"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-52cp-r559-cp3m",
+      "analysis": {
+        "state": "in_triage",
+        "detail": "npm/js-yaml (4.1.0) is present in the shipped bundle; requires manual review. Module-level check: no module rules for js-yaml.",
+        "firstIssued": "2026-09-27T18:14:05.131Z",
+        "lastUpdated": "2026-09-27T18:14:05.131Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:f68b1455-06a5-4c2f-ae5e-0b782421d92a/1#status-board%401.0.0%7Cjs-yaml%404.1.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/js-yaml@4.1.0"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:evidence-files",
+          "value": "dist/js-yaml.mjs=16f210b939b359b6 package.json=ae85d36c81ac4bd2"
+        },
+        {
+          "name": "vexproof:evidence-files-digest",
+          "value": "2d32c8c27149624a"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-5p4m-2wfm-xmqj",
+      "analysis": {
+        "state": "in_triage",
+        "detail": "npm/js-yaml (4.1.0) is present in the shipped bundle; requires manual review. Module-level check: no module rules for js-yaml.",
+        "firstIssued": "2026-09-27T18:14:05.131Z",
+        "lastUpdated": "2026-09-27T18:14:05.131Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:f68b1455-06a5-4c2f-ae5e-0b782421d92a/1#status-board%401.0.0%7Cjs-yaml%404.1.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/js-yaml@4.1.0"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:evidence-files",
+          "value": "dist/js-yaml.mjs=16f210b939b359b6 package.json=ae85d36c81ac4bd2"
+        },
+        {
+          "name": "vexproof:evidence-files-digest",
+          "value": "2d32c8c27149624a"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-2883-xcg3-v3hh",
+      "analysis": {
+        "state": "in_triage",
+        "detail": "npm/js-yaml (4.1.0) is present in the shipped bundle; requires manual review. Module-level check: no module rules for js-yaml.",
+        "firstIssued": "2026-09-27T18:14:05.131Z",
+        "lastUpdated": "2026-09-27T18:14:05.131Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:f68b1455-06a5-4c2f-ae5e-0b782421d92a/1#status-board%401.0.0%7Cjs-yaml%404.1.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/js-yaml@4.1.0"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:evidence-files",
+          "value": "dist/js-yaml.mjs=16f210b939b359b6 package.json=ae85d36c81ac4bd2"
+        },
+        {
+          "name": "vexproof:evidence-files-digest",
+          "value": "2d32c8c27149624a"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-r5fr-rjxr-66jc",
+      "references": [
+        {
+          "id": "CVE-2026-4800",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash@4.17.21 is in the bundle, but only 15 of its files survived the production build (deployment (.output; 141 deployed package files, 20 bundled files with source maps)). The code affected by GHSA-r5fr-rjxr-66jc — _.template — lives in template.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-27T18:14:05.131Z",
+        "lastUpdated": "2026-09-27T18:14:05.131Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:f68b1455-06a5-4c2f-ae5e-0b782421d92a/1#status-board%401.0.0%7Clodash%404.17.21"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash@4.17.21"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-r5fr-rjxr-66jc"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_Symbol.js _baseGetTag.js _baseTrim.js _freeGlobal.js _getRawTag.js _objectToString.js _root.js _trimmedEndIndex.js debounce.js isObject.js isObjectLike.js isSymbol.js now.js package.json toNumber.js"
+        },
+        {
+          "name": "vexproof:copies-checked",
+          "value": "node_modules/lodash .output/server/node_modules/lodash"
+        }
+      ]
+    },
+    {
+      "id": "CVE-2026-4800",
+      "references": [
+        {
+          "id": "GHSA-r5fr-rjxr-66jc",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash@4.17.21 is in the bundle, but only 15 of its files survived the production build (deployment (.output; 141 deployed package files, 20 bundled files with source maps)). The code affected by GHSA-r5fr-rjxr-66jc — _.template — lives in template.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-27T18:14:05.131Z",
+        "lastUpdated": "2026-09-27T18:14:05.131Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:f68b1455-06a5-4c2f-ae5e-0b782421d92a/1#status-board%401.0.0%7Clodash%404.17.21"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash@4.17.21"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-r5fr-rjxr-66jc"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_Symbol.js _baseGetTag.js _baseTrim.js _freeGlobal.js _getRawTag.js _objectToString.js _root.js _trimmedEndIndex.js debounce.js isObject.js isObjectLike.js isSymbol.js now.js package.json toNumber.js"
+        },
+        {
+          "name": "vexproof:copies-checked",
+          "value": "node_modules/lodash .output/server/node_modules/lodash"
+        },
+        {
+          "name": "vexproof:alias-of",
+          "value": "GHSA-r5fr-rjxr-66jc"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-f23m-r3pf-42rh",
+      "references": [
+        {
+          "id": "CVE-2026-2950",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash@4.17.21 is in the bundle, but only 15 of its files survived the production build (deployment (.output; 141 deployed package files, 20 bundled files with source maps)). The code affected by GHSA-f23m-r3pf-42rh — _.unset, _.omit — lives in _baseUnset.js, unset.js, omit.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-27T18:14:05.131Z",
+        "lastUpdated": "2026-09-27T18:14:05.131Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:f68b1455-06a5-4c2f-ae5e-0b782421d92a/1#status-board%401.0.0%7Clodash%404.17.21"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash@4.17.21"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-f23m-r3pf-42rh"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_Symbol.js _baseGetTag.js _baseTrim.js _freeGlobal.js _getRawTag.js _objectToString.js _root.js _trimmedEndIndex.js debounce.js isObject.js isObjectLike.js isSymbol.js now.js package.json toNumber.js"
+        },
+        {
+          "name": "vexproof:copies-checked",
+          "value": "node_modules/lodash .output/server/node_modules/lodash"
+        }
+      ]
+    },
+    {
+      "id": "CVE-2026-2950",
+      "references": [
+        {
+          "id": "GHSA-f23m-r3pf-42rh",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash@4.17.21 is in the bundle, but only 15 of its files survived the production build (deployment (.output; 141 deployed package files, 20 bundled files with source maps)). The code affected by GHSA-f23m-r3pf-42rh — _.unset, _.omit — lives in _baseUnset.js, unset.js, omit.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-27T18:14:05.131Z",
+        "lastUpdated": "2026-09-27T18:14:05.131Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:f68b1455-06a5-4c2f-ae5e-0b782421d92a/1#status-board%401.0.0%7Clodash%404.17.21"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash@4.17.21"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-f23m-r3pf-42rh"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_Symbol.js _baseGetTag.js _baseTrim.js _freeGlobal.js _getRawTag.js _objectToString.js _root.js _trimmedEndIndex.js debounce.js isObject.js isObjectLike.js isSymbol.js now.js package.json toNumber.js"
+        },
+        {
+          "name": "vexproof:copies-checked",
+          "value": "node_modules/lodash .output/server/node_modules/lodash"
+        },
+        {
+          "name": "vexproof:alias-of",
+          "value": "GHSA-f23m-r3pf-42rh"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-xxjr-mmjv-4gpg",
+      "references": [
+        {
+          "id": "CVE-2025-13465",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash@4.17.21 is in the bundle, but only 15 of its files survived the production build (deployment (.output; 141 deployed package files, 20 bundled files with source maps)). The code affected by GHSA-xxjr-mmjv-4gpg — _.unset, _.omit — lives in _baseUnset.js, unset.js, omit.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-27T18:14:05.131Z",
+        "lastUpdated": "2026-09-27T18:14:05.131Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:f68b1455-06a5-4c2f-ae5e-0b782421d92a/1#status-board%401.0.0%7Clodash%404.17.21"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash@4.17.21"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-xxjr-mmjv-4gpg"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_Symbol.js _baseGetTag.js _baseTrim.js _freeGlobal.js _getRawTag.js _objectToString.js _root.js _trimmedEndIndex.js debounce.js isObject.js isObjectLike.js isSymbol.js now.js package.json toNumber.js"
+        },
+        {
+          "name": "vexproof:copies-checked",
+          "value": "node_modules/lodash .output/server/node_modules/lodash"
+        }
+      ]
+    },
+    {
+      "id": "CVE-2025-13465",
+      "references": [
+        {
+          "id": "GHSA-xxjr-mmjv-4gpg",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash@4.17.21 is in the bundle, but only 15 of its files survived the production build (deployment (.output; 141 deployed package files, 20 bundled files with source maps)). The code affected by GHSA-xxjr-mmjv-4gpg — _.unset, _.omit — lives in _baseUnset.js, unset.js, omit.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-27T18:14:05.131Z",
+        "lastUpdated": "2026-09-27T18:14:05.131Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:f68b1455-06a5-4c2f-ae5e-0b782421d92a/1#status-board%401.0.0%7Clodash%404.17.21"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash@4.17.21"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-xxjr-mmjv-4gpg"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_Symbol.js _baseGetTag.js _baseTrim.js _freeGlobal.js _getRawTag.js _objectToString.js _root.js _trimmedEndIndex.js debounce.js isObject.js isObjectLike.js isSymbol.js now.js package.json toNumber.js"
+        },
+        {
+          "name": "vexproof:copies-checked",
+          "value": "node_modules/lodash .output/server/node_modules/lodash"
+        },
+        {
+          "name": "vexproof:alias-of",
+          "value": "GHSA-xxjr-mmjv-4gpg"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-rrrm-qjm4-v8hf",
+      "analysis": {
+        "state": "in_triage",
+        "detail": "npm/marked (4.0.9) is present in the shipped bundle; requires manual review. Module-level check: no module rules for marked.",
+        "firstIssued": "2026-09-27T18:14:05.131Z",
+        "lastUpdated": "2026-09-27T18:14:05.131Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:f68b1455-06a5-4c2f-ae5e-0b782421d92a/1#status-board%401.0.0%7Cmarked%404.0.9"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/marked@4.0.9"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:evidence-files",
+          "value": "lib/marked.esm.js=c2edbce545655a15 package.json=8c264f7a20b96755"
+        },
+        {
+          "name": "vexproof:evidence-files-digest",
+          "value": "c69d162acb61981d"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-5v2h-r2cx-5xgj",
+      "analysis": {
+        "state": "in_triage",
+        "detail": "npm/marked (4.0.9) is present in the shipped bundle; requires manual review. Module-level check: no module rules for marked.",
+        "firstIssued": "2026-09-27T18:14:05.131Z",
+        "lastUpdated": "2026-09-27T18:14:05.131Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:f68b1455-06a5-4c2f-ae5e-0b782421d92a/1#status-board%401.0.0%7Cmarked%404.0.9"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/marked@4.0.9"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:evidence-files",
+          "value": "lib/marked.esm.js=c2edbce545655a15 package.json=8c264f7a20b96755"
+        },
+        {
+          "name": "vexproof:evidence-files-digest",
+          "value": "c69d162acb61981d"
+        }
+      ]
+    }
+  ]
+}

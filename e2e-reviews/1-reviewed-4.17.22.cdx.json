@@ -1,0 +1,398 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:2bfa1c6a-ac6b-4a42-8ef8-cfffaef35ee2",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-09-27T17:33:04.001Z",
+    "tools": {
+      "components": [
+        {
+          "type": "application",
+          "name": "vexproof",
+          "version": "0.8.0"
+        }
+      ]
+    },
+    "component": {
+      "type": "application",
+      "bom-ref": "pkg:npm/settings-panel@1.0.0",
+      "purl": "pkg:npm/settings-panel@1.0.0",
+      "name": "pkg:npm/settings-panel@1.0.0"
+    },
+    "properties": [
+      {
+        "name": "vexproof:bundleSbomSerial",
+        "value": "null"
+      },
+      {
+        "name": "vexproof:lockfileSbomSerial",
+        "value": "urn:uuid:a28df168-9180-4fe3-9ca8-e954a1c90829"
+      },
+      {
+        "name": "vexproof:bundleComponentCount",
+        "value": "1"
+      },
+      {
+        "name": "vexproof:lockfileComponentCount",
+        "value": "1"
+      },
+      {
+        "name": "vexproof:input:lockfile-sbom:sha256",
+        "value": "ae192af35a50d67e4cb4c14f6e72b7716c1653472b5b9b78e613d9635d103a0c"
+      },
+      {
+        "name": "vexproof:input:findings-npm-audit:sha256",
+        "value": "7ca3ea95342acda3d07bdc341fa01d70ceff9f29fb325351b161385448c825d4"
+      },
+      {
+        "name": "vexproof:input:modules-esbuild-metafile:sha256",
+        "value": "4a11eeee6bf9e368c195f42b66931be55a0fb47e614b4ed0b2b37a088a792afe"
+      },
+      {
+        "name": "vexproof:licensee",
+        "value": "Demo Org"
+      }
+    ]
+  },
+  "vulnerabilities": [
+    {
+      "id": "GHSA-r5fr-rjxr-66jc",
+      "references": [
+        {
+          "id": "CVE-2026-4800",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash-es@4.17.22 is in the bundle, but only 136 of its files survived the production build (esbuild-metafile). The code affected by GHSA-r5fr-rjxr-66jc — _.template (code injection via options.imports key names) — lives in template.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-27T17:33:04.001Z",
+        "lastUpdated": "2026-09-27T17:33:04.001Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:a28df168-9180-4fe3-9ca8-e954a1c90829/1#settings-panel%401.0.0%7Clodash-es%404.17.22"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash-es@4.17.22"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-r5fr-rjxr-66jc"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_DataView.js _Hash.js _ListCache.js _Map.js _MapCache.js _Promise.js _Set.js _Stack.js _Symbol.js _Uint8Array.js _WeakMap.js _apply.js _arrayEach.js _arrayFilter.js _arrayLikeKeys.js _arrayMap.js _arrayPush.js _assignValue.js _assocIndexOf.js _baseAssign.js _baseAssignIn.js _baseAssignValue.js _baseClone.js _baseCreate.js _baseFlatten.js _baseGet.js _baseGetAllKeys.js _baseGetTag.js _baseIsArguments.js _baseIsMap.js _baseIsNative.js _baseIsSet.js _baseIsTypedArray.js _baseKeys.js _baseKeysIn.js _baseSetToString.js _baseSlice.js _baseTimes.js _baseToString.js _baseUnary.js _baseUnset.js _castPath.js _cloneArrayBuffer.js _cloneBuffer.js _cloneDataView.js _cloneRegExp.js _cloneSymbol.js _cloneTypedArray.js _copyArray.js _copyObject.js _copySymbols.js _copySymbolsIn.js _coreJsData.js _customOmitClone.js _defineProperty.js _flatRest.js _freeGlobal.js _getAllKeys.js _getAllKeysIn.js _getMapData.js _getNative.js _getPrototype.js _getRawTag.js _getSymbols.js _getSymbolsIn.js _getTag.js _getValue.js _hashClear.js _hashDelete.js _hashGet.js _hashHas.js _hashSet.js _initCloneArray.js _initCloneByTag.js _initCloneObject.js _isFlattenable.js _isIndex.js _isKey.js _isKeyable.js _isMasked.js _isPrototype.js _listCacheClear.js _listCacheDelete.js _listCacheGet.js _listCacheHas.js _listCacheSet.js _mapCacheClear.js _mapCacheDelete.js _mapCacheGet.js _mapCacheHas.js _mapCacheSet.js _memoizeCapped.js _nativeCreate.js _nativeKeys.js _nativeKeysIn.js _nodeUtil.js _objectToString.js _overArg.js _overRest.js _parent.js _root.js _setToString.js _shortOut.js _stackClear.js _stackDelete.js _stackGet.js _stackHas.js _stackSet.js _stringToPath.js _toKey.js _toSource.js constant.js eq.js flatten.js identity.js isArguments.js isArray.js isArrayLike.js isBuffer.js isFunction.js isLength.js isMap.js isObject.js isObjectLike.js isPlainObject.js isSet.js isSymbol.js isTypedArray.js keys.js keysIn.js last.js memoize.js omit.js stubArray.js stubFalse.js toString.js"
+        },
+        {
+          "name": "vexproof:copies-checked",
+          "value": "node_modules/lodash-es"
+        }
+      ]
+    },
+    {
+      "id": "CVE-2026-4800",
+      "references": [
+        {
+          "id": "GHSA-r5fr-rjxr-66jc",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash-es@4.17.22 is in the bundle, but only 136 of its files survived the production build (esbuild-metafile). The code affected by GHSA-r5fr-rjxr-66jc — _.template (code injection via options.imports key names) — lives in template.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-27T17:33:04.001Z",
+        "lastUpdated": "2026-09-27T17:33:04.001Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:a28df168-9180-4fe3-9ca8-e954a1c90829/1#settings-panel%401.0.0%7Clodash-es%404.17.22"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash-es@4.17.22"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-r5fr-rjxr-66jc"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_DataView.js _Hash.js _ListCache.js _Map.js _MapCache.js _Promise.js _Set.js _Stack.js _Symbol.js _Uint8Array.js _WeakMap.js _apply.js _arrayEach.js _arrayFilter.js _arrayLikeKeys.js _arrayMap.js _arrayPush.js _assignValue.js _assocIndexOf.js _baseAssign.js _baseAssignIn.js _baseAssignValue.js _baseClone.js _baseCreate.js _baseFlatten.js _baseGet.js _baseGetAllKeys.js _baseGetTag.js _baseIsArguments.js _baseIsMap.js _baseIsNative.js _baseIsSet.js _baseIsTypedArray.js _baseKeys.js _baseKeysIn.js _baseSetToString.js _baseSlice.js _baseTimes.js _baseToString.js _baseUnary.js _baseUnset.js _castPath.js _cloneArrayBuffer.js _cloneBuffer.js _cloneDataView.js _cloneRegExp.js _cloneSymbol.js _cloneTypedArray.js _copyArray.js _copyObject.js _copySymbols.js _copySymbolsIn.js _coreJsData.js _customOmitClone.js _defineProperty.js _flatRest.js _freeGlobal.js _getAllKeys.js _getAllKeysIn.js _getMapData.js _getNative.js _getPrototype.js _getRawTag.js _getSymbols.js _getSymbolsIn.js _getTag.js _getValue.js _hashClear.js _hashDelete.js _hashGet.js _hashHas.js _hashSet.js _initCloneArray.js _initCloneByTag.js _initCloneObject.js _isFlattenable.js _isIndex.js _isKey.js _isKeyable.js _isMasked.js _isPrototype.js _listCacheClear.js _listCacheDelete.js _listCacheGet.js _listCacheHas.js _listCacheSet.js _mapCacheClear.js _mapCacheDelete.js _mapCacheGet.js _mapCacheHas.js _mapCacheSet.js _memoizeCapped.js _nativeCreate.js _nativeKeys.js _nativeKeysIn.js _nodeUtil.js _objectToString.js _overArg.js _overRest.js _parent.js _root.js _setToString.js _shortOut.js _stackClear.js _stackDelete.js _stackGet.js _stackHas.js _stackSet.js _stringToPath.js _toKey.js _toSource.js constant.js eq.js flatten.js identity.js isArguments.js isArray.js isArrayLike.js isBuffer.js isFunction.js isLength.js isMap.js isObject.js isObjectLike.js isPlainObject.js isSet.js isSymbol.js isTypedArray.js keys.js keysIn.js last.js memoize.js omit.js stubArray.js stubFalse.js toString.js"
+        },
+        {
+          "name": "vexproof:copies-checked",
+          "value": "node_modules/lodash-es"
+        },
+        {
+          "name": "vexproof:alias-of",
+          "value": "GHSA-r5fr-rjxr-66jc"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-f23m-r3pf-42rh",
+      "references": [
+        {
+          "id": "CVE-2026-2950",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "not_affected",
+        "detail": "omit() only receives a fixed key list from src/main.js; no user input reaches the path argument",
+        "firstIssued": "2026-09-27T17:33:04.001Z",
+        "lastUpdated": "2026-09-27T17:33:04.136Z",
+        "justification": "code_not_reachable"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:a28df168-9180-4fe3-9ca8-e954a1c90829/1#settings-panel%401.0.0%7Clodash-es%404.17.22"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash-es@4.17.22"
+        },
+        {
+          "name": "vexproof:vulnerable-files",
+          "value": "_baseUnset.js omit.js"
+        },
+        {
+          "name": "vexproof:evidence-files",
+          "value": "_baseUnset.js=7773e16762af23ca omit.js=de577fc677627a13"
+        },
+        {
+          "name": "vexproof:evidence-files-digest",
+          "value": "585102d1fce9b5c9"
+        },
+        {
+          "name": "vexproof:importers",
+          "value": "src/main.js"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "reviewed"
+        },
+        {
+          "name": "vexproof:reviewed-by",
+          "value": "Jane Doe"
+        },
+        {
+          "name": "vexproof:reviewed-at",
+          "value": "2026-09-27T17:33:04.136Z"
+        }
+      ]
+    },
+    {
+      "id": "CVE-2026-2950",
+      "references": [
+        {
+          "id": "GHSA-f23m-r3pf-42rh",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "not_affected",
+        "detail": "omit() only receives a fixed key list from src/main.js; no user input reaches the path argument",
+        "firstIssued": "2026-09-27T17:33:04.001Z",
+        "lastUpdated": "2026-09-27T17:33:04.136Z",
+        "justification": "code_not_reachable"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:a28df168-9180-4fe3-9ca8-e954a1c90829/1#settings-panel%401.0.0%7Clodash-es%404.17.22"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash-es@4.17.22"
+        },
+        {
+          "name": "vexproof:vulnerable-files",
+          "value": "_baseUnset.js omit.js"
+        },
+        {
+          "name": "vexproof:evidence-files",
+          "value": "_baseUnset.js=7773e16762af23ca omit.js=de577fc677627a13"
+        },
+        {
+          "name": "vexproof:evidence-files-digest",
+          "value": "585102d1fce9b5c9"
+        },
+        {
+          "name": "vexproof:importers",
+          "value": "src/main.js"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "reviewed"
+        },
+        {
+          "name": "vexproof:reviewed-by",
+          "value": "Jane Doe"
+        },
+        {
+          "name": "vexproof:reviewed-at",
+          "value": "2026-09-27T17:33:04.136Z"
+        },
+        {
+          "name": "vexproof:alias-of",
+          "value": "GHSA-f23m-r3pf-42rh"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-xxjr-mmjv-4gpg",
+      "references": [
+        {
+          "id": "CVE-2025-13465",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "not_affected",
+        "detail": "omit() only receives a fixed key list from src/main.js; no user input reaches the path argument",
+        "firstIssued": "2026-09-27T17:33:04.001Z",
+        "lastUpdated": "2026-09-27T17:33:04.136Z",
+        "justification": "code_not_reachable"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:a28df168-9180-4fe3-9ca8-e954a1c90829/1#settings-panel%401.0.0%7Clodash-es%404.17.22"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash-es@4.17.22"
+        },
+        {
+          "name": "vexproof:vulnerable-files",
+          "value": "_baseUnset.js omit.js"
+        },
+        {
+          "name": "vexproof:evidence-files",
+          "value": "_baseUnset.js=7773e16762af23ca omit.js=de577fc677627a13"
+        },
+        {
+          "name": "vexproof:evidence-files-digest",
+          "value": "585102d1fce9b5c9"
+        },
+        {
+          "name": "vexproof:importers",
+          "value": "src/main.js"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "reviewed"
+        },
+        {
+          "name": "vexproof:reviewed-by",
+          "value": "Jane Doe"
+        },
+        {
+          "name": "vexproof:reviewed-at",
+          "value": "2026-09-27T17:33:04.136Z"
+        }
+      ]
+    },
+    {
+      "id": "CVE-2025-13465",
+      "references": [
+        {
+          "id": "GHSA-xxjr-mmjv-4gpg",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "not_affected",
+        "detail": "omit() only receives a fixed key list from src/main.js; no user input reaches the path argument",
+        "firstIssued": "2026-09-27T17:33:04.001Z",
+        "lastUpdated": "2026-09-27T17:33:04.136Z",
+        "justification": "code_not_reachable"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:a28df168-9180-4fe3-9ca8-e954a1c90829/1#settings-panel%401.0.0%7Clodash-es%404.17.22"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash-es@4.17.22"
+        },
+        {
+          "name": "vexproof:vulnerable-files",
+          "value": "_baseUnset.js omit.js"
+        },
+        {
+          "name": "vexproof:evidence-files",
+          "value": "_baseUnset.js=7773e16762af23ca omit.js=de577fc677627a13"
+        },
+        {
+          "name": "vexproof:evidence-files-digest",
+          "value": "585102d1fce9b5c9"
+        },
+        {
+          "name": "vexproof:importers",
+          "value": "src/main.js"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "reviewed"
+        },
+        {
+          "name": "vexproof:reviewed-by",
+          "value": "Jane Doe"
+        },
+        {
+          "name": "vexproof:reviewed-at",
+          "value": "2026-09-27T17:33:04.136Z"
+        },
+        {
+          "name": "vexproof:alias-of",
+          "value": "GHSA-xxjr-mmjv-4gpg"
+        }
+      ]
+    }
+  ]
+}

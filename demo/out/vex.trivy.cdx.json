@@ -1,0 +1,294 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:c7d5218d-6f49-412a-8a6c-53f64d8b80a0",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-09-27T02:51:23.898Z",
+    "tools": {
+      "components": [
+        {
+          "type": "application",
+          "name": "vexproof",
+          "version": "0.3.0"
+        }
+      ]
+    },
+    "component": {
+      "type": "application",
+      "bom-ref": "pkg:npm/chart-dashboard@1.0.0",
+      "purl": "pkg:npm/chart-dashboard@1.0.0",
+      "name": "pkg:npm/chart-dashboard@1.0.0"
+    },
+    "properties": [
+      {
+        "name": "vexproof:bundleSbomSerial",
+        "value": "null"
+      },
+      {
+        "name": "vexproof:lockfileSbomSerial",
+        "value": "urn:uuid:9084eaf1-ed4f-4f86-8a2a-0b500c49b2e2"
+      },
+      {
+        "name": "vexproof:bundleComponentCount",
+        "value": "25"
+      },
+      {
+        "name": "vexproof:lockfileComponentCount",
+        "value": "44"
+      },
+      {
+        "name": "vexproof:input:lockfile-sbom:sha256",
+        "value": "be5c597380ef76c995ad9399a405175e162a4adeeb4e5c5fad61591916275e02"
+      },
+      {
+        "name": "vexproof:input:bundle-sbom:sha256",
+        "value": "17c1c53055e4d0bd40ba2b756d213fd7da2e3477df9397535c43627197b56205"
+      },
+      {
+        "name": "vexproof:input:findings-trivy:sha256",
+        "value": "941607962bab3ab7a8bb62c9587f4dce29207eb864bcc81ea770f95454726ea8"
+      },
+      {
+        "name": "vexproof:input:modules-esbuild-metafile:sha256",
+        "value": "c2de980041bdb1041421ba97d1c0d0a4069f17cc667999a76b0a89376cf6e7aa"
+      },
+      {
+        "name": "vexproof:licensee",
+        "value": "Demo Org"
+      }
+    ]
+  },
+  "vulnerabilities": [
+    {
+      "id": "CVE-2026-4800",
+      "references": [
+        {
+          "id": "GHSA-r5fr-rjxr-66jc",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash@4.17.21 is in the bundle, but only 225 of its files survived the production build (esbuild-metafile). The code affected by GHSA-r5fr-rjxr-66jc — _.template — lives in template.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-27T02:51:23.898Z",
+        "lastUpdated": "2026-09-27T02:51:23.898Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:9084eaf1-ed4f-4f86-8a2a-0b500c49b2e2/1#chart-dashboard%401.0.0%7Clodash%404.17.21"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash@4.17.21"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-r5fr-rjxr-66jc"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_DataView.js _Hash.js _ListCache.js _Map.js _MapCache.js _Promise.js _Set.js _SetCache.js _Stack.js _Symbol.js _Uint8Array.js _WeakMap.js _apply.js _arrayEach.js _arrayEvery.js _arrayFilter.js _arrayIncludes.js _arrayIncludesWith.js _arrayLikeKeys.js _arrayMap.js _arrayPush.js _arraySome.js _asciiToArray.js _assignValue.js _assocIndexOf.js _baseAssign.js _baseAssignIn.js _baseAssignValue.js _baseClone.js _baseCreate.js _baseEach.js _baseEvery.js _baseExtremum.js _baseFindIndex.js _baseFlatten.js _baseFor.js _baseForOwn.js _baseGet.js _baseGetAllKeys.js _baseGetTag.js _baseGt.js _baseHasIn.js _baseIndexOf.js _baseIsArguments.js _baseIsEqual.js _baseIsEqualDeep.js _baseIsMap.js _baseIsMatch.js _baseIsNaN.js _baseIsNative.js _baseIsSet.js _baseIsTypedArray.js _baseIteratee.js _baseKeys.js _baseKeysIn.js _baseLt.js _baseMap.js _baseMatches.js _baseMatchesProperty.js _baseOrderBy.js _baseProperty.js _basePropertyDeep.js _baseRange.js _baseRest.js _baseSetToString.js _baseSlice.js _baseSome.js _baseSortBy.js _baseTimes.js _baseToString.js _baseTrim.js _baseUnary.js _baseUniq.js _baseUnset.js _cacheHas.js _castPath.js _castSlice.js _cloneArrayBuffer.js _cloneBuffer.js _cloneDataView.js _cloneRegExp.js _cloneSymbol.js _cloneTypedArray.js _compareAscending.js _compareMultiple.js _copyArray.js _copyObject.js _copySymbols.js _copySymbolsIn.js _coreJsData.js _createBaseEach.js _createBaseFor.js _createCaseFirst.js _createFind.js _createRange.js _createSet.js _customOmitClone.js _defineProperty.js _equalArrays.js _equalByTag.js _equalObjects.js _flatRest.js _freeGlobal.js _getAllKeys.js _getAllKeysIn.js _getMapData.js _getMatchData.js _getNative.js _getPrototype.js _getRawTag.js _getSymbols.js _getSymbolsIn.js _getTag.js _getValue.js _hasPath.js _hasUnicode.js _hashClear.js _hashDelete.js _hashGet.js _hashHas.js _hashSet.js _initCloneArray.js _initCloneByTag.js _initCloneObject.js _isFlattenable.js _isIndex.js _isIterateeCall.js _isKey.js _isKeyable.js _isMasked.js _isPrototype.js _isStrictComparable.js _listCacheClear.js _listCacheDelete.js _listCacheGet.js _listCacheHas.js _listCacheSet.js _mapCacheClear.js _mapCacheDelete.js _mapCacheGet.js _mapCacheHas.js _mapCacheSet.js _mapToArray.js _matchesStrictComparable.js _memoizeCapped.js _nativeCreate.js _nativeKeys.js _nativeKeysIn.js _nodeUtil.js _objectToString.js _overArg.js _overRest.js _parent.js _root.js _setCacheAdd.js _setCacheHas.js _setToArray.js _setToString.js _shortOut.js _stackClear.js _stackDelete.js _stackGet.js _stackHas.js _stackSet.js _strictIndexOf.js _stringToArray.js _stringToPath.js _toKey.js _toSource.js _trimmedEndIndex.js _unicodeToArray.js constant.js debounce.js eq.js every.js find.js findIndex.js flatMap.js flatten.js get.js hasIn.js identity.js isArguments.js isArray.js isArrayLike.js isBoolean.js isBuffer.js isEqual.js isFunction.js isLength.js isMap.js isNaN.js isNil.js isNumber.js isObject.js isObjectLike.js isPlainObject.js isSet.js isString.js isSymbol.js isTypedArray.js keys.js keysIn.js last.js map.js mapValues.js max.js memoize.js min.js noop.js now.js omit.js property.js range.js some.js sortBy.js stubArray.js stubFalse.js throttle.js toFinite.js toInteger.js toNumber.js toString.js uniqBy.js upperFirst.js"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-r5fr-rjxr-66jc",
+      "references": [
+        {
+          "id": "CVE-2026-4800",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash@4.17.21 is in the bundle, but only 225 of its files survived the production build (esbuild-metafile). The code affected by GHSA-r5fr-rjxr-66jc — _.template — lives in template.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-27T02:51:23.898Z",
+        "lastUpdated": "2026-09-27T02:51:23.898Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:9084eaf1-ed4f-4f86-8a2a-0b500c49b2e2/1#chart-dashboard%401.0.0%7Clodash%404.17.21"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash@4.17.21"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-r5fr-rjxr-66jc"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_DataView.js _Hash.js _ListCache.js _Map.js _MapCache.js _Promise.js _Set.js _SetCache.js _Stack.js _Symbol.js _Uint8Array.js _WeakMap.js _apply.js _arrayEach.js _arrayEvery.js _arrayFilter.js _arrayIncludes.js _arrayIncludesWith.js _arrayLikeKeys.js _arrayMap.js _arrayPush.js _arraySome.js _asciiToArray.js _assignValue.js _assocIndexOf.js _baseAssign.js _baseAssignIn.js _baseAssignValue.js _baseClone.js _baseCreate.js _baseEach.js _baseEvery.js _baseExtremum.js _baseFindIndex.js _baseFlatten.js _baseFor.js _baseForOwn.js _baseGet.js _baseGetAllKeys.js _baseGetTag.js _baseGt.js _baseHasIn.js _baseIndexOf.js _baseIsArguments.js _baseIsEqual.js _baseIsEqualDeep.js _baseIsMap.js _baseIsMatch.js _baseIsNaN.js _baseIsNative.js _baseIsSet.js _baseIsTypedArray.js _baseIteratee.js _baseKeys.js _baseKeysIn.js _baseLt.js _baseMap.js _baseMatches.js _baseMatchesProperty.js _baseOrderBy.js _baseProperty.js _basePropertyDeep.js _baseRange.js _baseRest.js _baseSetToString.js _baseSlice.js _baseSome.js _baseSortBy.js _baseTimes.js _baseToString.js _baseTrim.js _baseUnary.js _baseUniq.js _baseUnset.js _cacheHas.js _castPath.js _castSlice.js _cloneArrayBuffer.js _cloneBuffer.js _cloneDataView.js _cloneRegExp.js _cloneSymbol.js _cloneTypedArray.js _compareAscending.js _compareMultiple.js _copyArray.js _copyObject.js _copySymbols.js _copySymbolsIn.js _coreJsData.js _createBaseEach.js _createBaseFor.js _createCaseFirst.js _createFind.js _createRange.js _createSet.js _customOmitClone.js _defineProperty.js _equalArrays.js _equalByTag.js _equalObjects.js _flatRest.js _freeGlobal.js _getAllKeys.js _getAllKeysIn.js _getMapData.js _getMatchData.js _getNative.js _getPrototype.js _getRawTag.js _getSymbols.js _getSymbolsIn.js _getTag.js _getValue.js _hasPath.js _hasUnicode.js _hashClear.js _hashDelete.js _hashGet.js _hashHas.js _hashSet.js _initCloneArray.js _initCloneByTag.js _initCloneObject.js _isFlattenable.js _isIndex.js _isIterateeCall.js _isKey.js _isKeyable.js _isMasked.js _isPrototype.js _isStrictComparable.js _listCacheClear.js _listCacheDelete.js _listCacheGet.js _listCacheHas.js _listCacheSet.js _mapCacheClear.js _mapCacheDelete.js _mapCacheGet.js _mapCacheHas.js _mapCacheSet.js _mapToArray.js _matchesStrictComparable.js _memoizeCapped.js _nativeCreate.js _nativeKeys.js _nativeKeysIn.js _nodeUtil.js _objectToString.js _overArg.js _overRest.js _parent.js _root.js _setCacheAdd.js _setCacheHas.js _setToArray.js _setToString.js _shortOut.js _stackClear.js _stackDelete.js _stackGet.js _stackHas.js _stackSet.js _strictIndexOf.js _stringToArray.js _stringToPath.js _toKey.js _toSource.js _trimmedEndIndex.js _unicodeToArray.js constant.js debounce.js eq.js every.js find.js findIndex.js flatMap.js flatten.js get.js hasIn.js identity.js isArguments.js isArray.js isArrayLike.js isBoolean.js isBuffer.js isEqual.js isFunction.js isLength.js isMap.js isNaN.js isNil.js isNumber.js isObject.js isObjectLike.js isPlainObject.js isSet.js isString.js isSymbol.js isTypedArray.js keys.js keysIn.js last.js map.js mapValues.js max.js memoize.js min.js noop.js now.js omit.js property.js range.js some.js sortBy.js stubArray.js stubFalse.js throttle.js toFinite.js toInteger.js toNumber.js toString.js uniqBy.js upperFirst.js"
+        },
+        {
+          "name": "vexproof:alias-of",
+          "value": "CVE-2026-4800"
+        }
+      ]
+    },
+    {
+      "id": "CVE-2026-2950",
+      "references": [
+        {
+          "id": "GHSA-f23m-r3pf-42rh",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "in_triage",
+        "detail": "npm/lodash (4.17.21) is present in the shipped bundle; requires manual review. Module-level check: vulnerable file(s) bundled: _baseUnset.js, omit.js.",
+        "firstIssued": "2026-09-27T02:51:23.898Z",
+        "lastUpdated": "2026-09-27T02:51:23.898Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:9084eaf1-ed4f-4f86-8a2a-0b500c49b2e2/1#chart-dashboard%401.0.0%7Clodash%404.17.21"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash@4.17.21"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-f23m-r3pf-42rh",
+      "references": [
+        {
+          "id": "CVE-2026-2950",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "in_triage",
+        "detail": "npm/lodash (4.17.21) is present in the shipped bundle; requires manual review. Module-level check: vulnerable file(s) bundled: _baseUnset.js, omit.js.",
+        "firstIssued": "2026-09-27T02:51:23.898Z",
+        "lastUpdated": "2026-09-27T02:51:23.898Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:9084eaf1-ed4f-4f86-8a2a-0b500c49b2e2/1#chart-dashboard%401.0.0%7Clodash%404.17.21"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash@4.17.21"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:alias-of",
+          "value": "CVE-2026-2950"
+        }
+      ]
+    },
+    {
+      "id": "CVE-2025-13465",
+      "references": [
+        {
+          "id": "GHSA-xxjr-mmjv-4gpg",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "in_triage",
+        "detail": "npm/lodash (4.17.21) is present in the shipped bundle; requires manual review. Module-level check: vulnerable file(s) bundled: _baseUnset.js, omit.js.",
+        "firstIssued": "2026-09-27T02:51:23.898Z",
+        "lastUpdated": "2026-09-27T02:51:23.898Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:9084eaf1-ed4f-4f86-8a2a-0b500c49b2e2/1#chart-dashboard%401.0.0%7Clodash%404.17.21"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash@4.17.21"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-xxjr-mmjv-4gpg",
+      "references": [
+        {
+          "id": "CVE-2025-13465",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "in_triage",
+        "detail": "npm/lodash (4.17.21) is present in the shipped bundle; requires manual review. Module-level check: vulnerable file(s) bundled: _baseUnset.js, omit.js.",
+        "firstIssued": "2026-09-27T02:51:23.898Z",
+        "lastUpdated": "2026-09-27T02:51:23.898Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:9084eaf1-ed4f-4f86-8a2a-0b500c49b2e2/1#chart-dashboard%401.0.0%7Clodash%404.17.21"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash@4.17.21"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:alias-of",
+          "value": "CVE-2025-13465"
+        }
+      ]
+    }
+  ]
+}

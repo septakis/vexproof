@@ -1,0 +1,60 @@
+{
+  "name": "vexproof",
+  "version": "0.12.0",
+  "description": "Build-proven VEX for npm: CycloneDX and OpenVEX statements for vulnerable code that never reached your bundle",
+  "author": "Pentakis (https://pentakis.io)",
+  "homepage": "https://vexproof.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pentakis-io/vexproof.git"
+  },
+  "bugs": "https://github.com/pentakis-io/vexproof/issues",
+  "keywords": [
+    "vex",
+    "openvex",
+    "cyclonedx",
+    "sbom",
+    "cra",
+    "npm",
+    "vite",
+    "webpack",
+    "esbuild",
+    "angular",
+    "rspack"
+  ],
+  "type": "module",
+  "bin": {
+    "vexproof": "src/cli.js"
+  },
+  "exports": {
+    ".": "./src/index.js",
+    "./vite": "./src/vite.js",
+    "./rollup": "./src/vite.js",
+    "./webpack": "./src/webpack.cjs",
+    "./rspack": "./src/webpack.cjs"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "keygen": "node scripts/keygen.js",
+    "issue-license": "node scripts/issue-license.js"
+  },
+  "license": "SEE LICENSE IN LICENSE",
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "src/",
+    "LICENSE",
+    "README.md",
+    "action.yml"
+  ],
+  "devDependencies": {
+    "@cyclonedx/cyclonedx-library": "^10.3.0",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "ajv-formats-draft2019": "^1.6.1"
+  },
+  "dependencies": {
+    "acorn": "^8.18.0"
+  }
+}

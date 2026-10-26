@@ -1,0 +1,1143 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:e9aaa342-de72-49c1-8110-5d455a5faf95",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-09-27T02:55:37.279Z",
+    "tools": {
+      "components": [
+        {
+          "type": "application",
+          "name": "vexproof",
+          "version": "0.4.0"
+        }
+      ]
+    },
+    "component": {
+      "type": "application",
+      "bom-ref": "pkg:npm/ngapp@0.0.0",
+      "purl": "pkg:npm/ngapp@0.0.0",
+      "name": "pkg:npm/ngapp@0.0.0"
+    },
+    "properties": [
+      {
+        "name": "vexproof:bundleSbomSerial",
+        "value": "null"
+      },
+      {
+        "name": "vexproof:lockfileSbomSerial",
+        "value": "urn:uuid:dec57f44-196a-4e68-a043-2f9a3abb1eb1"
+      },
+      {
+        "name": "vexproof:bundleComponentCount",
+        "value": "8"
+      },
+      {
+        "name": "vexproof:lockfileComponentCount",
+        "value": "12"
+      },
+      {
+        "name": "vexproof:input:lockfile-sbom:sha256",
+        "value": "d4f143a28dbf9fea2feb90cffce43ff6256529fae65768226868f2fbb4937de3"
+      },
+      {
+        "name": "vexproof:input:bundle-sbom:sha256",
+        "value": "7d27d1123b926f500482cd96c74d32d09d5e2f0b52588a39e8ff031bbe3999eb"
+      },
+      {
+        "name": "vexproof:input:findings-npm-audit:sha256",
+        "value": "c843f0520e8a50d151d0f3370fec2be32a914d1038174f6a3cef5de2b92355b6"
+      },
+      {
+        "name": "vexproof:input:modules-esbuild-metafile:sha256",
+        "value": "443ab3f1fa53da2e64f2bda6c5356d658c2f7eeeab77a570821106abb365befc"
+      },
+      {
+        "name": "vexproof:licensee",
+        "value": "Demo Org"
+      }
+    ]
+  },
+  "vulnerabilities": [
+    {
+      "id": "GHSA-mmhx-hmjr-r674",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Cdompurify%402.3.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/dompurify@2.3.0"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "package"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-vhxf-7vqr-mrjg",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Cdompurify%402.3.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/dompurify@2.3.0"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "package"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-p3vf-v8qc-cwcr",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Cdompurify%402.3.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/dompurify@2.3.0"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "package"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-gx9m-whjm-85jf",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Cdompurify%402.3.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/dompurify@2.3.0"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "package"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-h7mw-gpvr-xq4m",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Cdompurify%402.3.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/dompurify@2.3.0"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "package"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-crv5-9vww-q3g8",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Cdompurify%402.3.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/dompurify@2.3.0"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "package"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-hpcv-96wg-7vj8",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Cdompurify%402.3.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/dompurify@2.3.0"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "package"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-r47g-fvhr-h676",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Cdompurify%402.3.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/dompurify@2.3.0"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "package"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-rp9w-3fw7-7cwq",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Cdompurify%402.3.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/dompurify@2.3.0"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "package"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-c2j3-45gr-mqc4",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Cdompurify%402.3.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/dompurify@2.3.0"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "package"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-cmwh-pvxp-8882",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Cdompurify%402.3.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/dompurify@2.3.0"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "package"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-vxr8-fq34-vvx9",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Cdompurify%402.3.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/dompurify@2.3.0"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "package"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-x4vx-rjvf-j5p4",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Cdompurify%402.3.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/dompurify@2.3.0"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "package"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-76mc-f452-cxcm",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Cdompurify%402.3.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/dompurify@2.3.0"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "package"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-39q2-94rc-95cp",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Cdompurify%402.3.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/dompurify@2.3.0"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "package"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-cjmm-f4jc-qw8r",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Cdompurify%402.3.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/dompurify@2.3.0"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "package"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-cj63-jhhr-wcxv",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Cdompurify%402.3.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/dompurify@2.3.0"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "package"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-h8r8-wccr-v5f2",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Cdompurify%402.3.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/dompurify@2.3.0"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "package"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-55q2-fjhq-7xh7",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Cdompurify%402.3.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/dompurify@2.3.0"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "package"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-35jh-r3h4-6jhm",
+      "references": [
+        {
+          "id": "CVE-2021-23337",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash-es@4.17.20 is in the bundle, but only 21 of its files survived the production build (esbuild-metafile). The code affected by GHSA-35jh-r3h4-6jhm — _.template (command injection via options.variable) — lives in template.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Clodash-es%404.17.20"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash-es@4.17.20"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-35jh-r3h4-6jhm"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_Symbol.js _arrayMap.js _asciiToArray.js _baseGetTag.js _baseSlice.js _baseToString.js _castSlice.js _createCaseFirst.js _freeGlobal.js _getRawTag.js _hasUnicode.js _objectToString.js _root.js _stringToArray.js _unicodeToArray.js capitalize.js isArray.js isObjectLike.js isSymbol.js toString.js upperFirst.js"
+        }
+      ]
+    },
+    {
+      "id": "CVE-2021-23337",
+      "references": [
+        {
+          "id": "GHSA-35jh-r3h4-6jhm",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash-es@4.17.20 is in the bundle, but only 21 of its files survived the production build (esbuild-metafile). The code affected by GHSA-35jh-r3h4-6jhm — _.template (command injection via options.variable) — lives in template.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Clodash-es%404.17.20"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash-es@4.17.20"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-35jh-r3h4-6jhm"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_Symbol.js _arrayMap.js _asciiToArray.js _baseGetTag.js _baseSlice.js _baseToString.js _castSlice.js _createCaseFirst.js _freeGlobal.js _getRawTag.js _hasUnicode.js _objectToString.js _root.js _stringToArray.js _unicodeToArray.js capitalize.js isArray.js isObjectLike.js isSymbol.js toString.js upperFirst.js"
+        },
+        {
+          "name": "vexproof:alias-of",
+          "value": "GHSA-35jh-r3h4-6jhm"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-29mw-wpgm-hmr9",
+      "references": [
+        {
+          "id": "CVE-2020-28500",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash-es@4.17.20 is in the bundle, but only 21 of its files survived the production build (esbuild-metafile). The code affected by GHSA-29mw-wpgm-hmr9 — toNumber, trim, trimEnd (ReDoS in the whitespace-trimming regexes defined in these files) — lives in toNumber.js, trim.js, trimEnd.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Clodash-es%404.17.20"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash-es@4.17.20"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-29mw-wpgm-hmr9"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_Symbol.js _arrayMap.js _asciiToArray.js _baseGetTag.js _baseSlice.js _baseToString.js _castSlice.js _createCaseFirst.js _freeGlobal.js _getRawTag.js _hasUnicode.js _objectToString.js _root.js _stringToArray.js _unicodeToArray.js capitalize.js isArray.js isObjectLike.js isSymbol.js toString.js upperFirst.js"
+        }
+      ]
+    },
+    {
+      "id": "CVE-2020-28500",
+      "references": [
+        {
+          "id": "GHSA-29mw-wpgm-hmr9",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash-es@4.17.20 is in the bundle, but only 21 of its files survived the production build (esbuild-metafile). The code affected by GHSA-29mw-wpgm-hmr9 — toNumber, trim, trimEnd (ReDoS in the whitespace-trimming regexes defined in these files) — lives in toNumber.js, trim.js, trimEnd.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Clodash-es%404.17.20"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash-es@4.17.20"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-29mw-wpgm-hmr9"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_Symbol.js _arrayMap.js _asciiToArray.js _baseGetTag.js _baseSlice.js _baseToString.js _castSlice.js _createCaseFirst.js _freeGlobal.js _getRawTag.js _hasUnicode.js _objectToString.js _root.js _stringToArray.js _unicodeToArray.js capitalize.js isArray.js isObjectLike.js isSymbol.js toString.js upperFirst.js"
+        },
+        {
+          "name": "vexproof:alias-of",
+          "value": "GHSA-29mw-wpgm-hmr9"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-r5fr-rjxr-66jc",
+      "references": [
+        {
+          "id": "CVE-2026-4800",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash-es@4.17.20 is in the bundle, but only 21 of its files survived the production build (esbuild-metafile). The code affected by GHSA-r5fr-rjxr-66jc — _.template (code injection via options.imports key names) — lives in template.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Clodash-es%404.17.20"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash-es@4.17.20"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-r5fr-rjxr-66jc"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_Symbol.js _arrayMap.js _asciiToArray.js _baseGetTag.js _baseSlice.js _baseToString.js _castSlice.js _createCaseFirst.js _freeGlobal.js _getRawTag.js _hasUnicode.js _objectToString.js _root.js _stringToArray.js _unicodeToArray.js capitalize.js isArray.js isObjectLike.js isSymbol.js toString.js upperFirst.js"
+        }
+      ]
+    },
+    {
+      "id": "CVE-2026-4800",
+      "references": [
+        {
+          "id": "GHSA-r5fr-rjxr-66jc",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash-es@4.17.20 is in the bundle, but only 21 of its files survived the production build (esbuild-metafile). The code affected by GHSA-r5fr-rjxr-66jc — _.template (code injection via options.imports key names) — lives in template.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Clodash-es%404.17.20"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash-es@4.17.20"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-r5fr-rjxr-66jc"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_Symbol.js _arrayMap.js _asciiToArray.js _baseGetTag.js _baseSlice.js _baseToString.js _castSlice.js _createCaseFirst.js _freeGlobal.js _getRawTag.js _hasUnicode.js _objectToString.js _root.js _stringToArray.js _unicodeToArray.js capitalize.js isArray.js isObjectLike.js isSymbol.js toString.js upperFirst.js"
+        },
+        {
+          "name": "vexproof:alias-of",
+          "value": "GHSA-r5fr-rjxr-66jc"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-f23m-r3pf-42rh",
+      "references": [
+        {
+          "id": "CVE-2026-2950",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash-es@4.17.20 is in the bundle, but only 21 of its files survived the production build (esbuild-metafile). The code affected by GHSA-f23m-r3pf-42rh — _.unset, _.omit (array-path bypass of the baseUnset fix) — lives in _baseUnset.js, unset.js, omit.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Clodash-es%404.17.20"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash-es@4.17.20"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-f23m-r3pf-42rh"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_Symbol.js _arrayMap.js _asciiToArray.js _baseGetTag.js _baseSlice.js _baseToString.js _castSlice.js _createCaseFirst.js _freeGlobal.js _getRawTag.js _hasUnicode.js _objectToString.js _root.js _stringToArray.js _unicodeToArray.js capitalize.js isArray.js isObjectLike.js isSymbol.js toString.js upperFirst.js"
+        }
+      ]
+    },
+    {
+      "id": "CVE-2026-2950",
+      "references": [
+        {
+          "id": "GHSA-f23m-r3pf-42rh",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash-es@4.17.20 is in the bundle, but only 21 of its files survived the production build (esbuild-metafile). The code affected by GHSA-f23m-r3pf-42rh — _.unset, _.omit (array-path bypass of the baseUnset fix) — lives in _baseUnset.js, unset.js, omit.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Clodash-es%404.17.20"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash-es@4.17.20"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-f23m-r3pf-42rh"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_Symbol.js _arrayMap.js _asciiToArray.js _baseGetTag.js _baseSlice.js _baseToString.js _castSlice.js _createCaseFirst.js _freeGlobal.js _getRawTag.js _hasUnicode.js _objectToString.js _root.js _stringToArray.js _unicodeToArray.js capitalize.js isArray.js isObjectLike.js isSymbol.js toString.js upperFirst.js"
+        },
+        {
+          "name": "vexproof:alias-of",
+          "value": "GHSA-f23m-r3pf-42rh"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-xxjr-mmjv-4gpg",
+      "references": [
+        {
+          "id": "CVE-2025-13465",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash-es@4.17.20 is in the bundle, but only 21 of its files survived the production build (esbuild-metafile). The code affected by GHSA-xxjr-mmjv-4gpg — _.unset, _.omit (prototype pollution in baseUnset; also reachable via pullAt/remove) — lives in _baseUnset.js, unset.js, omit.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Clodash-es%404.17.20"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash-es@4.17.20"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-xxjr-mmjv-4gpg"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_Symbol.js _arrayMap.js _asciiToArray.js _baseGetTag.js _baseSlice.js _baseToString.js _castSlice.js _createCaseFirst.js _freeGlobal.js _getRawTag.js _hasUnicode.js _objectToString.js _root.js _stringToArray.js _unicodeToArray.js capitalize.js isArray.js isObjectLike.js isSymbol.js toString.js upperFirst.js"
+        }
+      ]
+    },
+    {
+      "id": "CVE-2025-13465",
+      "references": [
+        {
+          "id": "GHSA-xxjr-mmjv-4gpg",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash-es@4.17.20 is in the bundle, but only 21 of its files survived the production build (esbuild-metafile). The code affected by GHSA-xxjr-mmjv-4gpg — _.unset, _.omit (prototype pollution in baseUnset; also reachable via pullAt/remove) — lives in _baseUnset.js, unset.js, omit.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Clodash-es%404.17.20"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash-es@4.17.20"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-xxjr-mmjv-4gpg"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_Symbol.js _arrayMap.js _asciiToArray.js _baseGetTag.js _baseSlice.js _baseToString.js _castSlice.js _createCaseFirst.js _freeGlobal.js _getRawTag.js _hasUnicode.js _objectToString.js _root.js _stringToArray.js _unicodeToArray.js capitalize.js isArray.js isObjectLike.js isSymbol.js toString.js upperFirst.js"
+        },
+        {
+          "name": "vexproof:alias-of",
+          "value": "GHSA-xxjr-mmjv-4gpg"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-8hfj-j24r-96c4",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/moment@2.29.1 appears in the lockfile SBOM but no component named npm/moment appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Cmoment%402.29.1"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/moment@2.29.1"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "package"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-wc69-rhjr-hc9g",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/moment@2.29.1 appears in the lockfile SBOM but no component named npm/moment appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+        "firstIssued": "2026-09-27T02:55:37.279Z",
+        "lastUpdated": "2026-09-27T02:55:37.279Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:dec57f44-196a-4e68-a043-2f9a3abb1eb1/1#ngapp%400.0.0%7Cmoment%402.29.1"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/moment@2.29.1"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "package"
+        }
+      ]
+    }
+  ]
+}

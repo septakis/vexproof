@@ -1,0 +1,64 @@
+{
+  "matches": [
+    {
+      "vulnerability": {
+        "id": "GHSA-r5fr-rjxr-66jc",
+        "namespace": "github:language:javascript"
+      },
+      "relatedVulnerabilities": [
+        {
+          "id": "CVE-2026-4800",
+          "namespace": "nvd:cpe"
+        }
+      ],
+      "artifact": {
+        "name": "lodash",
+        "version": "4.17.21",
+        "type": "npm",
+        "purl": "pkg:npm/lodash@4.17.21"
+      }
+    },
+    {
+      "vulnerability": {
+        "id": "GHSA-f23m-r3pf-42rh",
+        "namespace": "github:language:javascript"
+      },
+      "relatedVulnerabilities": [
+        {
+          "id": "CVE-2026-2950",
+          "namespace": "nvd:cpe"
+        }
+      ],
+      "artifact": {
+        "name": "lodash",
+        "version": "4.17.21",
+        "type": "npm",
+        "purl": "pkg:npm/lodash@4.17.21"
+      }
+    },
+    {
+      "vulnerability": {
+        "id": "GHSA-xxjr-mmjv-4gpg",
+        "namespace": "github:language:javascript"
+      },
+      "relatedVulnerabilities": [
+        {
+          "id": "CVE-2025-13465",
+          "namespace": "nvd:cpe"
+        }
+      ],
+      "artifact": {
+        "name": "lodash",
+        "version": "4.17.21",
+        "type": "npm",
+        "purl": "pkg:npm/lodash@4.17.21"
+      }
+    }
+  ],
+  "source": {
+    "type": "sbom"
+  },
+  "descriptor": {
+    "name": "grype"
+  }
+}

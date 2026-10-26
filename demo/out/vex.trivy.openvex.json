@@ -1,0 +1,75 @@
+{
+  "@context": "https://openvex.dev/ns/v0.2.0",
+  "@id": "urn:uuid:420e2816-56d7-4292-bf63-3a10117da31b",
+  "author": "Demo Org",
+  "role": "Document Creator",
+  "timestamp": "2026-09-27T02:51:23.899Z",
+  "version": 1,
+  "tooling": "vexproof/0.3.0",
+  "statements": [
+    {
+      "vulnerability": {
+        "name": "CVE-2026-4800",
+        "aliases": [
+          "GHSA-r5fr-rjxr-66jc"
+        ]
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/chart-dashboard@1.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/lodash@4.17.21"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_present",
+      "impact_statement": "npm/lodash@4.17.21 is in the bundle, but only 225 of its files survived the production build (esbuild-metafile). The code affected by GHSA-r5fr-rjxr-66jc — _.template — lives in template.js, none of which are present in the shipped output.",
+      "timestamp": "2026-09-27T02:51:23.899Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-2950",
+        "aliases": [
+          "GHSA-f23m-r3pf-42rh"
+        ]
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/chart-dashboard@1.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/lodash@4.17.21"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "status_notes": "npm/lodash (4.17.21) is present in the shipped bundle; requires manual review. Module-level check: vulnerable file(s) bundled: _baseUnset.js, omit.js.",
+      "timestamp": "2026-09-27T02:51:23.899Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-13465",
+        "aliases": [
+          "GHSA-xxjr-mmjv-4gpg"
+        ]
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/chart-dashboard@1.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/lodash@4.17.21"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "status_notes": "npm/lodash (4.17.21) is present in the shipped bundle; requires manual review. Module-level check: vulnerable file(s) bundled: _baseUnset.js, omit.js.",
+      "timestamp": "2026-09-27T02:51:23.899Z"
+    }
+  ]
+}
