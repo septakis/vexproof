@@ -7,6 +7,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, existsSync, readFileSync } from 
 import { execFileSync, spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { verifyLicense, detectRepository, normalizeRepo, b64u } from '../src/pro/license.js';
 
 const { publicKey, privateKey } = generateKeyPairSync('ed25519');
@@ -51,13 +52,13 @@ test('the repository comes from CI variables, else the origin remote', () => {
   assert.equal(detectRepository({ env: {}, cwd: mkdtempSync(join(tmpdir(), 'vxp-norepo-')) }), null);
 });
 
-const keyFile = new URL('../.keys/license-private.pem', import.meta.url).pathname;
+const keyFile = fileURLToPath(new URL('../.keys/license-private.pem', import.meta.url));
 test('CLI: an issued open-source license works in its repository and not elsewhere', { skip: !existsSync(keyFile) && 'no signing key' }, () => {
-  const issueScript = new URL('../scripts/issue-license.js', import.meta.url).pathname;
+  const issueScript = fileURLToPath(new URL('../scripts/issue-license.js', import.meta.url));
   const lic = execFileSync('node', [issueScript, '--plan', 'oss', '--org', 'acme', '--repos', 'github.com/acme/widget', '--exp', '2099-01-01', '--key', keyFile], { encoding: 'utf8' }).trim();
   assert.equal(spawnSync('node', [issueScript, '--plan', 'oss', '--org', 'acme', '--exp', '2099-01-01', '--key', keyFile]).status, 2); // repos required
-  const fx = (f) => new URL(`./fixtures/${f}`, import.meta.url).pathname;
-  const cli = new URL('../src/cli.js', import.meta.url).pathname;
+  const fx = (f) => fileURLToPath(new URL(`./fixtures/${f}`, import.meta.url));
+  const cli = fileURLToPath(new URL('../src/cli.js', import.meta.url));
   const run = (origin) => {
     const dir = mkdtempSync(join(tmpdir(), 'vxp-oss-'));
     mkdirSync(join(dir, '.git'));

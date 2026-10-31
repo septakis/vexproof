@@ -125,6 +125,22 @@
   h3{font-size:1rem;font-weight:600;margin:36px 0 10px;letter-spacing:-.005em}
 
   /* ---------- figures (Lottie) ---------- */
+  /* two VEX justifications side by side */
+  .jpair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:6px 0 28px;max-width:58rem}
+  .jcard{border:1px solid var(--rule);background:var(--panel);border-radius:var(--r);min-width:0;overflow:hidden}
+  .jcard.us{border-color:color-mix(in srgb,var(--accent) 45%,var(--rule))}
+  .jcard-who{margin:0;padding:10px 16px;border-bottom:1px solid var(--rule);font-size:.8rem;font-weight:500;color:var(--ink-3)}
+  .jcard.us .jcard-who{color:var(--accent);background:color-mix(in srgb,var(--accent-bg) 55%,transparent)}
+  .jcard-code{margin:16px 16px 6px;font-family:var(--mono);font-size:1.02rem;font-weight:500;overflow-wrap:anywhere}
+  .jcard.us .jcard-code{color:var(--accent)}
+  .jcard-says{margin:0 16px 16px;font-size:.95rem}
+  .jcard dl{margin:0;display:grid;grid-template-columns:max-content minmax(0,1fr);border-top:1px solid var(--rule)}
+  .jcard dt,.jcard dd{margin:0;padding:9px 16px;border-bottom:1px solid var(--rule);font-size:.86rem}
+  .jcard dt{color:var(--ink-3);font-size:.84rem;padding-right:6px}
+  .jcard dd{color:var(--ink-2)}
+  .jcard dt:last-of-type,.jcard dd:last-of-type{border-bottom:0}
+  @media (max-width:760px){.jpair{grid-template-columns:minmax(0,1fr)}}
+  @media (max-width:420px){.jcard dl{grid-template-columns:minmax(0,1fr)} .jcard dt{border-bottom:0;padding-bottom:0} }
   .tier-tag{display:inline-block;font-size:.72rem;font-weight:600;line-height:1.5;padding:1px 9px;border-radius:999px;border:1px solid;white-space:nowrap;vertical-align:middle}
   .tier-tag.free{color:var(--ink-2);border-color:var(--rule-2);background:var(--bg)}
   .tier-tag.pro{color:var(--btn-ink);background:var(--accent);border-color:var(--accent)}
@@ -160,7 +176,7 @@
   .rail{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--rule);font-size:.8rem;color:var(--ink-3)}
   .rail li{padding:9px 12px;display:flex;gap:8px;align-items:baseline;border-top:2px solid transparent;margin-top:-1px;transition:color .25s,border-color .25s}
   .rail li+li{border-left:1px solid var(--rule)}
-  .rail b{font-family:var(--sans);font-weight:500;font-size:.72rem;min-width:1.4em;height:1.4em;display:inline-grid;place-items:center;border:1px solid var(--rule-2);border-radius:50%;flex:none}
+  .rail b{font-family:var(--sans);font-weight:500;font-size:.72rem;line-height:1;font-variant-numeric:lining-nums tabular-nums;width:1.5em;height:1.5em;box-sizing:border-box;display:inline-grid;place-items:center;align-self:center;border:1px solid var(--rule-2);border-radius:50%;flex:none}
   .rail em{font-style:normal;font-family:var(--mono);font-size:.92em}
   .rail li.done{color:var(--ink-2)}
   .rail li.on{color:var(--ink);border-top-color:var(--accent)}
@@ -455,8 +471,8 @@
   <div class="container">
     <a class="brand" href="#"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3" fill="currentColor"/><rect x="24" y="4" width="16" height="16" rx="3" fill="currentColor"/><rect x="14" y="24" width="16" height="16" rx="3" fill="currentColor"/><rect x="34" y="24" width="16" height="16" rx="3" fill="currentColor"/><rect x="24" y="44" width="16" height="16" rx="3" fill="currentColor"/><rect x="46" y="6" width="12" height="12" rx="2.5" fill="none" stroke-width="4" stroke="var(--accent)"/></svg>vexproof</a>
     <span class="ver">v0.12</span>
-    <a class="by" href="https://pentakis.io"><svg class="pk" viewBox="0 0 64 64" aria-hidden="true"><path d="M32.00 5.00L59.58 25.04Q56.45 38.59 43.49 43.64L44.72 26.05Q43.92 12.16 32.00 5.00Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M59.58 25.04L49.05 57.46Q35.19 58.67 26.38 47.91L43.49 43.64Q56.45 38.59 59.58 25.04Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M49.05 57.46L14.95 57.46Q9.52 44.66 17.04 32.95L26.38 47.91Q35.19 58.67 49.05 57.46Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M14.95 57.46L4.42 25.04Q14.92 15.91 28.37 19.45L17.04 32.95Q9.52 44.66 14.95 57.46Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M4.42 25.04L32.00 5.00Q43.92 12.16 44.72 26.05L28.37 19.45Q14.92 15.91 4.42 25.04Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M41.33 28.17L40.43 41.07L27.88 44.20L21.03 33.23L29.34 23.33Z" fill="var(--accent)"/></svg>by Pentakis</a>
-    <nav aria-label="Site"><a class="wide-only" href="#how">How it works</a><a class="wide-only" href="#failures">Where others fail</a><a class="wide-only" href="#scanners">Compare</a><a href="#pricing">Pricing</a><a href="docs/">Docs</a><a href="https://github.com/pentakis-io/vexproof">GitHub</a></nav>
+    <a class="by" href="https://septakis.io"><svg class="pk" viewBox="0 0 64 64" aria-hidden="true"><path d="M32.00 5.00L59.58 25.04Q56.45 38.59 43.49 43.64L44.72 26.05Q43.92 12.16 32.00 5.00Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M59.58 25.04L49.05 57.46Q35.19 58.67 26.38 47.91L43.49 43.64Q56.45 38.59 59.58 25.04Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M49.05 57.46L14.95 57.46Q9.52 44.66 17.04 32.95L26.38 47.91Q35.19 58.67 49.05 57.46Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M14.95 57.46L4.42 25.04Q14.92 15.91 28.37 19.45L17.04 32.95Q9.52 44.66 14.95 57.46Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M4.42 25.04L32.00 5.00Q43.92 12.16 44.72 26.05L28.37 19.45Q14.92 15.91 4.42 25.04Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M41.33 28.17L40.43 41.07L27.88 44.20L21.03 33.23L29.34 23.33Z" fill="var(--accent)"/></svg>by Septakis</a>
+    <nav aria-label="Site"><a class="wide-only" href="#how">How it works</a><a class="wide-only" href="#failures">Where others fail</a><a class="wide-only" href="#scanners">Compare</a><a href="#pricing">Pricing</a><a href="docs/">Docs</a><a href="https://github.com/septakis/vexproof">GitHub</a></nav>
     <a class="btn sm" href="#setup">Get started</a>
   </div>
 </header>
@@ -471,7 +487,7 @@
           <p class="lead">Most of the vulnerable npm code your scanner flags never makes it into your app. vexproof proves which of it isn't there, and writes that down in a VEX file your scanner applies and your auditor can check. Evidence you can hand someone, not a dashboard.</p>
           <div class="ctas">
             <a class="btn" href="#setup">Try it on your build</a>
-            <a class="btn ghost" href="https://github.com/pentakis-io/vexproof">See the code</a>
+            <a class="btn ghost" href="https://github.com/septakis/vexproof">See the code</a>
           </div>
           <p class="trust"><span>MIT-licensed core</span><span>Runs in your own CI</span><span>No per-seat pricing</span></p>
         </div>
@@ -527,7 +543,29 @@
       <div class="label"><span>How it works</span></div>
       <div class="body">
         <h2>It checks what shipped, not what might be called</h2>
-        <p>Reachability tools read your source and guess whether vulnerable code could ever run. vexproof asks a simpler question: did the bundler put it in the output at all? If it didn't, the code isn't unreachable, it's absent. The VEX says exactly that, <code>code_not_present</code>, with the bundler's own record attached so anyone can check.</p>
+        <p>A VEX statement can say vulnerable code doesn't matter in two ways, and they claim different things. Reachability tools read your source and infer whether the code could ever run. vexproof asks a simpler question: did the bundler put it in the output at all? If it didn't, the code isn't unreachable, it's absent.</p>
+        <div class="jpair" role="group" aria-label="Two ways a VEX statement says code is not affected">
+          <div class="jcard">
+            <p class="jcard-who">Reachability analysis</p>
+            <p class="jcard-code">code_not_reachable</p>
+            <p class="jcard-says">The vulnerable code ships. An analysis of your source concludes nothing calls it.</p>
+            <dl>
+              <dt>Rests on</dt><dd>A call graph inferred from source</dd>
+              <dt>To check it</dt><dd>Rerun the analysis, or trust it</dd>
+              <dt>Wrong when</dt><dd>A call path is hidden from it: dynamic access, or a framework or dependency calling the code</dd>
+            </dl>
+          </div>
+          <div class="jcard us">
+            <p class="jcard-who">vexproof</p>
+            <p class="jcard-code">code_not_present</p>
+            <p class="jcard-says">The vulnerable code isn't in what shipped. The bundler's record of its output shows it.</p>
+            <dl>
+              <dt>Rests on</dt><dd>The bundler's record of every file it emitted, attached to the statement</dd>
+              <dt>To check it</dt><dd>Look for the file in the build output</dd>
+              <dt>Wrong when</dt><dd>The record misses part of the build, so vexproof <a href="#safeguards">stops</a> when a shipped file isn't in it</dd>
+            </dl>
+          </div>
+        </div>
 
         <p class="tier-note"><span class="tier-tag free">Free</span> answers at the package level. <span class="tier-tag pro">Pro</span> goes on to the file level, and keeps the decisions people make.</p>
         <div class="figs">
@@ -813,13 +851,14 @@
       <div class="label"><span>Compare</span></div>
       <div class="body">
         <h2>How it fits with what you have</h2>
-        <p>vexproof doesn't replace your scanner or reachability platform. It reads what they report and writes VEX they apply, as a CLI or a GitHub Action. Every statement carries both the CVE and GHSA IDs, so one file matches Trivy, Grype and npm audit alike.</p>
+        <p>vexproof doesn't replace your scanner or reachability platform. It reads what they report and writes VEX they apply, as a CLI or a GitHub Action. Every statement carries both the CVE and GHSA IDs, so one file matches Trivy, Grype and npm audit alike. GitHub's Dependabot reads no VEX, so with Pro the Action can also dismiss the alerts a run settles.</p>
         <div class="tablewrap">
           <table class="compare">
             <thead><tr><th></th><th>Lockfile scanners</th><th>Reachability platforms</th><th class="us">vexproof</th></tr></thead>
             <tbody>
               <tr><th scope="row">Question</th><td>Is a vulnerable version installed?</td><td>Could the vulnerable code be called?</td><td class="us">Did the vulnerable code ship?</td></tr>
               <tr><th scope="row">Evidence</th><td>Lockfile or SBOM</td><td>Call graph inferred from source</td><td class="us">The bundler's record, or the deployment</td></tr>
+              <tr><th scope="row">VEX it writes</th><td>None</td><td><code>code_not_reachable</code>, where it writes VEX</td><td class="us"><code>code_not_present</code></td></tr>
               <tr><th scope="row">Output</th><td>Findings</td><td>Prioritised findings, usually in a dashboard</td><td class="us">VEX your scanner and auditor apply</td></tr>
               <tr><th scope="row">Server apps</th><td>Yes, by lockfile</td><td>Varies by language</td><td class="us">Next.js, Nuxt and similar, by deployment</td></tr>
               <tr><th scope="row">Where it runs</th><td>CI or locally</td><td>Usually a hosted service</td><td class="us">In your own CI, with no account</td></tr>
@@ -927,7 +966,7 @@
         </div>
 
         <h3 class="h-pricing" id="pricing">One price for the whole team</h3>
-        <p>Priced so one person can approve it on a card. Per-developer platforms commonly list $25–50 per developer per month, which is $6,000–12,000 a year for a team of 20.</p>
+        <p>Per-developer platforms commonly list $25–50 per developer per month, which is $6,000–12,000 a year for a team of 20.</p>
         <div class="tiers">
           <div class="tier free">
             <h3>Free</h3>
@@ -967,7 +1006,7 @@
             <h3>Working on open source? Pro is free.</h3>
             <p>Public repositories under an OSI-approved license get a free Pro license, renewed yearly. It names your repositories and unlocks Pro only when vexproof runs in one of them, checked on the runner from your CI variables or git remote.</p>
           </div>
-          <a class="btn ghost" href="https://github.com/pentakis-io/vexproof/issues/new?title=Open-source%20license%20request&amp;body=Repositories%3A%20">Request a license</a>
+          <a class="btn ghost" href="https://github.com/septakis/vexproof/issues/new?title=Open-source%20license%20request&amp;body=Repositories%3A%20">Request a license</a>
         </div>
       </div>
     </div>
@@ -1027,13 +1066,13 @@
   <div class="container">
     <div class="foot-brand">
       <a class="brand" href="#"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3" fill="currentColor"/><rect x="24" y="4" width="16" height="16" rx="3" fill="currentColor"/><rect x="14" y="24" width="16" height="16" rx="3" fill="currentColor"/><rect x="34" y="24" width="16" height="16" rx="3" fill="currentColor"/><rect x="24" y="44" width="16" height="16" rx="3" fill="currentColor"/><rect x="46" y="6" width="12" height="12" rx="2.5" fill="none" stroke-width="4" stroke="var(--accent)"/></svg>vexproof</a>
-      <p>vexproof is made by <a class="maker" href="https://pentakis.io"><svg class="pk" viewBox="0 0 64 64" aria-hidden="true"><path d="M32.00 5.00L59.58 25.04Q56.45 38.59 43.49 43.64L44.72 26.05Q43.92 12.16 32.00 5.00Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M59.58 25.04L49.05 57.46Q35.19 58.67 26.38 47.91L43.49 43.64Q56.45 38.59 59.58 25.04Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M49.05 57.46L14.95 57.46Q9.52 44.66 17.04 32.95L26.38 47.91Q35.19 58.67 49.05 57.46Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M14.95 57.46L4.42 25.04Q14.92 15.91 28.37 19.45L17.04 32.95Q9.52 44.66 14.95 57.46Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M4.42 25.04L32.00 5.00Q43.92 12.16 44.72 26.05L28.37 19.45Q14.92 15.91 4.42 25.04Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M41.33 28.17L40.43 41.07L27.88 44.20L21.03 33.23L29.34 23.33Z" fill="var(--accent)"/></svg>Pentakis</a>, a Chicago company. Founded by <a href="https://bradjste.com">Brad Stevenson</a>.</p>
+      <p>vexproof is made by <a class="maker" href="https://septakis.io"><svg class="pk" viewBox="0 0 64 64" aria-hidden="true"><path d="M32.00 5.00L59.58 25.04Q56.45 38.59 43.49 43.64L44.72 26.05Q43.92 12.16 32.00 5.00Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M59.58 25.04L49.05 57.46Q35.19 58.67 26.38 47.91L43.49 43.64Q56.45 38.59 59.58 25.04Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M49.05 57.46L14.95 57.46Q9.52 44.66 17.04 32.95L26.38 47.91Q35.19 58.67 49.05 57.46Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M14.95 57.46L4.42 25.04Q14.92 15.91 28.37 19.45L17.04 32.95Q9.52 44.66 14.95 57.46Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M4.42 25.04L32.00 5.00Q43.92 12.16 44.72 26.05L28.37 19.45Q14.92 15.91 4.42 25.04Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M41.33 28.17L40.43 41.07L27.88 44.20L21.03 33.23L29.34 23.33Z" fill="var(--accent)"/></svg>Septakis</a>, a Chicago company. Founded by <a href="https://bradjste.com">Brad Stevenson</a>.</p>
     </div>
     <nav aria-label="Product"><h2>Product</h2><a href="#how">How it works</a><a href="#failures">Where others fail</a><a href="#scanners">Compare</a><a href="#pricing">Pricing</a></nav>
-    <nav aria-label="Resources"><h2>Resources</h2><a href="docs/">Docs</a><a href="#setup">Setup</a><a href="https://github.com/pentakis-io/vexproof">GitHub</a><a href="#faq">FAQ</a></nav>
+    <nav aria-label="Resources"><h2>Resources</h2><a href="docs/">Docs</a><a href="#setup">Setup</a><a href="https://github.com/septakis/vexproof">GitHub</a><a href="#faq">FAQ</a></nav>
     <nav aria-label="Formats"><h2>Standards</h2><a href="https://cyclonedx.org">CycloneDX</a><a href="https://github.com/openvex/spec">OpenVEX</a><a href="https://osv.dev">OSV</a></nav>
   </div>
-  <div class="container legal"><span>© 2026 Pentakis</span><span>The vexproof core is MIT-licensed. Pro has its own commercial license.</span></div>
+  <div class="container legal"><span>© 2026 Septakis</span><span>The vexproof core is MIT-licensed. Pro has its own commercial license.</span></div>
 </footer>
 
 <script>

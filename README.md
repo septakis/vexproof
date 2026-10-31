@@ -25,6 +25,11 @@ Full guides and reference: [vexproof.dev/docs](https://vexproof.dev/docs/) (sour
 | **Vulnerable files not in bundle** → `not_affected` (`--modules`) | | ✓ |
 | **Audit report**: printable HTML with evidence, reviewer names, input hashes (`--report`) | | ✓ |
 | **Baselines**: reviewed decisions carry into the next release; `--fail-on new` only fails on new risk (`--baseline`) | | ✓ |
+| **Dependabot**: dismiss the GitHub alerts a VEX settles, and reopen them if it stops (`vexproof dependabot`) | | ✓ |
+| Email support, with a response within a few business days (paid licenses) | | ✓ |
+
+Planned for Pro, with no dates yet: CSAF output, signed VEX that proves who produced it, and a
+rollup across repositories. Keys issued today already cover them.
 
 On a fresh Angular 20 app with `lodash-es` (one function used), `moment` and `dompurify`
 (installed, never imported), `npm audit` reports 26 advisories. Free settles 21. Pro settles the
@@ -83,7 +88,7 @@ webpack plugin fails on Rspack, so this is the Rspack path.
 ```
 vexproof --lockfile bom.lockfile.json --bundle bom.bundle.json \
           --findings audit.json --modules dist/app/stats.json \
-          --product pkg:npm/my-app@1.4.0 --out vex.cdx.json \
+          --product pkg:npm/my-app@1.4.0 --out vex.cdx.json [--spec-version 1.7] \
           [--baseline previous.vex.cdx.json --fail-on new --report report.html]
 ```
 
@@ -103,16 +108,44 @@ carries both on every statement (from OSV and its own rules), so one VEX file ma
 | Trivy, any target | `--openvex vex.openvex.json` | `trivy fs . --vex vex.openvex.json` | Product = the app PURL, subcomponent = the package. The app PURL must be what Trivy sees as the project root (default: the lockfile SBOM's own component). |
 | Trivy, SBOM scan | `--out vex.cdx.json` | `trivy sbom bom.lockfile.json --vex vex.cdx.json` | `affects` are BOM-Links into that exact lockfile SBOM (serial + version). Trivy keeps one CycloneDX statement per ID, so prefer OpenVEX when two packages share an advisory. |
 | Grype, SBOM or directory scan | `--openvex vex.openvex.json --openvex-package-products` | `grype sbom:bom.lockfile.json --vex vex.openvex.json` | Grype only matches the package's own PURL as the product on these scans, so the flag adds that form. Use that file only for this app. |
-| Dependency-Track, Anchore, other CycloneDX tools | `--out vex.cdx.json` | upload beside the lockfile SBOM | CycloneDX 1.6, validated against the official schema. |
+| Dependency-Track | `--out vex.cdx.json` | upload after the lockfile SBOM has been analysed ([below](#dependency-track)) | Each entry names its source (`GITHUB` for GHSA, `NVD` for CVE), which Dependency-Track 4.x needs. Applies to every component with the finding. |
+| Anchore, other CycloneDX tools | `--out vex.cdx.json` | upload beside the lockfile SBOM | CycloneDX 1.6, or 1.7 with `--spec-version 1.7`, validated against the official schema. |
 
-`interop/run.sh <dir>` applies the files with the matching code Trivy and Grype themselves use
-(`openvex/go-vex`, `cyclonedx-go`'s BOM-Link parser, Trivy's package-match rule) and prints what each
-scanner would filter.
+`interop/live.sh` runs the real Trivy and Grype on the demo app, with and without vexproof's VEX, and
+checks that each one hides exactly the findings the VEX settles and still shows every other one: Trivy on
+`fs` and `sbom` scans with OpenVEX, CycloneDX 1.6 and 1.7; Grype on SBOM and directory scans; VEX made from
+OSV and from each scanner's own report. Run it before each release, or with `vexproof@<version>` against a
+published package. It needs `trivy`, `grype` and network access. `interop/run.sh <dir>` is the offline
+version: it applies the files with the matching code Trivy and Grype use (`openvex/go-vex`,
+`cyclonedx-go`'s BOM-Link parser, Trivy's package-match rule) and prints what each would filter.
+
+### Dependency-Track
+
+Dependency-Track applies a VEX only to findings it already has, so upload the lockfile SBOM, wait for
+its analysis to finish, then upload the VEX. The API key needs `BOM_UPLOAD`, `VULNERABILITY_ANALYSIS`
+and, to create the project, `PROJECT_CREATION_UPLOAD`.
+
+```bash
+DT=https://dtrack.example.com; KEY="$DT_API_KEY"; NAME=my-app; VERSION=1.4.0
+token=$(curl -sf -H "X-Api-Key: $KEY" -F autoCreate=true -F projectName=$NAME -F projectVersion=$VERSION \
+  -F bom=@bom.lockfile.json "$DT/api/v1/bom" | jq -r .token)
+while curl -sf -H "X-Api-Key: $KEY" "$DT/api/v1/event/token/$token" | jq -e .processing >/dev/null; do sleep 5; done
+curl -sf -H "X-Api-Key: $KEY" -F projectName=$NAME -F projectVersion=$VERSION -F vex=@vex.cdx.json "$DT/api/v1/vex"
+```
+
+Each statement shows up as an analysis with its state, justification and vexproof's reasoning as the
+details, commented "CycloneDX VEX". Two things to know:
+
+- Dependency-Track 4.x skips any VEX entry without a source. vexproof names one on every GHSA (`GITHUB`, which
+  is also where Dependency-Track's OSV mirror files GHSA advisories) and CVE (`NVD`) entry.
+- Dependency-Track applies a BOM-Link statement to every component in the project that has the finding, not
+  only the one linked. When two copies of a package get different verdicts on one advisory, vexproof writes
+  the open statement last, so the copy that ships is never suppressed. Both end up open; review them there.
 
 ## GitHub Action
 
 ```yaml
-- uses: pentakis-io/vexproof@v0      # after your build and SBOM steps
+- uses: septakis/vexproof@v0      # after your build and SBOM steps
   with:
     lockfile: bom.lockfile.json
     bundle: dist/bom.bundle.json
@@ -120,6 +153,47 @@ scanner would filter.
     findings: trivy.json          # or omit to query OSV
     openvex: vex.openvex.json
     fail-on: in_triage
+    license: ${{ secrets.VEXPROOF_LICENSE }}
+```
+
+## Dependabot (Pro)
+
+Dependabot reads no VEX, so alerts for code that never shipped stay open in your repository. `vexproof dependabot`
+applies the VEX to them through GitHub's API. Without a license that includes `dependabot`, it says so, changes
+nothing and exits 0, `--dry-run` included:
+
+```
+vexproof dependabot --vex vex.cdx.json --lockfile bom.lockfile.json --dry-run
+```
+
+- It **dismisses** an open npm alert when the VEX settles it (`not_affected` or `false_positive`) for every
+  installed version of that package inside the alert's vulnerable range. The comment starts with `vexproof:` and
+  says why, with a link to the run, within GitHub's 280 characters. A version the VEX says nothing about keeps the
+  alert open.
+- It **reopens** an alert it dismissed earlier when a later VEX no longer settles it, for example after a new
+  import brings the vulnerable code into the build.
+- It **never touches** an alert a person dismissed, an alert with a dismissal request waiting for approval, or one
+  on a development dependency.
+- `--manifest` picks the lockfiles whose alerts to change (a file or a folder, repeatable; default the current
+  folder, which is the repository root in CI). `--repo owner/name` defaults to `GITHUB_REPOSITORY`, then the git
+  origin. A VEX written with `--browser-only` is refused, because a server may run packages the browser bundle
+  leaves out.
+- It needs a token that can **write** Dependabot alerts: a fine-grained token or GitHub App token with
+  "Dependabot alerts" read and write, from `--token`, `VEXPROOF_DEPENDABOT_TOKEN`, `GH_TOKEN` or `GITHUB_TOKEN`. The
+  workflow's own `GITHUB_TOKEN` can read alerts (`permissions: vulnerability-alerts: read`) but not change them, so
+  it only works with `--dry-run`.
+- In Actions, only a run of the repository's default branch changes alerts, because that is the branch they
+  describe. Other runs preview.
+
+The Action does this after it writes the VEX, including when `fail-on` stops the job:
+
+```yaml
+- uses: septakis/vexproof@v0
+  with:
+    lockfile: bom.lockfile.json
+    bundle: dist/bom.bundle.json
+    dependabot: true
+    dependabot-token: ${{ secrets.DEPENDABOT_ALERTS_TOKEN }}
     license: ${{ secrets.VEXPROOF_LICENSE }}
 ```
 
@@ -276,8 +350,8 @@ vexproof is one npm package under two licenses.
   not open source.
 
 Every source file says which it is in an `SPDX-License-Identifier` line, and a test fails if one
-is in the wrong place. Without a key, vexproof uses the Pro files only to check for a key and to
-count the findings Pro would settle. What vexproof writes for you (VEX, reports, rules) is yours
+is in the wrong place. Without a key, vexproof uses the Pro files only to check for a key, to read
+the rules that ship with it, and to count the findings Pro would settle. What vexproof writes for you (VEX, reports, rules) is yours
 under either license and stays valid after a key expires.
 
 `package.json` says `SEE LICENSE IN LICENSE`, which is npm's form for a package that isn't under
@@ -289,12 +363,15 @@ A license key is a signed token, verified locally. Provide it with `--license <t
 `VEXPROOF_LICENSE`, or a `.vexproof-license` file.
 
 - License checks make no network calls.
-- A missing, invalid or expired license never fails a build; vexproof drops to free features and
-  says so once.
+- A missing, invalid, expired or revoked license never fails a build; vexproof drops to free
+  features and says so once.
 - 14-day grace period after expiry.
+- A license can be revoked before it expires. Each release carries a list of revoked license ids
+  (`src/pro/revoked.json`), so a revocation applies once a user is on a version that includes it.
 - `--quiet` or `VEXPROOF_QUIET=1` hides the free-tier hint.
 
-Pro is $1,200 per organization per year, with no seats.
+Pro is $1,200 per organization per year, with no seats. A paid license includes email support, with
+a response within a few business days.
 
 ### Open-source projects
 
@@ -303,7 +380,7 @@ open-source license names its repositories (`github.com/owner/repo`) and unlocks
 vexproof runs in one of them. The repository comes from `GITHUB_REPOSITORY`, GitLab's
 `CI_PROJECT_PATH` or Bitbucket's `BITBUCKET_REPO_FULL_NAME`, else the `origin` remote in the
 nearest `.git/config`. Elsewhere the license runs free features and says which repositories it
-covers. Still no network calls.
+covers. Still no network calls. Help for open-source licenses is through GitHub issues.
 
 ### Issuing licenses (maintainer)
 
@@ -317,9 +394,24 @@ Keep `.keys/` offline and backed up. Re-keying invalidates every license already
 key in this repo was generated for testing; run `npm run keygen -- --force` before your first
 real release.
 
+### Revoking a license (maintainer)
+
+```
+npm run revoke-license -- --token <token|file>    # takes the id from the license itself
+npm run revoke-license -- --id <license id> [--note "text"]
+npm run revoke-license -- --list
+```
+
+This adds the license id to `src/pro/revoked.json`. It takes effect in the next version you
+publish: runs on that version or later treat the license as invalid and use free features. The
+GitHub Action runs the latest version by default, so it picks up a revocation on the next run. A
+project that installs vexproof as a dependency gets it when it updates; a copy pinned to an older
+version keeps accepting the license until it expires. The list, notes included, is public in the
+npm package, so keep customer names out of notes.
+
 ## Tests
 
-`npm test` runs 104 tests, including schema validation of both output formats. Most fixtures are
+`npm test` runs 126 tests, including schema validation of both output formats. Most fixtures are
 real builds, slimmed down:
 
 - two Angular 20 apps, one using only `capitalize` and one also using `template` and `omit`,

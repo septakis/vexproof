@@ -1,0 +1,5 @@
+{
+  "license": "LicenseRef-vexproof-Pro",
+  "about": "License keys withdrawn before their expiry date, by license id. vexproof treats a key listed here as invalid and runs its free features only. Maintained with scripts/revoke-license.js; this file is published with the package.",
+  "revoked": []
+}

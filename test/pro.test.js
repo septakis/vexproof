@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: MIT
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, existsSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { readFileSync, existsSync, mkdtempSync, writeFileSync, cpSync, symlinkSync } from 'node:fs';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { generateKeyPairSync, sign } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { readModuleMap, splitNodeModulesPath } from '../src/modules.js';
 import { triage, toCycloneDxVex, summarize } from '../src/index.js';
 import { evaluateModuleRule } from '../src/pro/module-check.js';
 import { fromNpmAudit } from '../src/sources.js';
-import { verifyLicense, b64u } from '../src/pro/license.js';
+import { verifyLicense, b64u, PRO_FEATURES, RESERVED_FEATURES } from '../src/pro/license.js';
 import { readBaseline, applyBaseline } from '../src/pro/baseline.js';
 import { recordReview } from '../src/review.js';
 import { renderReport } from '../src/pro/report.js';
@@ -123,6 +124,28 @@ test('license: valid token unlocks listed features only', () => {
   assert.equal(l.valid, true);
   assert.deepEqual(l.features, ['modules']);
 });
+test('license: dependabot is a Pro feature', () => {
+  assert.ok(PRO_FEATURES.includes('dependabot'));
+  assert.deepEqual(verifyLicense(issue({ org: 'Acme', exp: '2027-01-01', features: ['dependabot'] }), { publicKeyPem: pubPem, now }).features, ['dependabot']);
+});
+test('license: a reserved feature unlocks nothing until it ships', () => {
+  assert.deepEqual(RESERVED_FEATURES, ['csaf', 'signing', 'rollup']);
+  assert.deepEqual(RESERVED_FEATURES.filter((f) => PRO_FEATURES.includes(f)), []);
+  const l = verifyLicense(issue({ org: 'Acme', exp: '2027-01-01', features: RESERVED_FEATURES }), { publicKeyPem: pubPem, now });
+  assert.equal(l.valid, true);
+  assert.equal(l.pro, false);
+  assert.deepEqual(l.features, []);
+});
+test('issue-license: a default key carries the reserved features, and rejects unknown ones', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'vexproof-issue-'));
+  const key = join(dir, 'private.pem');
+  writeFileSync(key, generateKeyPairSync('ed25519').privateKey.export({ type: 'pkcs8', format: 'pem' }));
+  const script = fileURLToPath(new URL('../scripts/issue-license.js', import.meta.url));
+  const run = (...a) => spawnSync(process.execPath, [script, '--org', 'Acme', '--exp', '2027-01-01', '--key', key, ...a], { encoding: 'utf8' });
+  const payload = JSON.parse(b64u.dec(run().stdout.trim().split('.')[1]).toString('utf8'));
+  assert.deepEqual(payload.features, [...PRO_FEATURES, ...RESERVED_FEATURES]);
+  assert.match(run('--features', 'modules,bogus').stderr, /unknown feature\(s\): bogus/);
+});
 test('license: tampered payload or wrong key fails closed to free', () => {
   const t = issue({ org: 'Acme', exp: '2027-01-01', features: ['modules'] });
   const [p, , s] = t.split('.');
@@ -188,8 +211,8 @@ test('report shows input hashes, evidence and every statement', () => {
 
 // ---------- CLI behaviour ----------
 
-const cli = new URL('../src/cli.js', import.meta.url).pathname;
-const f = (n) => new URL(`./fixtures/${n}`, import.meta.url).pathname;
+const cli = fileURLToPath(new URL('../src/cli.js', import.meta.url));
+const f = (n) => fileURLToPath(new URL(`./fixtures/${n}`, import.meta.url));
 const runArgs = ['--lockfile', f('angular.bom.lockfile.json'), '--bundle', f('angular-template.bom.bundle.json'), '--findings', f('angular.audit.json'), '--modules', f('angular-template.metafile.json')];
 
 test('CLI free: shows a Pro hint, gate on in_triage exits 1, --quiet hides the hint', () => {
@@ -210,10 +233,10 @@ test('CLI: invalid license never breaks the build', () => {
   assert.match(r.stderr, /running free features only/);
 });
 
-const keyFile = new URL('../.keys/license-private.pem', import.meta.url).pathname;
+const keyFile = fileURLToPath(new URL('../.keys/license-private.pem', import.meta.url));
 test('CLI Pro: report, baseline and --fail-on new (needs .keys from scripts/keygen.js)', { skip: !existsSync(keyFile) && 'no signing key; run npm run keygen' }, () => {
   const dir = mkdtempSync(join(tmpdir(), 'bvx-'));
-  const lic = execFileSync('node', [new URL('../scripts/issue-license.js', import.meta.url).pathname, '--org', 'Test Org', '--exp', '2099-01-01', '--key', keyFile], { encoding: 'utf8' }).trim();
+  const lic = execFileSync('node', [fileURLToPath(new URL('../scripts/issue-license.js', import.meta.url)), '--org', 'Test Org', '--exp', '2099-01-01', '--key', keyFile], { encoding: 'utf8' }).trim();
   const env = { ...process.env, VEXPROOF_LICENSE: lic };
   const v1 = join(dir, 'v1.json');
   let r = spawnSync('node', [cli, ...runArgs, '--out', v1, '--report', join(dir, 'r.html')], { env, cwd: dir, encoding: 'utf8' });
@@ -230,4 +253,64 @@ test('CLI Pro: report, baseline and --fail-on new (needs .keys from scripts/keyg
   r = spawnSync('node', [cli, ...runArgs, '--out', join(dir, 'v3.json'), '--baseline', join(dir, 'old.json'), '--fail-on', 'new'], { env, cwd: dir, encoding: 'utf8' });
   assert.equal(r.status, 1);
   assert.match(r.stderr, /4 new open finding/);
+});
+
+// ---------- revocation ----------
+
+test('license: a revoked id is invalid, and the same license without the revocation is not', () => {
+  const id = '5d0c1c62-6a1e-4c2b-9f6a-0d8f1a2b3c4d';
+  const t = issue({ id, org: 'Acme', exp: '2027-01-01', features: ['modules'] });
+  assert.equal(verifyLicense(t, { publicKeyPem: pubPem, now, revoked: new Set() }).valid, true);
+  const r = verifyLicense(t, { publicKeyPem: pubPem, now, revoked: [id.toUpperCase()] });
+  assert.equal(r.valid, false);
+  assert.equal(r.revoked, true);
+  assert.match(r.reason, /license for Acme \(5d0c1c62-.*\) has been revoked/);
+  // a forged token can't dodge the list by changing its id: the signature breaks first
+  assert.equal(verifyLicense(t.replace(/\.[^.]+\./, `.${b64u.enc(JSON.stringify({ id: 'x', org: 'Acme', exp: '2027-01-01', features: ['modules'] }))}.`), { publicKeyPem: pubPem, now, revoked: [] }).valid, false);
+});
+
+test('license: the shipped revocation list loads and is well formed', async () => {
+  const { loadRevoked } = await import('../src/pro/license.js');
+  const doc = JSON.parse(readFileSync(new URL('../src/pro/revoked.json', import.meta.url), 'utf8'));
+  assert.ok(Array.isArray(doc.revoked));
+  for (const r of doc.revoked) assert.match(r.id, /^[0-9a-f-]{36}$/), assert.match(r.date, /^\d{4}-\d{2}-\d{2}$/);
+  assert.equal(loadRevoked().size, new Set(doc.revoked.map((r) => r.id)).size);
+});
+
+test('revoke-license: adds an id once, lists it, and refuses junk', () => {
+  const script = fileURLToPath(new URL('../scripts/revoke-license.js', import.meta.url));
+  const dir = mkdtempSync(join(tmpdir(), 'vxp-revoke-'));
+  const file = join(dir, 'revoked.json');
+  writeFileSync(file, JSON.stringify({ license: 'LicenseRef-vexproof-Pro', revoked: [] }));
+  const run = (...a) => spawnSync('node', [script, '--file', file, ...a], { encoding: 'utf8' });
+  const id = '5D0C1C62-6A1E-4C2B-9F6A-0D8F1A2B3C4D';
+  assert.equal(run('--id', id, '--date', '2026-10-11').status, 0);
+  assert.match(run('--id', id).stdout, /already revoked/);
+  assert.deepEqual(JSON.parse(readFileSync(file, 'utf8')).revoked, [{ id: id.toLowerCase(), date: '2026-10-11' }]);
+  assert.match(run('--list').stdout, /2026-10-11 {2}5d0c1c62/);
+  assert.equal(run('--id', 'not-an-id').status, 2);
+  assert.equal(run('--token', 'vxp1.e30.c2ln').status, 1); // signed by some other key: nothing to revoke
+  assert.equal(run().status, 2);
+});
+
+test('CLI: a revoked license runs free features and says why (needs .keys)', { skip: !existsSync(keyFile) && 'no signing key; run npm run keygen' }, () => {
+  const lic = execFileSync('node', [fileURLToPath(new URL('../scripts/issue-license.js', import.meta.url)), '--org', 'Revoked Org', '--exp', '2099-01-01', '--key', keyFile], { encoding: 'utf8' }).trim();
+  const { id } = JSON.parse(b64u.dec(lic.split('.')[1]).toString('utf8'));
+  // a copy of the package whose revocation list names this license
+  const root = fileURLToPath(new URL('..', import.meta.url));
+  const pkg = mkdtempSync(join(tmpdir(), 'vxp-revoked-pkg-'));
+  cpSync(join(root, 'src'), join(pkg, 'src'), { recursive: true });
+  cpSync(join(root, 'package.json'), join(pkg, 'package.json'));
+  symlinkSync(join(root, 'node_modules'), join(pkg, 'node_modules'), 'junction');
+  writeFileSync(join(pkg, 'src/pro/revoked.json'), JSON.stringify({ license: 'LicenseRef-vexproof-Pro', revoked: [{ id, date: '2026-10-11' }] }));
+  const dir = mkdtempSync(join(tmpdir(), 'bvx-'));
+  const env = { ...process.env, VEXPROOF_LICENSE: lic };
+  const revoked = spawnSync('node', [join(pkg, 'src/cli.js'), ...runArgs, '--out', join(dir, 'v.json'), '--report', join(dir, 'r.html')], { env, cwd: dir, encoding: 'utf8' });
+  assert.equal(revoked.status, 0, revoked.stderr);
+  assert.match(revoked.stderr, /license for Revoked Org \(.+\) has been revoked; running free features only/);
+  assert.ok(!existsSync(join(dir, 'r.html')));
+  // the same license in the real package, where it isn't listed, still works
+  const fine = spawnSync('node', [cli, ...runArgs, '--out', join(dir, 'v2.json'), '--report', join(dir, 'r2.html')], { env, cwd: dir, encoding: 'utf8' });
+  assert.equal(fine.status, 0, fine.stderr);
+  assert.ok(existsSync(join(dir, 'r2.html')));
 });

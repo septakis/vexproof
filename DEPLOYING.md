@@ -4,7 +4,7 @@ The landing page (`site/index.html`) is served at `https://vexproof.dev/` and th
 
 ## One-time setup
 
-1. Push this repository to GitHub as a **public** repository in the `pentakis-io` organization. GitHub Pages is free for public repositories.
+1. Push this repository to GitHub as a **public** repository in the `septakis` organization. GitHub Pages is free for public repositories.
 2. In the repository, open **Settings → Pages** and set **Source** to **GitHub Actions**.
 3. At the registrar for `vexproof.dev`, add these DNS records:
 
@@ -18,7 +18,7 @@ The landing page (`site/index.html`) is served at `https://vexproof.dev/` and th
 | AAAA | `@` | `2606:50c0:8001::153` |
 | AAAA | `@` | `2606:50c0:8002::153` |
 | AAAA | `@` | `2606:50c0:8003::153` |
-| CNAME | `www` | `pentakis-io.github.io` |
+| CNAME | `www` | `septakis.github.io` |
 
 4. Back in **Settings → Pages**, enter `vexproof.dev` under **Custom domain** and save. No `CNAME` file is needed: GitHub ignores it when a workflow publishes the site.
 5. Tick **Enforce HTTPS** once it becomes available. This can take up to 24 hours after the DNS records are in place. A `.dev` address only loads over HTTPS, so the site will not open in a browser until the certificate has been issued.

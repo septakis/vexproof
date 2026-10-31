@@ -7,6 +7,7 @@ import { readFileSync, mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { fixBoundary, diffForRule, untar, isRuntimeFile, deriveRules, compareVersions } from '../src/derive.js';
 import { triage } from '../src/index.js';
 import { evaluateModuleRule, mergeRules } from '../src/pro/module-check.js';
@@ -16,7 +17,7 @@ import vexproof from '../src/vite.js';
 
 const fx = (f) => JSON.parse(readFileSync(new URL(`./fixtures/${f}`, import.meta.url)));
 const hand = fx('../../src/pro/rules/module-rules.json');
-const CLI = new URL('../src/cli.js', import.meta.url).pathname;
+const CLI = fileURLToPath(new URL('../src/cli.js', import.meta.url));
 const B = (s) => Buffer.from(s);
 
 test('fix boundary: first release after the installed one that leaves the range', () => {
@@ -122,7 +123,7 @@ test('apps that also run on a server: refused unless the VEX is scoped to the br
   const lock = fx('recharts.bom.lockfile.json');
   lock.components.push({ type: 'library', name: 'next', version: '15.0.0', purl: 'pkg:npm/next@15.0.0' });
   writeFileSync(join(dir, 'lock.json'), JSON.stringify(lock));
-  const run = (...extra) => spawnSync(process.execPath, [CLI, '--lockfile', 'lock.json', '--bundle', new URL('./fixtures/recharts.bom.bundle.json', import.meta.url).pathname, '--findings', new URL('./fixtures/recharts.audit.json', import.meta.url).pathname, '--out', 'vex.json', '--quiet', ...extra], { cwd: dir, encoding: 'utf8' });
+  const run = (...extra) => spawnSync(process.execPath, [CLI, '--lockfile', 'lock.json', '--bundle', fileURLToPath(new URL('./fixtures/recharts.bom.bundle.json', import.meta.url)), '--findings', fileURLToPath(new URL('./fixtures/recharts.audit.json', import.meta.url)), '--out', 'vex.json', '--quiet', ...extra], { cwd: dir, encoding: 'utf8' });
   const refused = run();
   assert.equal(refused.status, 2);
   assert.match(refused.stderr, /also runs JavaScript on a server \(next is a dependency\)/);

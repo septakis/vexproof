@@ -7,12 +7,13 @@ import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, symlinkSync } from
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { readDeployment, mergeModuleMaps, loadedSpecifiers, runtimeImports, usesNodeBuiltins, isGlue } from '../src/deploy.js';
 import { readModuleMap } from '../src/modules.js';
 import { triage } from '../src/index.js';
 import { evaluateModuleRule } from '../src/pro/module-check.js';
 
-const CLI = new URL('../src/cli.js', import.meta.url).pathname;
+const CLI = fileURLToPath(new URL('../src/cli.js', import.meta.url));
 const rules = JSON.parse(readFileSync(new URL('../src/pro/rules/module-rules.json', import.meta.url)));
 const put = (root, files) => { for (const [p, c] of Object.entries(files)) { mkdirSync(dirname(join(root, p)), { recursive: true }); writeFileSync(join(root, p), c); } };
 const map = (sources) => JSON.stringify({ version: 3, sources, mappings: '' });
@@ -65,10 +66,13 @@ test('runtime loads of lockfile packages must be satisfied inside the deployment
   assert.ok(usesNodeBuiltins(loadedSpecifiers('require("node:fs")')) && !usesNodeBuiltins(loadedSpecifiers('import "react"')));
 });
 
-test('externals linked under hashed names resolve to the real package, and must land inside the deployment', () => {
+test('externals linked under hashed names resolve to the real package, and must land inside the deployment', (t) => {
   const root = app({ 'out/server/chunks/ext.js': 'module.exports = require("marked-77b6df11dc860fde"); function f(){}\n//# sourceMappingURL=ext.js.map', 'out/server/chunks/ext.js.map': map([]) });
   mkdirSync(join(root, 'out/server/.next/node_modules'), { recursive: true });
-  symlinkSync('../../node_modules/marked', join(root, 'out/server/.next/node_modules/marked-77b6df11dc860fde'));
+  try { symlinkSync('../../node_modules/marked', join(root, 'out/server/.next/node_modules/marked-77b6df11dc860fde')); } catch (e) {
+    if (e.code === 'EPERM') return t.skip('this account cannot create symlinks; Next.js writes real ones, so Windows needs Developer Mode'); // eslint-disable-line consistent-return
+    throw e;
+  }
   assert.deepEqual(readDeployment(['out'], { root, lockNames: lock(['lodash', 'marked']) }).missingRuntime, []);
   // the same link pointing outside the deployment
   const root2 = app({ 'out/server/chunks/ext.js': 'module.exports = require("marked-77b6df11dc860fde"); function f(){}\n//# sourceMappingURL=ext.js.map', 'out/server/chunks/ext.js.map': map([]) });

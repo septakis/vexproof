@@ -7,7 +7,10 @@ import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { PUBLIC_KEY_PEM } from './license-key.js';
 
-export const PRO_FEATURES = ['modules', 'report', 'baseline'];
+export const PRO_FEATURES = ['modules', 'report', 'baseline', 'dependabot'];
+// Reserved for Pro, not built yet. Keys carry them from now on, so a release that adds one works with keys
+// already issued. They unlock nothing until they move to PRO_FEATURES.
+export const RESERVED_FEATURES = ['csaf', 'signing', 'rollup'];
 export const GRACE_DAYS = 14;
 const PREFIX = 'vxp1';
 
@@ -19,11 +22,27 @@ const b64u = {
 export const PLANS = ['pro', 'oss'];
 
 /**
+ * License ids withdrawn before their expiry date, from revoked.json beside this file. The list ships with
+ * each release, so a revocation reaches a user when they move to a version that contains it: no network.
+ */
+let revokedCache = null;
+export function loadRevoked() {
+  if (!revokedCache) {
+    try {
+      const list = JSON.parse(readFileSync(new URL('./revoked.json', import.meta.url), 'utf8')).revoked ?? [];
+      revokedCache = new Set(list.map((r) => String(r.id).toLowerCase()));
+    } catch { revokedCache = new Set(); }
+  }
+  return revokedCache;
+}
+
+/**
  * Returns { valid, pro, features, org, exp, plan, repos, warning, reason }.
  * An open-source ('oss') license lists the repositories it covers, as host/owner/repo. It unlocks Pro
  * features only when `repo` (see detectRepository) is one of them; anywhere else vexproof runs free.
+ * A license whose id is in `revoked` (by default, revoked.json) is treated as invalid.
  */
-export function verifyLicense(token, { publicKeyPem = PUBLIC_KEY_PEM, now = new Date(), repo } = {}) {
+export function verifyLicense(token, { publicKeyPem = PUBLIC_KEY_PEM, now = new Date(), repo, revoked = loadRevoked() } = {}) {
   const free = (reason, extra = {}) => ({ valid: false, pro: false, features: [], reason, ...extra });
   if (!token) return free('no license');
   const parts = String(token).trim().split('.');
@@ -37,6 +56,11 @@ export function verifyLicense(token, { publicKeyPem = PUBLIC_KEY_PEM, now = new 
 
   let payload;
   try { payload = JSON.parse(b64u.dec(parts[1]).toString('utf8')); } catch { return free('unreadable license payload'); }
+
+  const revokedIds = revoked instanceof Set ? revoked : new Set([...revoked].map((r) => String(r).toLowerCase()));
+  if (payload.id && revokedIds.has(String(payload.id).toLowerCase())) {
+    return free(`license for ${payload.org} (${payload.id}) has been revoked`, { org: payload.org, id: payload.id, revoked: true });
+  }
 
   const exp = new Date(payload.exp);
   if (Number.isNaN(exp.getTime())) return free('license has no valid expiry');

@@ -2,7 +2,7 @@
 
 Version 1.0, October 2026
 
-Copyright (c) 2026 Brad Stevenson, who publishes vexproof under the name Pentakis ("we", "us").
+Copyright (c) 2026 Brad Stevenson, who publishes vexproof under the name Septakis ("we", "us").
 
 This license covers the **Pro Files**: every file in the `src/pro/` directory of the vexproof
 repository and npm package. Every other file in vexproof is under the MIT License in the `LICENSE`
@@ -13,7 +13,8 @@ file at the top of the repository. The Pro Files are source-available, not open 
 **Pro Features** are the things the Pro Files do that vexproof turns on only when it finds a valid
 License Key. Today they are: settling findings by checking which files of a package shipped
 (including with rules you supply through `--rules`), carrying reviews forward from a baseline
-(`--baseline`), and the evidence report (`--report`).
+(`--baseline`), the evidence report (`--report`), and applying VEX to Dependabot alerts
+(`vexproof dependabot`).
 
 A **License Key** is a signed key we issue. A paid key names one Organization. An open-source key
 names one or more public repositories. Every key has an expiry date.
@@ -91,7 +92,7 @@ PAID US FOR YOUR LICENSE KEY IN THE 12 MONTHS BEFORE THE CLAIM.
 
 ## 10. Names and marks
 
-This license gives no right to use the names "vexproof" or "Pentakis" or their logos, except to
+This license gives no right to use the names "vexproof" or "Septakis" or their logos, except to
 say truthfully that you use the software.
 
 ## 11. Other agreements
@@ -99,4 +100,4 @@ say truthfully that you use the software.
 If you have a signed agreement with us about vexproof Pro, that agreement applies where it differs
 from this license.
 
-Questions: hello@pentakis.io
+Questions: hello@septakis.io

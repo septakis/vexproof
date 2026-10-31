@@ -123,6 +123,16 @@ test('CycloneDX VEX validates against the CycloneDX 1.6 schema', async () => {
   assert.equal(err, null, JSON.stringify(err));
 });
 
+test('CycloneDX VEX can be written as 1.7 and validates against the 1.7 schema; other versions are refused', async () => {
+  const { Validation, Spec } = require('@cyclonedx/cyclonedx-library');
+  const rs = triage({ ...demo, findings: fromNpmAudit(fx('recharts.audit.json'), demo.lockfileSbom) });
+  const vex = toCycloneDxVex({ results: rs, lockfileSbom: demo.lockfileSbom, bundleSbom: demo.bundleSbom, productPurl: APP, specVersion: '1.7' });
+  assert.equal(vex.specVersion, '1.7');
+  const err = await new Validation.JsonStrictValidator(Spec.Version.v1dot7).validate(JSON.stringify(vex));
+  assert.equal(err, null, JSON.stringify(err));
+  assert.throws(() => toCycloneDxVex({ results: rs, lockfileSbom: demo.lockfileSbom, productPurl: APP, specVersion: '1.5' }), /not supported/);
+});
+
 test('baseline and review follow an advisory across id schemes (npm audit GHSA → Trivy CVE)', () => {
   const r1 = toCycloneDxVex({ results: triage({ ...demo, findings: fromNpmAudit(fx('recharts.audit.json'), demo.lockfileSbom) }), lockfileSbom: demo.lockfileSbom, productPurl: APP });
   recordReview(r1, { id: 'GHSA-f23m-r3pf-42rh', state: 'not_affected', justification: 'code_not_reachable', detail: 'Treemap never receives user-controlled paths', by: 'Jane Doe' });

@@ -1,14 +1,14 @@
 {
   "name": "vexproof",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "description": "Build-proven VEX for npm: CycloneDX and OpenVEX statements for vulnerable code that never reached your bundle",
-  "author": "Pentakis (https://pentakis.io)",
+  "author": "Septakis (https://septakis.io)",
   "homepage": "https://vexproof.dev",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pentakis-io/vexproof.git"
+    "url": "git+https://github.com/septakis/vexproof.git"
   },
-  "bugs": "https://github.com/pentakis-io/vexproof/issues",
+  "bugs": "https://github.com/septakis/vexproof/issues",
   "keywords": [
     "vex",
     "openvex",
@@ -36,7 +36,8 @@
   "scripts": {
     "test": "node --test test/*.test.js",
     "keygen": "node scripts/keygen.js",
-    "issue-license": "node scripts/issue-license.js"
+    "issue-license": "node scripts/issue-license.js",
+    "revoke-license": "node scripts/revoke-license.js"
   },
   "license": "SEE LICENSE IN LICENSE",
   "engines": {

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: MIT
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, appendFileSync, existsSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { triage, toCycloneDxVex, summarize, VERSION } from './index.js';
 import { fetchOsvFindings, readFindingsText, enrichAliases } from './sources.js';
@@ -21,7 +22,7 @@ const PRO_URL = 'https://vexproof.dev/#pricing';
 // vexproof Pro lives in src/pro/ under its own license (src/pro/LICENSE.md); everything else is MIT.
 // A copy without that directory runs the MIT features only.
 const proLib = await import('./pro/index.js').catch((e) => { if (e?.code === 'ERR_MODULE_NOT_FOUND') return null; throw e; });
-const BOOLEAN = new Set(['quiet', 'help', 'version', 'enrich-aliases', 'openvex-package-products', 'accept-derived', 'browser-only', 'same-cause']);
+const BOOLEAN = new Set(['dry-run', 'quiet', 'help', 'version', 'enrich-aliases', 'openvex-package-products', 'accept-derived', 'browser-only', 'same-cause']);
 
 const MULTI = new Set(['modules', 'deploy', 'maps']); // may be given more than once, or comma-separated
 
@@ -49,6 +50,14 @@ const log = (...m) => console.error(...m);
 const readJson = (p) => JSON.parse(readFileSync(p, 'utf8'));
 const sha256 = (p) => createHash('sha256').update(readFileSync(p)).digest('hex');
 const need = (k) => { if (!args[k]) { log(`vexproof: missing --${k}`); process.exit(2); } return args[k]; };
+const loadLicense = (opts) => {
+  const token = proLib ? proLib.loadLicenseToken({ arg: args.license }) : (args.license ?? process.env.VEXPROOF_LICENSE ?? null);
+  const license = proLib ? proLib.verifyLicense(token, opts) : { valid: false, features: [], reason: 'this copy of vexproof has no Pro files (src/pro/)' };
+  if (token && !license.valid) log(`vexproof: ${license.reason}; running free features only`);
+  if (license.warning) log(`vexproof: ${license.warning}`);
+  return license;
+};
+const licensedFor = (license, f) => license.valid && license.features.includes(f);
 
 const HELP = `vexproof ${VERSION}
 
@@ -65,6 +74,8 @@ const HELP = `vexproof ${VERSION}
     --root <dir>          where node_modules lives, for package versions (default: cwd)
     --product <purl>      product identifier used in the VEX
     --out <file>          CycloneDX VEX output (default vex.cdx.json)
+    --spec-version <v>    CycloneDX version of the VEX: 1.6 (default) or 1.7. Trivy reads 1.7 from
+                          0.71, Dependency-Track from 4.14
     --openvex <file>      also write OpenVEX (what Trivy and Grype apply to any scan)
     --openvex-package-products
                           add package-as-product statements, which Grype needs for
@@ -85,6 +96,15 @@ const HELP = `vexproof ${VERSION}
                    [--justification <j>] [--package <purl>] [--same-cause]
     --same-cause          also apply the decision to open findings on the same vulnerable files
     Records a human decision in a VEX file. With --baseline, Pro carries it into later releases.
+
+  vexproof dependabot --vex <file> --lockfile <sbom> [--repo owner/name] [--manifest <path>] [--dry-run]  [Pro]
+    Applies the VEX to the repository's Dependabot npm alerts: dismisses those it settles (with the reason
+    and a link as the comment) and reopens ones it dismissed earlier that it no longer settles. Alerts
+    dismissed by people are never changed. Needs a token that can write Dependabot alerts (--token,
+    VEXPROOF_DEPENDABOT_TOKEN, GH_TOKEN or GITHUB_TOKEN). --vex, --lockfile and --manifest repeat.
+    --manifest        manifest file or folder whose alerts to change (default: the current folder)
+    --link <url>      what the dismissal comment links to (default: this Actions run)
+    --dry-run         print what would change
 
   vexproof rules derive --lockfile <sbom> --findings <file> [--modules <file>] [--out <file>]
     Writes rules from each advisory's fix: the files that changed between the installed version and the
@@ -128,6 +148,60 @@ if (args._[0] === 'rules' && args._[1] === 'derive') {
   process.exit(0);
 }
 
+// ---------- dependabot ----------
+if (args._[0] === 'dependabot') {
+  // An open-source key must cover the repository whose alerts change, not just the one this runs in.
+  const host = (u) => { try { return new URL(u).host; } catch { return 'github.com'; } };
+  const named = args.repo ? { repo: `${host(process.env.GITHUB_SERVER_URL)}/${args.repo}` } : undefined;
+  if (!licensedFor(loadLicense(named), 'dependabot')) { log('vexproof dependabot is a Pro feature; no alerts changed'); process.exit(0); }
+  const { readDocuments, github, syncDependabot, explain, summaryLine, markdownSummary, verb, scopeLabel } = proLib.dependabot;
+  const argv = process.argv.slice(2);
+  const every = (name) => argv.flatMap((a, i) => (a === `--${name}` && argv[i + 1] !== undefined ? String(argv[i + 1]).split(',').map((s) => s.trim()).filter(Boolean) : []));
+  const env = process.env;
+  const git = (...a) => { try { return execFileSync('git', a, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { return null; } };
+  const vexFiles = every('vex');
+  const lockFiles = every('lockfile');
+  if (!vexFiles.length || !lockFiles.length) { log('vexproof: dependabot needs --vex and the --lockfile SBOM each VEX was made from'); process.exit(2); }
+  const token = args.token ?? env.VEXPROOF_DEPENDABOT_TOKEN ?? env.GH_TOKEN ?? env.GITHUB_TOKEN;
+  if (!token) { log('vexproof: dependabot needs a GitHub token: --token, or VEXPROOF_DEPENDABOT_TOKEN, GH_TOKEN or GITHUB_TOKEN'); process.exit(2); }
+  const origin = /github\.com[:/]([^/]+\/[^/]+?)(?:\.git)?\/?$/.exec(git('config', '--get', 'remote.origin.url') ?? '')?.[1];
+  const repo = args.repo ?? env.GITHUB_REPOSITORY ?? origin;
+  if (!repo || !/^[^/\s]+\/[^/\s]+$/.test(repo)) { log('vexproof: pass --repo owner/name (the repository whose Dependabot alerts to change)'); process.exit(2); }
+  const scopes = every('manifest');
+  if (!scopes.length) scopes.push((git('rev-parse', '--show-prefix') ?? '').replace(/\/$/, ''));
+  let dryRun = Boolean(args['dry-run']);
+  if (!dryRun && env.GITHUB_ACTIONS === 'true' && env.GITHUB_EVENT_PATH) {
+    // Dependabot alerts describe the default branch, so only a build of that branch may change them.
+    let main = null;
+    try { main = JSON.parse(readFileSync(env.GITHUB_EVENT_PATH, 'utf8')).repository?.default_branch ?? null; } catch { main = null; }
+    if (main && env.GITHUB_REF !== `refs/heads/${main}`) {
+      log(`vexproof: this run builds ${env.GITHUB_REF ?? 'another ref'}, but Dependabot alerts describe ${main}; previewing only`);
+      dryRun = true;
+    }
+  }
+  const link = args.link ?? (env.GITHUB_SERVER_URL && env.GITHUB_REPOSITORY && env.GITHUB_RUN_ID ? `${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}` : null);
+  try {
+    const lockfiles = lockFiles.map((file) => ({ file, sbom: readJson(file), sha256: sha256(file) }));
+    const docs = readDocuments(vexFiles.map((file) => ({ file, vex: readJson(file) })), lockfiles);
+    const client = github({ token, repo, apiUrl: env.GITHUB_API_URL || 'https://api.github.com', userAgent: `vexproof/${VERSION}` });
+    log(`vexproof: ${dryRun ? 'previewing' : 'applying'} ${vexFiles.join(', ')} to Dependabot's npm alerts in ${repo}, on manifests ${scopeLabel(scopes)}`);
+    const { plan, elsewhere } = await syncDependabot({ client, docs, scopes, link, dryRun });
+    const shown = plan.filter((i) => i.action !== 'kept');
+    const w = Math.max(8, ...shown.map((i) => String(i.alert.dependency?.package?.name ?? '').length));
+    for (const i of shown) {
+      const a = i.alert;
+      console.log(`  ${verb(i).padEnd(20)} #${String(a.number).padEnd(5)} ${String(a.security_advisory?.ghsa_id ?? '').padEnd(20)} ${String(a.dependency?.package?.name ?? '').padEnd(w)}  ${i.error ?? i.why}`);
+    }
+    console.log(`vexproof: ${summaryLine(plan, dryRun)}`);
+    if (!plan.length && elsewhere.length) log(`vexproof: no npm alerts on manifests ${scopeLabel(scopes)}; there are alerts on ${elsewhere.slice(0, 5).join(', ')}. Pass --manifest to choose.`);
+    if (env.GITHUB_STEP_SUMMARY) { try { appendFileSync(env.GITHUB_STEP_SUMMARY, markdownSummary({ repo, plan, dryRun })); } catch { /* summary is optional */ } }
+    process.exit(plan.some((i) => i.result === 'failed' || i.result === 'unchanged') ? 2 : 0);
+  } catch (e) {
+    log(`vexproof: ${explain(e, repo)}`);
+    process.exit(2);
+  }
+}
+
 // ---------- run ----------
 const quiet = args.quiet || process.env.VEXPROOF_QUIET === '1';
 const lockPath = need('lockfile');
@@ -139,11 +213,8 @@ const productPurl = args.product ?? lockfileSbom?.metadata?.component?.purl ?? '
 const inputs = [{ role: 'lockfile-sbom', path: lockPath, sha256: sha256(lockPath) }];
 if (bundlePath) inputs.push({ role: 'bundle-sbom', path: bundlePath, sha256: sha256(bundlePath) });
 
-const token = proLib ? proLib.loadLicenseToken({ arg: args.license }) : (args.license ?? process.env.VEXPROOF_LICENSE ?? null);
-const license = proLib ? proLib.verifyLicense(token) : { valid: false, features: [], reason: 'this copy of vexproof has no Pro files (src/pro/)' };
-if (token && !license.valid) log(`vexproof: ${license.reason}; running free features only`);
-if (license.warning) log(`vexproof: ${license.warning}`);
-const has = (f) => license.valid && license.features.includes(f);
+const license = loadLicense();
+const has = (f) => licensedFor(license, f);
 
 let findings;
 if (args.findings) {
@@ -252,7 +323,14 @@ if (args.baseline) {
 }
 
 const out = args.out ?? 'vex.cdx.json';
-const vex = toCycloneDxVex({ results, bundleSbom, lockfileSbom, productPurl, inputs, licensee: license.valid ? license.org : null, scope: args['browser-only'] ? 'browser-bundle' : null });
+if (!/^urn:uuid:[0-9a-f-]{36}$/i.test(String(lockfileSbom?.serialNumber ?? ''))) {
+  log('vexproof: the lockfile SBOM has no serialNumber, so the CycloneDX VEX can\'t point into it with BOM-Links, and Trivy and');
+  log('Dependency-Track will not apply it (OpenVEX is unaffected). Generate the SBOM without --output-reproducible.');
+}
+let vex;
+try {
+  vex = toCycloneDxVex({ results, bundleSbom, lockfileSbom, productPurl, inputs, licensee: license.valid ? license.org : null, scope: args['browser-only'] ? 'browser-bundle' : null, specVersion: args['spec-version'] ?? '1.6' });
+} catch (e) { log(`vexproof: ${e.message}`); process.exit(2); }
 writeFileSync(out, JSON.stringify(vex, null, 2));
 if (args.openvex) {
   const ov = toOpenVex({ results, productPurl, author: license.valid ? license.org : 'vexproof', packageProducts: args['openvex-package-products'] });

@@ -133,7 +133,7 @@ export function applyRuleAliases(findings, rules) {
 
 // ---------- triage ----------
 
-export const VERSION = '0.12.0';
+export const VERSION = '0.13.0';
 
 /**
  * `moduleCheck` decides whether a package that IS in the bundle still doesn't ship the vulnerable code. It is not
@@ -215,7 +215,23 @@ export function bomLinks(lockfileSbom, purl) {
   return all.filter((c) => c.purl && bare(c.purl) === bare(purl)).map((c) => `urn:cdx:${serial}/${version}#${goQueryEscape(c['bom-ref'] ?? bare(c.purl))}`);
 }
 
-export function toCycloneDxVex({ results, bundleSbom, lockfileSbom, productPurl, inputs = [], licensee = null, scope = null, aliasEntries = true, now = new Date() }) {
+/**
+ * Where a vulnerability id comes from, named as Dependency-Track names its sources. Dependency-Track 4.x skips
+ * VEX entries that have no source; its GitHub and OSV mirrors both file GHSA ids under GITHUB, and CVEs under NVD.
+ */
+export function vulnerabilitySource(id) {
+  const s = String(id);
+  if (/^GHSA-/i.test(s)) return { name: 'GITHUB', url: `https://github.com/advisories/${s}` };
+  if (/^CVE-/i.test(s)) return { name: 'NVD', url: `https://nvd.nist.gov/vuln/detail/${s}` };
+  if (/^SNYK-/i.test(s)) return { name: 'SNYK', url: `https://security.snyk.io/vuln/${s}` };
+  return null;
+}
+
+export const CYCLONEDX_VERSIONS = ['1.6', '1.7'];
+const SETTLED_STATES = new Set(['not_affected', 'false_positive', 'resolved', 'resolved_with_pedigree']);
+
+export function toCycloneDxVex({ results, bundleSbom, lockfileSbom, productPurl, inputs = [], licensee = null, scope = null, aliasEntries = true, specVersion = '1.6', now = new Date() }) {
+  if (!CYCLONEDX_VERSIONS.includes(specVersion)) throw new Error(`CycloneDX ${specVersion} is not supported; use ${CYCLONEDX_VERSIONS.join(' or ')}`);
   const evidence = {
     bundleSbomSerial: bundleSbom?.serialNumber ?? null,
     lockfileSbomSerial: lockfileSbom?.serialNumber ?? null,
@@ -245,6 +261,7 @@ export function toCycloneDxVex({ results, bundleSbom, lockfileSbom, productPurl,
     const links = bomLinks(lockfileSbom, r.purl);
     const entry = {
       id: r.id,
+      ...(vulnerabilitySource(r.id) ? { source: vulnerabilitySource(r.id) } : {}),
       ...(r.aliases?.length ? { references: r.aliases.map((a) => ({ id: a, source: { name: 'alias' } })) } : {}),
       analysis: {
         state: r.state,
@@ -263,14 +280,20 @@ export function toCycloneDxVex({ results, bundleSbom, lockfileSbom, productPurl,
     if (aliasEntries) {
       for (const a of r.aliases ?? []) {
         if (!/^(CVE|GHSA)-/.test(a) || a === r.id) continue;
-        vulnerabilities.push({ ...entry, id: a, references: [{ id: r.id, source: { name: 'alias' } }], properties: [...p, { name: 'vexproof:alias-of', value: r.id }] });
+        const { source: _primary, ...rest } = entry;
+        vulnerabilities.push({ ...rest, id: a, ...(vulnerabilitySource(a) ? { source: vulnerabilitySource(a) } : {}), references: [{ id: r.id, source: { name: 'alias' } }], properties: [...p, { name: 'vexproof:alias-of', value: r.id }] });
       }
     }
   }
+  // Settled statements first, open ones last. Two consumers keep only the last word on an id: Trivy keeps one
+  // statement per id, and Dependency-Track applies a BOM-Link statement to every component with that finding.
+  // With open statements last, a package that ships is never suppressed by a statement about one that doesn't.
+  const rank = (v) => (SETTLED_STATES.has(v.analysis.state) ? 0 : 1);
+  vulnerabilities.sort((a, b) => rank(a) - rank(b));
 
   return {
     bomFormat: 'CycloneDX',
-    specVersion: '1.6',
+    specVersion,
     serialNumber: `urn:uuid:${randomUUID()}`,
     version: 1,
     metadata: {

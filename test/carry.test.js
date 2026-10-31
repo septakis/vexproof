@@ -27,7 +27,7 @@ function run({ meta = 'carry.metafile.json', version = '4.17.23', ids = [F23M], 
   const moduleMap = readModuleMap(fx(meta));
   const bundleSbom = bundleSbomFromModules(moduleMap, { lockfileSbom, cwd: '/nonexistent' });
   const results = triage({ lockfileSbom, bundleSbom, moduleMap, rules, moduleCheck: evaluateModuleRule, pro: true, findings: [{ purl, ids }] });
-  attachFingerprints(results, { moduleMap, rules, cwd: '/x', readFile: (p) => Buffer.from(files[p.split('/').at(-1)] ?? 'other') });
+  attachFingerprints(results, { moduleMap, rules, cwd: '/x', readFile: (p) => Buffer.from(files[p.split(/[\\/]/).at(-1)] ?? 'other') });
   if (baseline) applyBaseline(results, readBaseline(baseline), { now, maxAgeDays });
   return { results, vex: toCycloneDxVex({ results, bundleSbom, lockfileSbom, productPurl: 'pkg:npm/settings-panel@1.0.0', now }) };
 }

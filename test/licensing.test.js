@@ -4,14 +4,15 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync, mkdtempSync, cpSync, symlinkSync, existsSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 
-const ROOT = new URL('..', import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const walk = (dir) => readdirSync(dir).flatMap((f) => { const p = join(dir, f); return statSync(p).isDirectory() ? walk(p) : [p]; });
 const sources = walk(join(ROOT, 'src')).filter((f) => /\.(js|cjs)$/.test(f));
 const isPro = (f) => relative(ROOT, f).split(sep).join('/').startsWith('src/pro/');
-const fx = (f) => new URL(`./fixtures/${f}`, import.meta.url).pathname;
+const fx = (f) => fileURLToPath(new URL(`./fixtures/${f}`, import.meta.url));
 
 test('every source file names its license, and the license matches where the file lives', () => {
   for (const f of sources) {
@@ -19,6 +20,7 @@ test('every source file names its license, and the license matches where the fil
     assert.equal(id, isPro(f) ? 'LicenseRef-vexproof-Pro' : 'MIT', relative(ROOT, f));
   }
   assert.match(JSON.parse(readFileSync(join(ROOT, 'src/pro/rules/module-rules.json'))).license, /LicenseRef-vexproof-Pro/);
+  assert.match(JSON.parse(readFileSync(join(ROOT, 'src/pro/revoked.json'))).license, /LicenseRef-vexproof-Pro/);
 });
 
 test('both license texts ship, and package.json names both', () => {
@@ -41,7 +43,7 @@ test('with src/pro removed, the CLI still writes package-level VEX and offers no
   const dir = mkdtempSync(join(tmpdir(), 'vexproof-mit-'));
   cpSync(join(ROOT, 'src'), join(dir, 'src'), { recursive: true, filter: (s) => !isPro(s + sep) && !s.endsWith(`${sep}pro`) });
   cpSync(join(ROOT, 'package.json'), join(dir, 'package.json'));
-  symlinkSync(join(ROOT, 'node_modules'), join(dir, 'node_modules'));
+  symlinkSync(join(ROOT, 'node_modules'), join(dir, 'node_modules'), 'junction');
   assert.ok(!existsSync(join(dir, 'src', 'pro')));
   const run = (...a) => spawnSync(process.execPath, [join(dir, 'src', 'cli.js'), '--lockfile', fx('recharts.bom.lockfile.json'), '--findings', fx('recharts.audit.json'), '--out', join(dir, 'vex.json'), ...a], { cwd: dir, encoding: 'utf8' });
 
@@ -57,4 +59,8 @@ test('with src/pro removed, the CLI still writes package-level VEX and offers no
   assert.doesNotMatch(withMap.stdout, /\(module\)/);
   assert.match(withMap.stderr, /no Pro files/);
   assert.ok(!existsSync(join(dir, 'r.html')));
+
+  const dependabot = spawnSync(process.execPath, [join(dir, 'src', 'cli.js'), 'dependabot', '--vex', 'v.json', '--lockfile', 'l.json'], { cwd: dir, encoding: 'utf8' });
+  assert.equal(dependabot.status, 0, dependabot.stderr);
+  assert.match(dependabot.stderr, /Pro feature; no alerts changed/);
 });
