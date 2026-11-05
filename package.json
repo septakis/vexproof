@@ -39,9 +39,9 @@
     "issue-license": "node scripts/issue-license.js",
     "revoke-license": "node scripts/revoke-license.js"
   },
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "MIT AND LicenseRef-vexproof-Pro",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "files": [
     "src/",

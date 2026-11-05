@@ -1,0 +1,47 @@
+name: Bug report
+description: vexproof did something wrong, or crashed
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: For a security problem, email security@vexproof.dev instead of filing an issue.
+  - type: input
+    id: version
+    attributes:
+      label: vexproof version
+      description: Output of `vexproof --version`
+    validations:
+      required: true
+  - type: input
+    id: node
+    attributes:
+      label: Node version and OS
+      placeholder: Node 24.3.0 on Ubuntu 24.04
+  - type: textarea
+    id: command
+    attributes:
+      label: Command
+      description: The exact command you ran, with any license token removed
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+      description: Which statement, message or exit code should have been different, and why
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened
+      description: Output, error message, or the statement that was wrong
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: inputs
+    attributes:
+      label: Inputs
+      description: The lockfile SBOM, findings file and module map or bundle SBOM that reproduce it, or a link to a public repository where they can be generated. Attach files rather than pasting large ones.

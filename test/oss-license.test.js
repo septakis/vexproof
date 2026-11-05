@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Open-source licenses: Pro for free, scoped to named repositories, still verified offline.
+// Open-source licenses: Pro for free, scoped to named repositories, still verified locally.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { generateKeyPairSync, sign } from 'node:crypto';
