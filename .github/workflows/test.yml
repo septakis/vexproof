@@ -1,0 +1,39 @@
+# Runs the test suite on every supported Node LTS line. The suite validates every generated VEX file against the
+# CycloneDX schema and runs the webpack and Angular fixtures, so a schema failure or a regression on either fails
+# the build.
+name: Test
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['site/**']
+  pull_request:
+    paths-ignore: ['site/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24, 26]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - name: The package installs from the tarball and the CLI runs
+        run: |
+          npm pack --silent
+          dir=$(mktemp -d)
+          npm install --prefix "$dir" --silent ./vexproof-*.tgz
+          "$dir/node_modules/.bin/vexproof" --version
+          "$dir/node_modules/.bin/vexproof" --help > /dev/null

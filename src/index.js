@@ -12,8 +12,34 @@
 // justification `code_not_present` ONLY when the vulnerable package name does
 // not appear in the bundle SBOM at all. Everything else is `in_triage`.
 
-import { randomUUID } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { fingerprintProperties } from './evidence.js';
+
+// ---------- determinism ----------
+
+const UUID_NAMESPACE = Buffer.from('f5466259a7f9427fa41e673c18411e32', 'hex'); // vexproof's own UUIDv5 namespace
+
+/** UUIDv5 of a document's content, so the same output always carries the same serial number. */
+export function contentUuid(doc) {
+  const h = createHash('sha1').update(UUID_NAMESPACE).update(JSON.stringify(doc)).digest();
+  h[6] = (h[6] & 0x0f) | 0x50;
+  h[8] = (h[8] & 0x3f) | 0x80;
+  const x = h.subarray(0, 16).toString('hex');
+  return `${x.slice(0, 8)}-${x.slice(8, 12)}-${x.slice(12, 16)}-${x.slice(16, 20)}-${x.slice(20)}`;
+}
+
+/**
+ * The time to stamp output with: SOURCE_DATE_EPOCH (seconds since 1970, the reproducible-builds convention)
+ * when it is set, otherwise now. Throws on a value that is not a whole number of seconds.
+ */
+export function outputTime(env = process.env) {
+  const v = env.SOURCE_DATE_EPOCH;
+  if (v === undefined || v === '') return new Date();
+  if (!/^\d+$/.test(v)) throw new Error(`SOURCE_DATE_EPOCH must be whole seconds since 1970, got "${v}"`);
+  return new Date(Number(v) * 1000);
+}
+
+const cmp = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 
 // ---------- purl helpers ----------
 
@@ -288,13 +314,17 @@ export function toCycloneDxVex({ results, bundleSbom, lockfileSbom, productPurl,
   // Settled statements first, open ones last. Two consumers keep only the last word on an id: Trivy keeps one
   // statement per id, and Dependency-Track applies a BOM-Link statement to every component with that finding.
   // With open statements last, a package that ships is never suppressed by a statement about one that doesn't.
+  // Within each group, order by advisory (each primary entry followed by its alias entries) and package, so the
+  // same input always writes the same file.
   const rank = (v) => (SETTLED_STATES.has(v.analysis.state) ? 0 : 1);
-  vulnerabilities.sort((a, b) => rank(a) - rank(b));
+  const prop = (v, name) => v.properties.find((x) => x.name === name)?.value ?? '';
+  const primary = (v) => prop(v, 'vexproof:alias-of') || v.id;
+  vulnerabilities.sort((a, b) => rank(a) - rank(b) || cmp(primary(a), primary(b)) || cmp(prop(a, 'vexproof:package'), prop(b, 'vexproof:package')) || cmp(Boolean(prop(a, 'vexproof:alias-of')), Boolean(prop(b, 'vexproof:alias-of'))) || cmp(a.id, b.id));
 
-  return {
+  const bom = {
     bomFormat: 'CycloneDX',
     specVersion,
-    serialNumber: `urn:uuid:${randomUUID()}`,
+    serialNumber: null,
     version: 1,
     metadata: {
       timestamp: now.toISOString(),
@@ -304,6 +334,8 @@ export function toCycloneDxVex({ results, bundleSbom, lockfileSbom, productPurl,
     },
     vulnerabilities,
   };
+  bom.serialNumber = `urn:uuid:${contentUuid(bom)}`;
+  return bom;
 }
 
 export function summarize(results) {

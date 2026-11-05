@@ -3,7 +3,7 @@
 import { readFileSync, writeFileSync, appendFileSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { triage, toCycloneDxVex, summarize, VERSION } from './index.js';
+import { triage, toCycloneDxVex, summarize, VERSION, outputTime } from './index.js';
 import { fetchOsvFindings, readFindingsText, enrichAliases } from './sources.js';
 import { toOpenVex } from './openvex.js';
 import { readModuleMap, bundleSbomFromModules, uncoveredOutputs, attachVersions } from './modules.js';
@@ -59,68 +59,143 @@ const loadLicense = (opts) => {
 };
 const licensedFor = (license, f) => license.valid && license.features.includes(f);
 
-const HELP = `vexproof ${VERSION}
+// Help fits in 80 columns. `vexproof --help` fits on one screen; each command has its own page.
+const HELP = {
+  overview: `vexproof ${VERSION}: build-proven VEX for npm
 
-  vexproof --lockfile <sbom> (--bundle <sbom> | --modules <stats>) [options]
-    --findings <file>     npm, pnpm, yarn or bun audit, osv-scanner, Trivy, Grype or Snyk JSON, or [{purl, ids}]
-                          (default: query OSV directly)
-    --enrich-aliases      look up GHSA/CVE aliases on OSV (automatic when querying OSV)
-    --bundle <file>       CycloneDX SBOM of the bundle; optional when --modules is given
-    --modules <file>      vexproof-modules.json (vexproof/vite, vexproof/webpack), esbuild or bun build
-                          metafile, Angular stats.json, or webpack stats JSON. Repeatable.
-    --deploy <dir>        a deployment folder: its node_modules files, and the source maps of its bundled
-                          code. Repeatable (Next.js: .next/standalone and .next/static; Nuxt: .output)
-    --maps <dir>          extra folder to find source maps in (default: .next when present)
-    --root <dir>          where node_modules lives, for package versions (default: cwd)
-    --product <purl>      product identifier used in the VEX
-    --out <file>          CycloneDX VEX output (default vex.cdx.json)
-    --spec-version <v>    CycloneDX version of the VEX: 1.6 (default) or 1.7. Trivy reads 1.7 from
+Usage:
+  vexproof --lockfile <sbom> --bundle <sbom> [options]   write VEX
+           (or --modules <file> / --deploy <dir> in place of --bundle)
+  vexproof review --vex <file> --id <advisory> ...       record a decision
+  vexproof dependabot --vex <file> --lockfile <sbom>     (Pro) apply to alerts
+  vexproof rules derive --lockfile <sbom> --findings <file>
+
+Common options:
+  --findings <file>   scanner or audit JSON (default: query OSV)
+  --product <purl>    product identifier in the VEX
+  --out <file>        CycloneDX VEX (default vex.cdx.json)
+  --openvex <file>    also write OpenVEX
+  --fail-on <mode>    in_triage | new: exit 1 when the gate trips
+  --license <key>     Pro license key or file (or VEXPROOF_LICENSE)
+
+More:
+  vexproof --help all         every option for writing VEX
+  vexproof <command> --help   review, dependabot, rules derive
+  https://vexproof.dev/docs/`,
+
+  all: `vexproof ${VERSION}
+
+  vexproof --lockfile <sbom> [options]
+           (--bundle <sbom> | --modules <file> | --deploy <dir>)
+
+What ships (at least one):
+  --bundle <file>         CycloneDX SBOM of the bundle; optional with --modules
+  --modules <file>        vexproof-modules.json (vexproof/vite or /webpack),
+                          esbuild or bun build metafile, Angular stats.json,
+                          or webpack stats JSON. Repeatable.
+  --deploy <dir>          deployment folder: its node_modules files and the
+                          source maps of its bundled code. Repeatable (Next.js:
+                          .next/standalone and .next/static; Nuxt: .output)
+  --maps <dir>            extra source map folder (default: .next if present)
+  --root <dir>            where node_modules lives, for versions (default: cwd)
+
+Findings:
+  --findings <file>       npm, pnpm, yarn or bun audit, osv-scanner, Trivy,
+                          Grype or Snyk JSON, or [{purl, ids}] (default:
+                          query OSV)
+  --enrich-aliases        look up GHSA/CVE aliases on OSV (automatic when
+                          querying OSV)
+
+Output:
+  --product <purl>        product identifier used in the VEX
+  --out <file>            CycloneDX VEX (default vex.cdx.json)
+  --spec-version <v>      CycloneDX 1.6 (default) or 1.7. Trivy reads 1.7 from
                           0.71, Dependency-Track from 4.14
-    --openvex <file>      also write OpenVEX (what Trivy and Grype apply to any scan)
-    --openvex-package-products
-                          add package-as-product statements, which Grype needs for
-                          directory and SBOM scans; use that file only for this app
-    --rules <file>        extra module rules, e.g. from \`vexproof rules derive\`                  [Pro]
-    --accept-derived      let derived rules settle findings instead of only suggesting     [Pro]
-    --browser-only        the VEX covers the browser bundle only (required when the app
-                          also has a server build; name that artifact with --product)
-    --fail-on <mode>      in_triage | new   (exit 1 when the gate trips; "new" needs --baseline)
-    --baseline <vex>      previous release's VEX; reviews carry forward while their evidence
-                          (vulnerable files, code importing them) is unchanged           [Pro]
-    --review-max-age <d>  reviews older than this many days need re-confirming (default 365)
-    --report <file.html>  audit-ready evidence report                           [Pro]
-    --license <token|file>  or VEXPROOF_LICENSE, or ./.vexproof-license
-    --quiet               no Pro hints
+  --openvex <file>        also write OpenVEX (Trivy and Grype apply it to any
+                          scan)
+  --openvex-package-products
+                          add package-as-product statements, which Grype needs
+                          for directory and SBOM scans; use that file only for
+                          this app
+  --browser-only          the VEX covers the browser bundle only (required when
+                          the app also has a server build; name that artifact
+                          with --product)
+  SOURCE_DATE_EPOCH       env var: pin every timestamp written (seconds since
+                          1970)
 
-  vexproof review --vex <file> --id <advisory> --state <state> --detail <text> --by <name>
-                   [--justification <j>] [--package <purl>] [--same-cause]
-    --same-cause          also apply the decision to open findings on the same vulnerable files
-    Records a human decision in a VEX file. With --baseline, Pro carries it into later releases.
+Gates and reviews:
+  --fail-on <mode>        in_triage | new: exit 1 when the gate trips ("new"
+                          needs --baseline)
+  --baseline <vex>        (Pro) previous release's VEX; reviews carry forward
+                          while their evidence is unchanged
+  --review-max-age <d>    reviews older than this many days need re-confirming
+                          (default 365)
 
-  vexproof dependabot --vex <file> --lockfile <sbom> [--repo owner/name] [--manifest <path>] [--dry-run]  [Pro]
-    Applies the VEX to the repository's Dependabot npm alerts: dismisses those it settles (with the reason
-    and a link as the comment) and reopens ones it dismissed earlier that it no longer settles. Alerts
-    dismissed by people are never changed. Needs a token that can write Dependabot alerts (--token,
-    VEXPROOF_DEPENDABOT_TOKEN, GH_TOKEN or GITHUB_TOKEN). --vex, --lockfile and --manifest repeat.
-    --manifest        manifest file or folder whose alerts to change (default: the current folder)
-    --link <url>      what the dismissal comment links to (default: this Actions run)
-    --dry-run         print what would change
+Pro:
+  --license <token|file>  or VEXPROOF_LICENSE, or ./.vexproof-license
+  --rules <file>          extra module rules, e.g. from \`vexproof rules derive\`
+  --accept-derived        let derived rules settle findings, not only suggest
+  --report <file.html>    audit-ready evidence report
+  --quiet                 no Pro hints`,
 
-  vexproof rules derive --lockfile <sbom> --findings <file> [--modules <file>] [--out <file>]
-    Writes rules from each advisory's fix: the files that changed between the installed version and the
-    first fixed release (from the npm registry). Default output: vexproof-rules.derived.json.`;
+  review: `vexproof review: record a human decision in a VEX file
 
-if (args.help) { console.log(HELP); process.exit(0); }
+  vexproof review --vex <file> --id <advisory> --state <state> --detail <text>
+                  --by <name> [--justification <j>] [--package <purl>]
+                  [--same-cause]
+
+  --same-cause            also apply the decision to open findings on the same
+                          vulnerable files
+
+With --baseline, Pro carries the decision into later releases.`,
+
+  dependabot: `vexproof dependabot (Pro): apply a VEX to Dependabot npm alerts
+
+  vexproof dependabot --vex <file> --lockfile <sbom> [--repo owner/name]
+                      [--manifest <path>] [--link <url>] [--dry-run]
+
+Dismisses the alerts the VEX settles (with the reason and a link as the
+comment) and reopens ones it dismissed earlier that it no longer settles.
+Alerts dismissed by people are never changed. --vex, --lockfile and
+--manifest repeat.
+
+  --manifest <path>       manifest file or folder whose alerts to change
+                          (default: the current folder)
+  --repo owner/name       default: GITHUB_REPOSITORY, then the git remote
+  --link <url>            what the dismissal comment links to (default: this
+                          Actions run)
+  --token <token>         a token that can write Dependabot alerts (or
+                          VEXPROOF_DEPENDABOT_TOKEN, GH_TOKEN, GITHUB_TOKEN)
+  --dry-run               print what would change`,
+
+  rules: `vexproof rules derive: write module rules from each advisory's fix
+
+  vexproof rules derive --lockfile <sbom> --findings <file> [--modules <file>]
+                        [--out <file>]
+
+The rules list the files that changed between the installed version and the
+first fixed release, from the npm registry. With --modules, only packages that
+ship get rules. Default output: vexproof-rules.derived.json.`,
+};
+
+if (args.help) {
+  const page = args._[0] === 'all' ? 'all' : (HELP[args._[0]] && args._[0] !== 'overview' ? args._[0] : 'overview');
+  console.log(HELP[page]);
+  process.exit(0);
+}
 if (args.version) { console.log(VERSION); process.exit(0); }
+
+// Every timestamp vexproof writes. SOURCE_DATE_EPOCH pins it, so the same inputs write the same files.
+const now = outputTime();
 
 // ---------- review ----------
 if (args._[0] === 'review') {
   const file = need('vex');
   const vex = readJson(file);
   try {
-    const v = recordReview(vex, { id: need('id'), purl: args.package, state: need('state'), justification: args.justification, detail: args.detail, by: args.by });
+    const v = recordReview(vex, { id: need('id'), purl: args.package, state: need('state'), justification: args.justification, detail: args.detail, by: args.by, now });
     const also = args['same-cause'] ? sameCause(vex, v) : [];
-    for (const o of also) recordReview(vex, { id: o.id, purl: o.properties.find((p) => p.name === 'vexproof:package').value, state: args.state, justification: args.justification, detail: args.detail, by: args.by });
+    for (const o of also) recordReview(vex, { id: o.id, purl: o.properties.find((p) => p.name === 'vexproof:package').value, state: args.state, justification: args.justification, detail: args.detail, by: args.by, now });
     writeFileSync(file, JSON.stringify(vex, null, 2));
     console.log(`vexproof: ${v.id} → ${v.analysis.state} (reviewed by ${args.by}) in ${file}`);
     for (const o of also) console.log(`vexproof: ${o.id} → ${o.analysis.state} (same vulnerable files: ${o.properties.find((p) => p.name === 'vexproof:vulnerable-files').value})`);
@@ -137,7 +212,7 @@ if (args._[0] === 'rules' && args._[1] === 'derive') {
   const wanted = findings.map((f) => ({ ...parsePurl(f.purl), id: f.id, aliases: f.aliases }))
     .filter((f) => f.type === 'npm' && f.version && (!only || only.has(f.name)));
   log(`vexproof: deriving rules for ${wanted.length} finding(s) from the npm registry…`);
-  const { rules, report } = await deriveRules(wanted);
+  const { rules, report } = await deriveRules(wanted, { now });
   const out = args.out ?? 'vexproof-rules.derived.json';
   writeFileSync(out, JSON.stringify(rules, null, 2));
   for (const r of report) {
@@ -230,7 +305,7 @@ if (!args.findings || args['enrich-aliases']) {
   // scanners disagree on id schemes (Trivy: CVE, npm audit and Grype: GHSA); OSV links them
   findings = normalizeFindings(findings);
   const e = await enrichAliases(findings);
-  log(`vexproof: aliases from OSV for ${e.resolved} of ${e.looked} advisories${e.resolved < e.looked ? ' (offline or unknown ids keep their own)' : ''}`);
+  log(`vexproof: aliases from OSV for ${e.resolved} of ${e.looked} advisories${e.resolved < e.looked ? ' (ids OSV could not be reached for, or does not know, keep their own)' : ''}`);
 }
 
 let moduleMap = null;
@@ -329,11 +404,11 @@ if (!/^urn:uuid:[0-9a-f-]{36}$/i.test(String(lockfileSbom?.serialNumber ?? '')))
 }
 let vex;
 try {
-  vex = toCycloneDxVex({ results, bundleSbom, lockfileSbom, productPurl, inputs, licensee: license.valid ? license.org : null, scope: args['browser-only'] ? 'browser-bundle' : null, specVersion: args['spec-version'] ?? '1.6' });
+  vex = toCycloneDxVex({ results, bundleSbom, lockfileSbom, productPurl, inputs, licensee: license.valid ? license.org : null, scope: args['browser-only'] ? 'browser-bundle' : null, specVersion: args['spec-version'] ?? '1.6', now });
 } catch (e) { log(`vexproof: ${e.message}`); process.exit(2); }
 writeFileSync(out, JSON.stringify(vex, null, 2));
 if (args.openvex) {
-  const ov = toOpenVex({ results, productPurl, author: license.valid ? license.org : 'vexproof', packageProducts: args['openvex-package-products'] });
+  const ov = toOpenVex({ results, productPurl, author: license.valid ? license.org : 'vexproof', packageProducts: args['openvex-package-products'], now });
   writeFileSync(args.openvex, JSON.stringify(ov, null, 2));
 }
 
@@ -351,7 +426,7 @@ for (const r of results) {
 if (args.report) {
   if (has('report')) {
     const command = `vexproof ${process.argv.slice(2).filter((a, i, arr) => a !== '--license' && arr[i - 1] !== '--license').join(' ')}`;
-    writeFileSync(args.report, proLib.renderReport({ results, summary: s, inputs, productPurl, license, command, version: VERSION }));
+    writeFileSync(args.report, proLib.renderReport({ results, summary: s, inputs, productPurl, license, command, version: VERSION, now }));
     console.log(`vexproof: report → ${args.report}`);
   } else log('vexproof: --report is a Pro feature; skipped');
 }

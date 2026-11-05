@@ -68,7 +68,7 @@ test('OSV alias enrichment adds aliases and survives being offline', async () =>
   assert.equal(ok.added, 1);
   assert.deepEqual(f[0].aliases, ['CVE-2026-2950']);
   const g = normalizeFindings([{ purl: 'pkg:npm/x@1', ids: ['GHSA-x'] }]);
-  const off = await enrichAliases(g, { fetchImpl: async () => { throw new Error('offline'); } });
+  const off = await enrichAliases(g, { fetchImpl: async () => { throw new Error('offline'); }, sleep: async () => {} });
   assert.equal(off.resolved, 0);
   assert.deepEqual(g[0].aliases, []);
 });

@@ -1,0 +1,21 @@
+name: Feature request
+description: Something vexproof should do, or an input it should read
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What you're trying to do
+      description: The situation, not the feature. A bundler or scanner vexproof doesn't read, a consumer that doesn't apply its output, a step you do by hand.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would help
+      description: If you have a shape in mind (a flag, an input format, a change to the output), describe it. Changes to the VEX output or the CLI contract are major releases, so say if the current shape blocks you.
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else
+      description: Links to the tool or standard involved, sample files, how you work around it today
