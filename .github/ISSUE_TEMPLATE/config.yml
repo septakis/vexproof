@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security problem
+    url: https://github.com/septakis/vexproof/blob/main/SECURITY.md
+    about: Email security@vexproof.dev rather than opening an issue.
+  - name: Documentation
+    url: https://vexproof.dev/docs/
+    about: Install, quickstart, every option, and CI recipes.

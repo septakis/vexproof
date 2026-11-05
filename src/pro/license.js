@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: LicenseRef-vexproof-Pro
 // Part of vexproof Pro. Not MIT: see LICENSE.md in this directory.
-// Offline licenses: an Ed25519-signed token, verified locally. No network, no phone-home.
+// Licenses are Ed25519-signed tokens, verified locally. No network, no phone-home.
 // A missing, invalid or expired license never fails a build — vexproof falls back to free features.
 import { createPublicKey, verify } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';

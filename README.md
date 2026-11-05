@@ -98,6 +98,13 @@ vexproof --lockfile bom.lockfile.json --bundle bom.bundle.json \
 `grype … -o json`, `snyk test --json`, or `[{purl, ids}]`. Without it, vexproof queries OSV directly
 (and looks up GHSA ↔ CVE aliases there; `--enrich-aliases` does the same for a findings file).
 
+The same inputs write the same files: statements come in a fixed order, and each file's serial number
+is derived from its content. Only the timestamps change from run to run. Set `SOURCE_DATE_EPOCH`
+(seconds since 1970, the [reproducible-builds](https://reproducible-builds.org/specs/source-date-epoch/)
+convention) to pin them, for example to the commit time with
+`SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)`, and a VEX file committed next to its SBOM only
+changes when a verdict does.
+
 ## Works with your scanner
 
 Scanners disagree on IDs: Trivy reports npm issues by CVE, npm audit and Grype by GHSA. vexproof
@@ -115,8 +122,8 @@ carries both on every statement (from OSV and its own rules), so one VEX file ma
 checks that each one hides exactly the findings the VEX settles and still shows every other one: Trivy on
 `fs` and `sbom` scans with OpenVEX, CycloneDX 1.6 and 1.7; Grype on SBOM and directory scans; VEX made from
 OSV and from each scanner's own report. Run it before each release, or with `vexproof@<version>` against a
-published package. It needs `trivy`, `grype` and network access. `interop/run.sh <dir>` is the offline
-version: it applies the files with the matching code Trivy and Grype use (`openvex/go-vex`,
+published package. It needs `trivy`, `grype` and network access. `interop/run.sh <dir>` checks the same files
+without the scanners: it applies them with the matching code Trivy and Grype use (`openvex/go-vex`,
 `cyclonedx-go`'s BOM-Link parser, Trivy's package-match rule) and prints what each would filter.
 
 ### Dependency-Track
@@ -354,8 +361,11 @@ is in the wrong place. Without a key, vexproof uses the Pro files only to check 
 the rules that ship with it, and to count the findings Pro would settle. What vexproof writes for you (VEX, reports, rules) is yours
 under either license and stays valid after a key expires.
 
-`package.json` says `SEE LICENSE IN LICENSE`, which is npm's form for a package that isn't under
-a single SPDX license. A license scanner that only allows MIT will ask about it.
+`package.json` says `MIT AND LicenseRef-vexproof-Pro`, an SPDX expression for the two parts. A
+license scanner that only allows MIT will ask about the second one.
+
+"vexproof" and "Septakis" are trademarks of Septakis LLC. The MIT License covers the code, not the
+names: a fork can use the code but needs its own name.
 
 ## License keys
 
@@ -411,7 +421,7 @@ npm package, so keep customer names out of notes.
 
 ## Tests
 
-`npm test` runs 126 tests, including schema validation of both output formats. Most fixtures are
+`npm test` runs 137 tests, including schema validation of both output formats. Most fixtures are
 real builds, slimmed down:
 
 - two Angular 20 apps, one using only `capitalize` and one also using `template` and `omit`,

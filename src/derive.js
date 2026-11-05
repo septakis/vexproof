@@ -12,7 +12,7 @@
 // entry file) while the vulnerable code sits in a file it didn't touch. So derived rules only SUGGEST a
 // verdict unless the run passes --accept-derived, and every refusal below errs toward no rule at all.
 import { gunzipSync } from 'node:zlib';
-import { inAdvisoryRange } from './sources.js';
+import { inAdvisoryRange, fetchRetrying } from './sources.js';
 
 const REGISTRY = 'https://registry.npmjs.org';
 
@@ -94,7 +94,7 @@ export function diffForRule({ installedFiles, fixedFiles }) {
 // ---------- registry ----------
 
 async function json(url, fetchImpl, init) {
-  const r = await fetchImpl(url, init);
+  const r = await fetchRetrying(url, init, { fetchImpl });
   if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`);
   return r.json();
 }
@@ -102,7 +102,7 @@ async function tarball(name, version, fetchImpl, cache) {
   const key = `${name}@${version}`;
   if (!cache.has(key)) {
     const base = name.startsWith('@') ? name.split('/')[1] : name;
-    const r = await fetchImpl(`${REGISTRY}/${name.replace('/', '%2f')}/-/${base}-${version}.tgz`);
+    const r = await fetchRetrying(`${REGISTRY}/${name.replace('/', '%2f')}/-/${base}-${version}.tgz`, {}, { fetchImpl });
     if (!r.ok) throw new Error(`tarball ${key}: HTTP ${r.status}`);
     cache.set(key, untar(Buffer.from(await r.arrayBuffer())));
   }

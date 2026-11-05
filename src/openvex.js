@@ -3,8 +3,7 @@
 //  - Trivy: product = the app's PURL, subcomponent = the vulnerable package's PURL (applies on every Trivy target)
 //  - Grype: on directory and SBOM scans it only tries the package's own PURL as the product, so that form is
 //    added when packageProducts is set. Such a file makes claims about packages, so use it only for this app.
-import { randomUUID } from 'node:crypto';
-import { VERSION } from './index.js';
+import { VERSION, contentUuid } from './index.js';
 
 const stripQualifiers = (purl) => String(purl).split('?')[0].split('#')[0];
 
@@ -55,15 +54,26 @@ export function toStatement(r, { productPurl, packageProducts = false }) {
   return s;
 }
 
+const SETTLED = new Set(['not_affected', 'fixed']);
+const cmp = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+
 export function toOpenVex({ results, productPurl, author = 'vexproof', packageProducts = false, now = new Date() }) {
-  return {
+  // Settled statements first and open ones last, as in the CycloneDX file; then by advisory and package,
+  // so the same input always writes the same file.
+  const rank = (s) => (SETTLED.has(s.status) ? 0 : 1);
+  const statements = results
+    .map((r) => ({ ...toStatement(r, { productPurl, packageProducts }), timestamp: now.toISOString() }))
+    .sort((a, b) => rank(a) - rank(b) || cmp(a.vulnerability.name, b.vulnerability.name) || cmp(a.products[0].subcomponents[0]['@id'], b.products[0].subcomponents[0]['@id']));
+  const doc = {
     '@context': 'https://openvex.dev/ns/v0.2.0',
-    '@id': `urn:uuid:${randomUUID()}`,
+    '@id': null,
     author,
     role: 'Document Creator',
     timestamp: now.toISOString(),
     version: 1,
     tooling: `vexproof/${VERSION}`,
-    statements: results.map((r) => ({ ...toStatement(r, { productPurl, packageProducts }), timestamp: now.toISOString() })),
+    statements,
   };
+  doc['@id'] = `urn:uuid:${contentUuid(doc)}`;
+  return doc;
 }

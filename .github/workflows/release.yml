@@ -1,0 +1,62 @@
+# Pushing a tag v<version> runs the tests, publishes that version to npm with provenance, and drafts the GitHub
+# release from its CHANGELOG.md section. The tag must match package.json, or nothing is published.
+#
+# npm authentication uses trusted publishing (OIDC): on npmjs.com, under the package's Settings → Trusted
+# publisher, allow repository septakis/vexproof, workflow release.yml. No token is stored in GitHub.
+#
+# A pre-release version (1.0.0-beta.1) is published under the `beta` dist-tag, so `npm install vexproof` keeps
+# resolving to `latest` until a final version lands.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write   # draft the GitHub release
+  id-token: write   # npm provenance and trusted publishing
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+      - name: The tag matches package.json
+        id: version
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if [ "v$version" != "${GITHUB_REF_NAME}" ]; then
+            echo "tag ${GITHUB_REF_NAME} but package.json says $version" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          case "$version" in *-*) echo "tag=beta" >> "$GITHUB_OUTPUT" ;; *) echo "tag=latest" >> "$GITHUB_OUTPUT" ;; esac
+
+      - name: Publish to npm with provenance
+        run: npm publish --provenance --access public --tag "${{ steps.version.outputs.tag }}"
+
+      - name: Release notes from CHANGELOG.md
+        run: |
+          awk -v v="${{ steps.version.outputs.version }}" '
+            $0 ~ "^## \\[" v "\\]" { on = 1; next }
+            /^## \[/ { on = 0 }
+            on' CHANGELOG.md > notes.md
+          if [ ! -s notes.md ]; then echo "No CHANGELOG.md section for ${{ steps.version.outputs.version }}; add one." >&2; exit 1; fi
+
+      - name: Draft the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" --draft --verify-tag \
+            --title "vexproof ${{ steps.version.outputs.version }}" \
+            --notes-file notes.md \
+            ${{ steps.version.outputs.tag == 'beta' && '--prerelease' || '' }}

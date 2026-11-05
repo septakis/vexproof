@@ -5,8 +5,36 @@ import { sbomPurls, parsePurl, npmPurl, mergeFindings } from './index.js';
 const OSV_BATCH = 'https://api.osv.dev/v1/querybatch';
 const BATCH_SIZE = 1000; // OSV's documented limit per querybatch call
 
+const TIMEOUT_MS = 30_000;
+const RETRIES = 3;
+const pause = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * fetch for the public sources vexproof reads (OSV, the npm registry): each attempt times out, and 429, 5xx and
+ * network errors are retried with backoff (a Retry-After header, when sent, sets the wait). Anything else is
+ * returned as is. Throws once the retries are spent, so a run never continues on a lookup that did not happen.
+ */
+export async function fetchRetrying(url, init = {}, { fetchImpl = globalThis.fetch, retries = RETRIES, timeoutMs = TIMEOUT_MS, sleep = pause } = {}) {
+  let last;
+  for (let attempt = 0; ; attempt++) {
+    let wait = Math.min(500 * 2 ** attempt, 8000);
+    try {
+      const res = await fetchImpl(url, { ...init, signal: AbortSignal.timeout(timeoutMs) });
+      const status = res.status ?? (res.ok ? 200 : 500);
+      if (status !== 429 && status < 500) return res;
+      last = new Error(`HTTP ${status}`);
+      const after = Number(res.headers?.get?.('retry-after'));
+      if (after > 0) wait = Math.min(after * 1000, 60_000);
+    } catch (e) {
+      last = e?.name === 'TimeoutError' ? new Error(`no response within ${timeoutMs / 1000}s`) : e;
+    }
+    if (attempt >= retries) throw new Error(`${url}: ${last.message} (gave up after ${attempt + 1} attempts)`);
+    await sleep(wait);
+  }
+}
+
 /** Query OSV for every npm component in a lockfile SBOM. Returns internal [{purl, ids}]. */
-export async function fetchOsvFindings(lockfileSbom, { fetchImpl = globalThis.fetch } = {}) {
+export async function fetchOsvFindings(lockfileSbom, { fetchImpl = globalThis.fetch, sleep = pause } = {}) {
   const pkgs = sbomPurls(lockfileSbom)
     .map((purl) => ({ purl, p: parsePurl(purl) }))
     .filter(({ p }) => p && p.type === 'npm' && p.version);
@@ -14,8 +42,11 @@ export async function fetchOsvFindings(lockfileSbom, { fetchImpl = globalThis.fe
   for (let i = 0; i < pkgs.length; i += BATCH_SIZE) {
     const chunk = pkgs.slice(i, i + BATCH_SIZE);
     const body = { queries: chunk.map(({ p }) => ({ package: { name: p.name, ecosystem: 'npm' }, version: p.version })) };
-    const res = await fetchImpl(OSV_BATCH, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
-    if (!res.ok) throw new Error(`OSV querybatch failed: HTTP ${res.status}`);
+    let res;
+    try {
+      res = await fetchRetrying(OSV_BATCH, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }, { fetchImpl, sleep });
+    } catch (e) { throw new Error(`OSV lookup failed: ${e.message}. Pass --findings with a scanner's output to run without it.`); }
+    if (!res.ok) throw new Error(`OSV lookup failed: HTTP ${res.status}. Pass --findings with a scanner's output to run without it.`);
     const json = await res.json();
     (json.results ?? []).forEach((r, k) => {
       const ids = (r.vulns ?? []).map((v) => v.id);
@@ -150,15 +181,15 @@ export function fromPnpmAudit(report) {
 }
 
 /** OSV knows every alias (GHSA ↔ CVE). One GET per unique id; failures leave findings unchanged. */
-export async function enrichAliases(findings, { fetchImpl = globalThis.fetch, limit = 8 } = {}) {
+export async function enrichAliases(findings, { fetchImpl = globalThis.fetch, limit = 8, sleep = pause } = {}) {
   const ids = [...new Set(findings.map((f) => f.id))];
   const known = new Map();
   for (let i = 0; i < ids.length; i += limit) {
     await Promise.all(ids.slice(i, i + limit).map(async (id) => {
       try {
-        const res = await fetchImpl(`https://api.osv.dev/v1/vulns/${encodeURIComponent(id)}`);
+        const res = await fetchRetrying(`https://api.osv.dev/v1/vulns/${encodeURIComponent(id)}`, {}, { fetchImpl, sleep });
         if (res.ok) known.set(id, (await res.json()).aliases ?? []);
-      } catch { /* offline: keep what we have */ }
+      } catch { /* request failed: keep what we have */ }
     }));
   }
   let added = 0;

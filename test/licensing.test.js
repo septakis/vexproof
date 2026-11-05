@@ -25,7 +25,7 @@ test('every source file names its license, and the license matches where the fil
 
 test('both license texts ship, and package.json names both', () => {
   const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json')));
-  assert.equal(pkg.license, 'SEE LICENSE IN LICENSE'); // npm's form for a package that is not under one SPDX license
+  assert.equal(pkg.license, 'MIT AND LicenseRef-vexproof-Pro'); // SPDX expression: MIT core plus the Pro files
   assert.match(readFileSync(join(ROOT, 'LICENSE'), 'utf8'), /src\/pro\/LICENSE\.md[\s\S]*MIT License/);
   assert.ok(existsSync(join(ROOT, 'src/pro/LICENSE.md')));
   assert.ok(pkg.files.includes('src/') && pkg.files.includes('LICENSE'));
