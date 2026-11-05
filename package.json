@@ -56,6 +56,6 @@
     "ajv-formats-draft2019": "^1.6.1"
   },
   "dependencies": {
-    "acorn": "^8.18.0"
+    "acorn": "^8.19.0"
   }
 }
