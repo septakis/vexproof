@@ -45,6 +45,6 @@ directly; Vite, Rollup, webpack, Rspack, esbuild, bun and Angular inputs; `--dep
 `vexproof review` and `vexproof rules derive`; Pro module-level analysis, baselines and the evidence report.
 
 [Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.1...HEAD
-[1.0.0-beta.1]: https://github.com/septakis/vexproof/compare/v0.13.0...v1.0.0-beta.1
-[0.13.0]: https://github.com/septakis/vexproof/compare/v0.12.0...v0.13.0
-[0.12.0]: https://github.com/septakis/vexproof/releases/tag/v0.12.0
+[1.0.0-beta.1]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.1
+[0.13.0]: https://www.npmjs.com/package/vexproof/v/0.13.0
+[0.12.0]: https://www.npmjs.com/package/vexproof/v/0.12.0
