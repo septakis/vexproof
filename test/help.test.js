@@ -28,7 +28,7 @@ test('each command has its own page, and an unknown one gets the overview', () =
 
 test('every flag the CLI reads is documented on some help page', () => {
   const src = readFileSync(CLI, 'utf8');
-  const read = new Set([...src.matchAll(/args\.([a-z]+)\b|args\['([a-z-]+)'\]|need\('([a-z-]+)'\)/g)].map((m) => m[1] ?? m[2] ?? m[3]));
+  const read = new Set([...src.matchAll(/args\.([a-z]+)\b|args\['([a-z-]+)'\]|(?:need|every)\('([a-z-]+)'\)/g)].map((m) => m[1] ?? m[2] ?? m[3]));
   for (const k of ['help', 'version']) read.delete(k);
   const all = PAGES.map((p) => help(...p)).join('\n');
   for (const flag of read) assert.match(all, new RegExp(`--${flag}(?![\\w-])`), `--${flag} is not in any help page`);

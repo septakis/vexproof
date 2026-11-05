@@ -421,7 +421,7 @@ npm package, so keep customer names out of notes.
 
 ## Tests
 
-`npm test` runs 137 tests, including schema validation of both output formats. Most fixtures are
+`npm test` runs 141 tests, including schema validation of both output formats. Most fixtures are
 real builds, slimmed down:
 
 - two Angular 20 apps, one using only `capitalize` and one also using `template` and `omit`,
