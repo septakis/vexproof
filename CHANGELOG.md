@@ -6,6 +6,11 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+## [1.0.0-beta.1] - 2026-11-05
+
+First beta of 1.0. The CLI contract and the output shape are frozen as written in `docs/CONTRACT.md`;
+what changes before 1.0.0 is copy and fixes.
+
 ### Added
 - The same inputs now write the same files: statements come in a fixed order and each file's serial number is
   derived from its content. `SOURCE_DATE_EPOCH` pins every timestamp, so a VEX file committed next to its SBOM
@@ -39,6 +44,7 @@ module map; findings from npm, pnpm, yarn and bun audit, osv-scanner, Trivy, Gry
 directly; Vite, Rollup, webpack, Rspack, esbuild, bun and Angular inputs; `--deploy` for server-rendered apps;
 `vexproof review` and `vexproof rules derive`; Pro module-level analysis, baselines and the evidence report.
 
-[Unreleased]: https://github.com/septakis/vexproof/compare/v0.13.0...HEAD
+[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.1...HEAD
+[1.0.0-beta.1]: https://github.com/septakis/vexproof/compare/v0.13.0...v1.0.0-beta.1
 [0.13.0]: https://github.com/septakis/vexproof/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/septakis/vexproof/releases/tag/v0.12.0
