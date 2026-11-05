@@ -9,7 +9,7 @@ Runs in your own CI, and your code never leaves it. Without a findings file, vex
 advisories by sending the package names and versions in your lockfile to OSV, and `rules derive`
 downloads public packages from the npm registry.
 
-Full guides and reference: [vexproof.dev/docs](https://vexproof.dev/docs/) (source in [`site/docs/index.html`](site/docs/index.html)).
+Full guides and reference: [vexproof.dev/docs](https://vexproof.dev/docs/) (source in [septakis/vexproof-site](https://github.com/septakis/vexproof-site)).
 
 ## Free and Pro
 
