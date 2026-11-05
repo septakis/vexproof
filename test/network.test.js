@@ -41,7 +41,9 @@ test('each attempt has a timeout, and a 4xx other than 429 is returned without r
   assert.equal(res.status, 404);
   assert.ok(signal instanceof AbortSignal);
   await assert.rejects(
-    fetchRetrying('https://x', {}, { fetchImpl: async (_u, init) => new Promise((_r, rej) => init.signal.addEventListener('abort', () => rej(init.signal.reason))), timeoutMs: 20, retries: 0 }),
+    // A real fetch holds a socket open; this fake holds a timer instead, since AbortSignal.timeout's own timer is
+    // unref'd and on Node 22 would let the event loop drain before the signal fires.
+    fetchRetrying('https://x', {}, { fetchImpl: async (_u, init) => new Promise((_r, rej) => { const hold = setTimeout(() => {}, 5000); init.signal.addEventListener('abort', () => { clearTimeout(hold); rej(init.signal.reason); }); }), timeoutMs: 20, retries: 0 }),
     /no response within 0.02s/,
   );
 });
