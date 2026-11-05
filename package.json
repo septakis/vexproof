@@ -1,6 +1,6 @@
 {
   "name": "vexproof",
-  "version": "0.13.0",
+  "version": "1.0.0-beta.1",
   "description": "Build-proven VEX for npm: CycloneDX and OpenVEX statements for vulnerable code that never reached your bundle",
   "author": "Septakis (https://septakis.io)",
   "homepage": "https://vexproof.dev",
