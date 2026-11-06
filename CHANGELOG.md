@@ -6,6 +6,8 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+## [1.0.0-beta.3] - 2026-11-05
+
 ### Added
 - **CSAF 2.0 VEX** (Pro): `--csaf <file>` writes the document a supplier hands to customers, procurement portals
   and regulators, alongside the CycloneDX and OpenVEX files. One entry per advisory, the release as the product,
@@ -65,7 +67,8 @@ module map; findings from npm, pnpm, yarn and bun audit, osv-scanner, Trivy, Gry
 directly; Vite, Rollup, webpack, Rspack, esbuild, bun and Angular inputs; `--deploy` for server-rendered apps;
 `vexproof review` and `vexproof rules derive`; Pro module-level analysis, baselines and the evidence report.
 
-[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.2...HEAD
+[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.3...HEAD
+[1.0.0-beta.3]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.3
 [1.0.0-beta.2]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.2
 [1.0.0-beta.1]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.1
 [0.13.0]: https://www.npmjs.com/package/vexproof/v/0.13.0
