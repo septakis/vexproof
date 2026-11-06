@@ -2,7 +2,7 @@
 
 ## Reporting a vulnerability
 
-Email **security@vexproof.dev**. Please don't open a public issue for anything that could put users at risk.
+Email **security@septakis.io**. Please don't open a public issue for anything that could put users at risk.
 
 You'll get an acknowledgement within two business days. Include the vexproof version, what you ran, and what
 you saw; a minimal input that reproduces it helps most.

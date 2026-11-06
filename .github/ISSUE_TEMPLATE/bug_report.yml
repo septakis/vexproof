@@ -4,7 +4,7 @@ labels: [bug]
 body:
   - type: markdown
     attributes:
-      value: For a security problem, email security@vexproof.dev instead of filing an issue.
+      value: For a security problem, email security@septakis.io instead of filing an issue.
   - type: input
     id: version
     attributes:
