@@ -6,6 +6,12 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+## [1.0.0-beta.2] - 2026-11-05
+
+### Changed
+- The license signing key was rotated before any license was issued. Keys are verified against the public key
+  in this release; 1.0.0-beta.1 carries the retired key and accepts no license.
+
 ## [1.0.0-beta.1] - 2026-11-05
 
 First beta of 1.0. The CLI contract and the output shape are frozen as written in `docs/CONTRACT.md`;
@@ -44,7 +50,8 @@ module map; findings from npm, pnpm, yarn and bun audit, osv-scanner, Trivy, Gry
 directly; Vite, Rollup, webpack, Rspack, esbuild, bun and Angular inputs; `--deploy` for server-rendered apps;
 `vexproof review` and `vexproof rules derive`; Pro module-level analysis, baselines and the evidence report.
 
-[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.1...HEAD
+[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.2...HEAD
+[1.0.0-beta.2]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.2
 [1.0.0-beta.1]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.1
 [0.13.0]: https://www.npmjs.com/package/vexproof/v/0.13.0
 [0.12.0]: https://www.npmjs.com/package/vexproof/v/0.12.0
