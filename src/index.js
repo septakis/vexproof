@@ -159,7 +159,7 @@ export function applyRuleAliases(findings, rules) {
 
 // ---------- triage ----------
 
-export const VERSION = '1.0.0-beta.1';
+export const VERSION = '1.0.0-beta.2';
 
 /**
  * `moduleCheck` decides whether a package that IS in the bundle still doesn't ship the vulnerable code. It is not
