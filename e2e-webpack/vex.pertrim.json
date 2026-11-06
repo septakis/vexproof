@@ -1,0 +1,421 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:eb8cb6ed-1679-49f4-bc84-d3506a32d0d4",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-09-26T01:48:32.940Z",
+    "tools": {
+      "components": [
+        {
+          "type": "application",
+          "name": "vexproof",
+          "version": "0.3.0"
+        }
+      ]
+    },
+    "component": {
+      "type": "application",
+      "bom-ref": "pkg:npm/wp-app@1.0.0",
+      "purl": "pkg:npm/wp-app@1.0.0",
+      "name": "pkg:npm/wp-app@1.0.0"
+    },
+    "properties": [
+      {
+        "name": "vexproof:bundleSbomSerial",
+        "value": "urn:uuid:dc32835e-89b3-4d83-9f8a-0ab8ec3a5087"
+      },
+      {
+        "name": "vexproof:lockfileSbomSerial",
+        "value": "urn:uuid:daa0c488-04ac-49ce-a0f2-93691f60e28d"
+      },
+      {
+        "name": "vexproof:bundleComponentCount",
+        "value": "2"
+      },
+      {
+        "name": "vexproof:lockfileComponentCount",
+        "value": "2"
+      },
+      {
+        "name": "vexproof:input:lockfile-sbom:sha256",
+        "value": "768b8a173fbbc14da27c154c427a8d7231541afd621f609324190520fee269aa"
+      },
+      {
+        "name": "vexproof:input:bundle-sbom:sha256",
+        "value": "a5973313295e9885bc696166f475350a9f0ec1f5c3a4c52fd383725a902a9564"
+      },
+      {
+        "name": "vexproof:input:findings-npm-audit:sha256",
+        "value": "008bcf2ec90b8cc3be01e66c20c3588c3d883e3581008c70fb959d90595633d8"
+      },
+      {
+        "name": "vexproof:input:modules-webpack-stats:sha256",
+        "value": "aed15a7434e4b20fe1b49615df9302325c2787b206693e98a6084713bfb4d038"
+      },
+      {
+        "name": "vexproof:licensee",
+        "value": "Demo Org"
+      }
+    ]
+  },
+  "vulnerabilities": [
+    {
+      "id": "GHSA-35jh-r3h4-6jhm",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash@4.17.20 is in the bundle, but only 25 of its files survived the production build (webpack-stats). The code affected by GHSA-35jh-r3h4-6jhm — _.template — lives in template.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-26T01:48:32.940Z",
+        "lastUpdated": "2026-09-26T01:48:32.940Z"
+      },
+      "affects": [
+        {
+          "ref": "pkg:npm/wp-app@1.0.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash@4.17.20"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-35jh-r3h4-6jhm"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_Symbol.js _arrayMap.js _asciiToArray.js _baseFindIndex.js _baseGetTag.js _baseIndexOf.js _baseIsNaN.js _baseSlice.js _baseToString.js _castSlice.js _charsEndIndex.js _charsStartIndex.js _freeGlobal.js _getRawTag.js _hasUnicode.js _objectToString.js _root.js _strictIndexOf.js _stringToArray.js _unicodeToArray.js isArray.js isObjectLike.js isSymbol.js toString.js trim.js"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-29mw-wpgm-hmr9",
+      "analysis": {
+        "state": "in_triage",
+        "detail": "npm/lodash (4.17.20) is present in the shipped bundle; requires manual review. Module-level check: vulnerable file(s) bundled: trim.js.",
+        "firstIssued": "2026-09-26T01:48:32.940Z",
+        "lastUpdated": "2026-09-26T01:48:32.940Z"
+      },
+      "affects": [
+        {
+          "ref": "pkg:npm/wp-app@1.0.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash@4.17.20"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-r5fr-rjxr-66jc",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash@4.17.20 is in the bundle, but only 25 of its files survived the production build (webpack-stats). The code affected by GHSA-r5fr-rjxr-66jc — _.template — lives in template.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-26T01:48:32.940Z",
+        "lastUpdated": "2026-09-26T01:48:32.940Z"
+      },
+      "affects": [
+        {
+          "ref": "pkg:npm/wp-app@1.0.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash@4.17.20"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-r5fr-rjxr-66jc"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_Symbol.js _arrayMap.js _asciiToArray.js _baseFindIndex.js _baseGetTag.js _baseIndexOf.js _baseIsNaN.js _baseSlice.js _baseToString.js _castSlice.js _charsEndIndex.js _charsStartIndex.js _freeGlobal.js _getRawTag.js _hasUnicode.js _objectToString.js _root.js _strictIndexOf.js _stringToArray.js _unicodeToArray.js isArray.js isObjectLike.js isSymbol.js toString.js trim.js"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-f23m-r3pf-42rh",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash@4.17.20 is in the bundle, but only 25 of its files survived the production build (webpack-stats). The code affected by GHSA-f23m-r3pf-42rh — _.unset, _.omit — lives in _baseUnset.js, unset.js, omit.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-26T01:48:32.940Z",
+        "lastUpdated": "2026-09-26T01:48:32.940Z"
+      },
+      "affects": [
+        {
+          "ref": "pkg:npm/wp-app@1.0.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash@4.17.20"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-f23m-r3pf-42rh"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_Symbol.js _arrayMap.js _asciiToArray.js _baseFindIndex.js _baseGetTag.js _baseIndexOf.js _baseIsNaN.js _baseSlice.js _baseToString.js _castSlice.js _charsEndIndex.js _charsStartIndex.js _freeGlobal.js _getRawTag.js _hasUnicode.js _objectToString.js _root.js _strictIndexOf.js _stringToArray.js _unicodeToArray.js isArray.js isObjectLike.js isSymbol.js toString.js trim.js"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-xxjr-mmjv-4gpg",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash@4.17.20 is in the bundle, but only 25 of its files survived the production build (webpack-stats). The code affected by GHSA-xxjr-mmjv-4gpg — _.unset, _.omit — lives in _baseUnset.js, unset.js, omit.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-26T01:48:32.940Z",
+        "lastUpdated": "2026-09-26T01:48:32.940Z"
+      },
+      "affects": [
+        {
+          "ref": "pkg:npm/wp-app@1.0.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash@4.17.20"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-xxjr-mmjv-4gpg"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_Symbol.js _arrayMap.js _asciiToArray.js _baseFindIndex.js _baseGetTag.js _baseIndexOf.js _baseIsNaN.js _baseSlice.js _baseToString.js _castSlice.js _charsEndIndex.js _charsStartIndex.js _freeGlobal.js _getRawTag.js _hasUnicode.js _objectToString.js _root.js _strictIndexOf.js _stringToArray.js _unicodeToArray.js isArray.js isObjectLike.js isSymbol.js toString.js trim.js"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-35jh-r3h4-6jhm",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash-es@4.17.20 is in the bundle, but only 21 of its files survived the production build (webpack-stats). The code affected by GHSA-35jh-r3h4-6jhm — _.template (command injection via options.variable) — lives in template.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-26T01:48:32.940Z",
+        "lastUpdated": "2026-09-26T01:48:32.940Z"
+      },
+      "affects": [
+        {
+          "ref": "pkg:npm/wp-app@1.0.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash-es@4.17.20"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-35jh-r3h4-6jhm"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_Symbol.js _arrayMap.js _asciiToArray.js _baseGetTag.js _baseSlice.js _baseToString.js _castSlice.js _createCaseFirst.js _freeGlobal.js _getRawTag.js _hasUnicode.js _objectToString.js _root.js _stringToArray.js _unicodeToArray.js capitalize.js isArray.js isObjectLike.js isSymbol.js toString.js upperFirst.js"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-29mw-wpgm-hmr9",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash-es@4.17.20 is in the bundle, but only 21 of its files survived the production build (webpack-stats). The code affected by GHSA-29mw-wpgm-hmr9 — toNumber, trim, trimEnd (ReDoS in the whitespace-trimming regexes defined in these files) — lives in toNumber.js, trim.js, trimEnd.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-26T01:48:32.940Z",
+        "lastUpdated": "2026-09-26T01:48:32.940Z"
+      },
+      "affects": [
+        {
+          "ref": "pkg:npm/wp-app@1.0.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash-es@4.17.20"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-29mw-wpgm-hmr9"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_Symbol.js _arrayMap.js _asciiToArray.js _baseGetTag.js _baseSlice.js _baseToString.js _castSlice.js _createCaseFirst.js _freeGlobal.js _getRawTag.js _hasUnicode.js _objectToString.js _root.js _stringToArray.js _unicodeToArray.js capitalize.js isArray.js isObjectLike.js isSymbol.js toString.js upperFirst.js"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-r5fr-rjxr-66jc",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash-es@4.17.20 is in the bundle, but only 21 of its files survived the production build (webpack-stats). The code affected by GHSA-r5fr-rjxr-66jc — _.template (code injection via options.imports key names) — lives in template.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-26T01:48:32.940Z",
+        "lastUpdated": "2026-09-26T01:48:32.940Z"
+      },
+      "affects": [
+        {
+          "ref": "pkg:npm/wp-app@1.0.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash-es@4.17.20"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-r5fr-rjxr-66jc"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_Symbol.js _arrayMap.js _asciiToArray.js _baseGetTag.js _baseSlice.js _baseToString.js _castSlice.js _createCaseFirst.js _freeGlobal.js _getRawTag.js _hasUnicode.js _objectToString.js _root.js _stringToArray.js _unicodeToArray.js capitalize.js isArray.js isObjectLike.js isSymbol.js toString.js upperFirst.js"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-f23m-r3pf-42rh",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash-es@4.17.20 is in the bundle, but only 21 of its files survived the production build (webpack-stats). The code affected by GHSA-f23m-r3pf-42rh — _.unset, _.omit (array-path bypass of the baseUnset fix) — lives in _baseUnset.js, unset.js, omit.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-26T01:48:32.940Z",
+        "lastUpdated": "2026-09-26T01:48:32.940Z"
+      },
+      "affects": [
+        {
+          "ref": "pkg:npm/wp-app@1.0.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash-es@4.17.20"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-f23m-r3pf-42rh"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_Symbol.js _arrayMap.js _asciiToArray.js _baseGetTag.js _baseSlice.js _baseToString.js _castSlice.js _createCaseFirst.js _freeGlobal.js _getRawTag.js _hasUnicode.js _objectToString.js _root.js _stringToArray.js _unicodeToArray.js capitalize.js isArray.js isObjectLike.js isSymbol.js toString.js upperFirst.js"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-xxjr-mmjv-4gpg",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/lodash-es@4.17.20 is in the bundle, but only 21 of its files survived the production build (webpack-stats). The code affected by GHSA-xxjr-mmjv-4gpg — _.unset, _.omit (prototype pollution in baseUnset; also reachable via pullAt/remove) — lives in _baseUnset.js, unset.js, omit.js, none of which are present in the shipped output.",
+        "firstIssued": "2026-09-26T01:48:32.940Z",
+        "lastUpdated": "2026-09-26T01:48:32.940Z"
+      },
+      "affects": [
+        {
+          "ref": "pkg:npm/wp-app@1.0.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash-es@4.17.20"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "module"
+        },
+        {
+          "name": "vexproof:rule-source",
+          "value": "https://github.com/advisories/GHSA-xxjr-mmjv-4gpg"
+        },
+        {
+          "name": "vexproof:surviving-files",
+          "value": "_Symbol.js _arrayMap.js _asciiToArray.js _baseGetTag.js _baseSlice.js _baseToString.js _castSlice.js _createCaseFirst.js _freeGlobal.js _getRawTag.js _hasUnicode.js _objectToString.js _root.js _stringToArray.js _unicodeToArray.js capitalize.js isArray.js isObjectLike.js isSymbol.js toString.js upperFirst.js"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,165 @@
+{
+  "@context": "https://openvex.dev/ns/v0.2.0",
+  "@id": "urn:uuid:5abd5472-bfb3-4398-8d4a-c41906fd0c0e",
+  "author": "Demo Org",
+  "role": "Document Creator",
+  "timestamp": "2026-09-27T03:30:10.652Z",
+  "version": 1,
+  "tooling": "vexproof/0.6.0",
+  "statements": [
+    {
+      "vulnerability": {
+        "name": "GHSA-r5fr-rjxr-66jc",
+        "aliases": [
+          "CVE-2026-4800"
+        ]
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/gitea@main",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/lodash-es@4.17.23"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_present",
+      "impact_statement": "npm/lodash-es@4.17.23 is in the bundle, but only 227 of its files survived the production build (counting only the 4.17.23 copy; 1 other copy is a different version) (vite-modules (vite 8.3.0 (rolldown 1.2.6))). The code affected by GHSA-r5fr-rjxr-66jc — _.template (code injection via options.imports key names) — lives in template.js, none of which are present in the shipped output.",
+      "timestamp": "2026-09-27T03:30:10.652Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-f23m-r3pf-42rh",
+        "aliases": [
+          "CVE-2026-2950"
+        ]
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/gitea@main",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/lodash-es@4.17.23"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_present",
+      "impact_statement": "npm/lodash-es@4.17.23 is in the bundle, but only 227 of its files survived the production build (counting only the 4.17.23 copy; 1 other copy is a different version) (vite-modules (vite 8.3.0 (rolldown 1.2.6))). The code affected by GHSA-f23m-r3pf-42rh — _.unset, _.omit (array-path bypass of the baseUnset fix) — lives in _baseUnset.js, unset.js, omit.js, none of which are present in the shipped output.",
+      "timestamp": "2026-09-27T03:30:10.652Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-hmw2-7cc7-3qxx"
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/gitea@main",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/form-data@4.0.5"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "npm/form-data@4.0.5 appears in the lockfile SBOM but no component named npm/form-data appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+      "timestamp": "2026-09-27T03:30:10.652Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-52cp-r559-cp3m"
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/gitea@main",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/js-yaml@4.2.0"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "status_notes": "npm/js-yaml (4.2.0, 5.4.2) is present in the shipped bundle; requires manual review. Module-level check: no module rules for js-yaml.",
+      "timestamp": "2026-09-27T03:30:10.652Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-5p4m-2wfm-xmqj"
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/gitea@main",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/js-yaml@4.2.0"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "status_notes": "npm/js-yaml (4.2.0, 5.4.2) is present in the shipped bundle; requires manual review. Module-level check: no module rules for js-yaml.",
+      "timestamp": "2026-09-27T03:30:10.652Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-w9m9-85wc-3x92"
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/gitea@main",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/postcss-selector-parser@6.1.2"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "npm/postcss-selector-parser@6.1.2 appears in the lockfile SBOM but no component named npm/postcss-selector-parser appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+      "timestamp": "2026-09-27T03:30:10.652Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-px8p-9vwx-vf98"
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/gitea@main",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/fflate@0.8.2"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "status_notes": "npm/fflate (0.8.2) is present in the shipped bundle; requires manual review. Module-level check: no module rules for fflate.",
+      "timestamp": "2026-09-27T03:30:10.652Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-2883-xcg3-v3hh"
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/gitea@main",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/js-yaml@4.2.0"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "status_notes": "npm/js-yaml (4.2.0, 5.4.2) is present in the shipped bundle; requires manual review. Module-level check: no module rules for js-yaml.",
+      "timestamp": "2026-09-27T03:30:10.652Z"
+    }
+  ]
+}

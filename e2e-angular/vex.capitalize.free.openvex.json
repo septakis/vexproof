@@ -1,0 +1,515 @@
+{
+  "@context": "https://openvex.dev/ns/v0.2.0",
+  "@id": "urn:uuid:228da4fd-f492-4543-9516-fdd178cd345f",
+  "author": "vexproof",
+  "role": "Document Creator",
+  "timestamp": "2026-09-27T02:55:37.180Z",
+  "version": 1,
+  "tooling": "vexproof/0.4.0",
+  "statements": [
+    {
+      "vulnerability": {
+        "name": "GHSA-mmhx-hmjr-r674"
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/ngapp@0.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/dompurify@2.3.0"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+      "timestamp": "2026-09-27T02:55:37.180Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-vhxf-7vqr-mrjg"
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/ngapp@0.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/dompurify@2.3.0"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+      "timestamp": "2026-09-27T02:55:37.180Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-p3vf-v8qc-cwcr"
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/ngapp@0.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/dompurify@2.3.0"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+      "timestamp": "2026-09-27T02:55:37.180Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-gx9m-whjm-85jf"
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/ngapp@0.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/dompurify@2.3.0"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+      "timestamp": "2026-09-27T02:55:37.180Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-h7mw-gpvr-xq4m"
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/ngapp@0.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/dompurify@2.3.0"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+      "timestamp": "2026-09-27T02:55:37.180Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-crv5-9vww-q3g8"
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/ngapp@0.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/dompurify@2.3.0"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+      "timestamp": "2026-09-27T02:55:37.180Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-hpcv-96wg-7vj8"
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/ngapp@0.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/dompurify@2.3.0"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+      "timestamp": "2026-09-27T02:55:37.180Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-r47g-fvhr-h676"
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/ngapp@0.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/dompurify@2.3.0"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+      "timestamp": "2026-09-27T02:55:37.180Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-rp9w-3fw7-7cwq"
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/ngapp@0.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/dompurify@2.3.0"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+      "timestamp": "2026-09-27T02:55:37.180Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-c2j3-45gr-mqc4"
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/ngapp@0.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/dompurify@2.3.0"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+      "timestamp": "2026-09-27T02:55:37.180Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-cmwh-pvxp-8882"
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/ngapp@0.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/dompurify@2.3.0"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+      "timestamp": "2026-09-27T02:55:37.180Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-vxr8-fq34-vvx9"
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/ngapp@0.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/dompurify@2.3.0"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+      "timestamp": "2026-09-27T02:55:37.180Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-x4vx-rjvf-j5p4"
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/ngapp@0.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/dompurify@2.3.0"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+      "timestamp": "2026-09-27T02:55:37.180Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-76mc-f452-cxcm"
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/ngapp@0.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/dompurify@2.3.0"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+      "timestamp": "2026-09-27T02:55:37.180Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-39q2-94rc-95cp"
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/ngapp@0.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/dompurify@2.3.0"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+      "timestamp": "2026-09-27T02:55:37.180Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-cjmm-f4jc-qw8r"
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/ngapp@0.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/dompurify@2.3.0"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+      "timestamp": "2026-09-27T02:55:37.180Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-cj63-jhhr-wcxv"
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/ngapp@0.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/dompurify@2.3.0"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+      "timestamp": "2026-09-27T02:55:37.180Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-h8r8-wccr-v5f2"
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/ngapp@0.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/dompurify@2.3.0"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+      "timestamp": "2026-09-27T02:55:37.180Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-55q2-fjhq-7xh7"
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/ngapp@0.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/dompurify@2.3.0"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "npm/dompurify@2.3.0 appears in the lockfile SBOM but no component named npm/dompurify appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+      "timestamp": "2026-09-27T02:55:37.180Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-35jh-r3h4-6jhm",
+        "aliases": [
+          "CVE-2021-23337"
+        ]
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/ngapp@0.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/lodash-es@4.17.20"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "status_notes": "npm/lodash-es (4.17.20) is present in the shipped bundle; requires manual review.",
+      "timestamp": "2026-09-27T02:55:37.180Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-29mw-wpgm-hmr9",
+        "aliases": [
+          "CVE-2020-28500"
+        ]
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/ngapp@0.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/lodash-es@4.17.20"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "status_notes": "npm/lodash-es (4.17.20) is present in the shipped bundle; requires manual review.",
+      "timestamp": "2026-09-27T02:55:37.180Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-r5fr-rjxr-66jc",
+        "aliases": [
+          "CVE-2026-4800"
+        ]
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/ngapp@0.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/lodash-es@4.17.20"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "status_notes": "npm/lodash-es (4.17.20) is present in the shipped bundle; requires manual review.",
+      "timestamp": "2026-09-27T02:55:37.180Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-f23m-r3pf-42rh",
+        "aliases": [
+          "CVE-2026-2950"
+        ]
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/ngapp@0.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/lodash-es@4.17.20"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "status_notes": "npm/lodash-es (4.17.20) is present in the shipped bundle; requires manual review.",
+      "timestamp": "2026-09-27T02:55:37.180Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-xxjr-mmjv-4gpg",
+        "aliases": [
+          "CVE-2025-13465"
+        ]
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/ngapp@0.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/lodash-es@4.17.20"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "status_notes": "npm/lodash-es (4.17.20) is present in the shipped bundle; requires manual review.",
+      "timestamp": "2026-09-27T02:55:37.180Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-8hfj-j24r-96c4"
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/ngapp@0.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/moment@2.29.1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "npm/moment@2.29.1 appears in the lockfile SBOM but no component named npm/moment appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+      "timestamp": "2026-09-27T02:55:37.180Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-wc69-rhjr-hc9g"
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/ngapp@0.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/moment@2.29.1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "component_not_present",
+      "impact_statement": "npm/moment@2.29.1 appears in the lockfile SBOM but no component named npm/moment appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+      "timestamp": "2026-09-27T02:55:37.180Z"
+    }
+  ]
+}

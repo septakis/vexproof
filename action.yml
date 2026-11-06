@@ -1,0 +1,128 @@
+name: vexproof
+description: Write VEX statements for vulnerable npm code that never reached your production bundle.
+author: Septakis
+branding:
+  icon: check-circle
+  color: gray-dark
+
+inputs:
+  lockfile:
+    description: CycloneDX SBOM of the lockfile (e.g. from @cyclonedx/cyclonedx-npm --omit dev)
+    required: true
+  bundle:
+    description: CycloneDX SBOM of the production bundle. Optional when modules or deploy is set.
+    required: false
+  findings:
+    description: npm, pnpm, yarn or bun audit; osv-scanner, Trivy, Grype or Snyk JSON. Omit to query OSV directly.
+    required: false
+  modules:
+    description: vexproof-modules.json from the vexproof/vite or vexproof/webpack plugin, an esbuild metafile, or Angular stats.json. Comma-separated for several.
+    required: false
+  deploy:
+    description: Deployment folders for apps that also run on a server, comma-separated (Next.js .next/standalone,.next/static; Nuxt .output). Needs source maps on.
+    required: false
+  product:
+    description: The product's PURL. Defaults to the lockfile SBOM's own component.
+    required: false
+  out:
+    description: CycloneDX VEX output path
+    default: vex.cdx.json
+  spec-version:
+    description: CycloneDX version of the VEX, 1.6 or 1.7. Trivy reads 1.7 from 0.71, Dependency-Track from 4.14.
+    default: '1.6'
+  openvex:
+    description: OpenVEX output path (what Trivy and Grype apply). Empty to skip.
+    default: vex.openvex.json
+  report:
+    description: HTML evidence report path (Pro). Empty to skip.
+    required: false
+  baseline:
+    description: Previous release's CycloneDX VEX (Pro)
+    required: false
+  fail-on:
+    description: "in_triage, new (needs baseline), or empty for no gate"
+    required: false
+  license:
+    description: License token. Pass a secret, e.g. secrets.VEXPROOF_LICENSE. Never fails the build if missing or expired.
+    required: false
+  dependabot:
+    description: "(Pro) Set to true to dismiss the Dependabot alerts the VEX settles, and reopen ones vexproof dismissed that it no longer settles. Only a run of the default branch changes alerts; other runs preview. Needs license and dependabot-token. Without a license that covers it, no alerts change and the job continues."
+    default: 'false'
+  dependabot-token:
+    description: A fine-grained token or GitHub App token with Dependabot alerts read and write access to this repository. The workflow's own GITHUB_TOKEN cannot change Dependabot alerts.
+    required: false
+  dependabot-manifest:
+    description: Manifest files or folders whose alerts to change, comma-separated (default the repository root)
+    required: false
+  version:
+    description: vexproof version to run
+    default: latest
+
+outputs:
+  vex:
+    description: Path of the CycloneDX VEX
+    value: ${{ inputs.out }}
+  openvex:
+    description: Path of the OpenVEX document
+    value: ${{ inputs.openvex }}
+
+runs:
+  using: composite
+  steps:
+    - name: Run vexproof
+      id: vexproof
+      shell: bash
+      env:
+        VEXPROOF_LICENSE: ${{ inputs.license }}
+        IN_LOCKFILE: ${{ inputs.lockfile }}
+        IN_BUNDLE: ${{ inputs.bundle }}
+        IN_FINDINGS: ${{ inputs.findings }}
+        IN_MODULES: ${{ inputs.modules }}
+        IN_DEPLOY: ${{ inputs.deploy }}
+        IN_PRODUCT: ${{ inputs.product }}
+        IN_OUT: ${{ inputs.out }}
+        IN_OPENVEX: ${{ inputs.openvex }}
+        IN_SPEC: ${{ inputs.spec-version }}
+        IN_REPORT: ${{ inputs.report }}
+        IN_BASELINE: ${{ inputs.baseline }}
+        IN_FAIL_ON: ${{ inputs.fail-on }}
+        IN_VERSION: ${{ inputs.version }}
+      run: |
+        args=(--lockfile "$IN_LOCKFILE" --out "$IN_OUT")
+        [ -n "$IN_BUNDLE" ]   && args+=(--bundle "$IN_BUNDLE")
+        [ -n "$IN_FINDINGS" ] && args+=(--findings "$IN_FINDINGS")
+        [ -n "$IN_MODULES" ]  && args+=(--modules "$IN_MODULES")
+        [ -n "$IN_DEPLOY" ]   && args+=(--deploy "$IN_DEPLOY")
+        [ -n "$IN_PRODUCT" ]  && args+=(--product "$IN_PRODUCT")
+        [ -n "$IN_OPENVEX" ]  && args+=(--openvex "$IN_OPENVEX")
+        [ -n "$IN_SPEC" ]     && args+=(--spec-version "$IN_SPEC")
+        [ -n "$IN_REPORT" ]   && args+=(--report "$IN_REPORT")
+        [ -n "$IN_BASELINE" ] && args+=(--baseline "$IN_BASELINE")
+        [ -n "$IN_FAIL_ON" ]  && args+=(--fail-on "$IN_FAIL_ON")
+        status=0
+        npx --yes "vexproof@${IN_VERSION}" "${args[@]}" || status=$?
+        echo "status=${status}" >> "$GITHUB_OUTPUT"
+        exit "$status"
+
+    # Runs when the VEX was written, including when --fail-on stopped the job (exit 1): that is when the alerts matter.
+    - name: Apply the VEX to Dependabot alerts
+      if: ${{ always() && inputs.dependabot == 'true' && (steps.vexproof.outputs.status == '0' || steps.vexproof.outputs.status == '1') }}
+      shell: bash
+      env:
+        VEXPROOF_LICENSE: ${{ inputs.license }}
+        VEXPROOF_DEPENDABOT_TOKEN: ${{ inputs.dependabot-token }}
+        IN_LOCKFILE: ${{ inputs.lockfile }}
+        IN_OUT: ${{ inputs.out }}
+        IN_MANIFEST: ${{ inputs.dependabot-manifest }}
+        IN_VERSION: ${{ inputs.version }}
+      run: |
+        # Exit 1 is also what npx gives when it cannot fetch vexproof; then there is no VEX and nothing to apply.
+        if [ ! -f "$IN_OUT" ]; then
+          echo "vexproof wrote no VEX, so there are no alerts to apply it to"
+          exit 0
+        fi
+        # No token check here: a key that does not cover this feature must not fail the job, and vexproof says
+        # so and exits 0. With a covering key and no token, vexproof exits 2 and names the token it needs.
+        args=(dependabot --vex "$IN_OUT" --lockfile "$IN_LOCKFILE")
+        [ -n "$IN_MANIFEST" ] && args+=(--manifest "$IN_MANIFEST")
+        npx --yes "vexproof@${IN_VERSION}" "${args[@]}"

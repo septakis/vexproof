@@ -1,0 +1,47 @@
+{
+  "SchemaVersion": 2,
+  "ArtifactName": "bom.lockfile.json",
+  "ArtifactType": "cyclonedx",
+  "Results": [
+    {
+      "Target": "Node.js",
+      "Class": "lang-pkgs",
+      "Type": "node-pkg",
+      "Vulnerabilities": [
+        {
+          "VulnerabilityID": "CVE-2026-4800",
+          "PkgID": "lodash@4.17.21",
+          "PkgName": "lodash",
+          "PkgIdentifier": {
+            "PURL": "pkg:npm/lodash@4.17.21",
+            "BOMRef": "chart-dashboard@1.0.0|lodash@4.17.21"
+          },
+          "InstalledVersion": "4.17.21",
+          "Severity": "HIGH"
+        },
+        {
+          "VulnerabilityID": "CVE-2026-2950",
+          "PkgID": "lodash@4.17.21",
+          "PkgName": "lodash",
+          "PkgIdentifier": {
+            "PURL": "pkg:npm/lodash@4.17.21",
+            "BOMRef": "chart-dashboard@1.0.0|lodash@4.17.21"
+          },
+          "InstalledVersion": "4.17.21",
+          "Severity": "HIGH"
+        },
+        {
+          "VulnerabilityID": "CVE-2025-13465",
+          "PkgID": "lodash@4.17.21",
+          "PkgName": "lodash",
+          "PkgIdentifier": {
+            "PURL": "pkg:npm/lodash@4.17.21",
+            "BOMRef": "chart-dashboard@1.0.0|lodash@4.17.21"
+          },
+          "InstalledVersion": "4.17.21",
+          "Severity": "HIGH"
+        }
+      ]
+    }
+  ]
+}

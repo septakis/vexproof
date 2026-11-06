@@ -1,0 +1,346 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:ff3d4302-da5c-4f3a-b29a-757b7df74e44",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-09-27T03:30:10.540Z",
+    "tools": {
+      "components": [
+        {
+          "type": "application",
+          "name": "vexproof",
+          "version": "0.6.0"
+        }
+      ]
+    },
+    "component": {
+      "type": "application",
+      "bom-ref": "pkg:npm/gitea@main",
+      "purl": "pkg:npm/gitea@main",
+      "name": "pkg:npm/gitea@main"
+    },
+    "properties": [
+      {
+        "name": "vexproof:bundleSbomSerial",
+        "value": "null"
+      },
+      {
+        "name": "vexproof:lockfileSbomSerial",
+        "value": "urn:uuid:21d3aa11-5757-4b01-9953-4c5737dc2d4e"
+      },
+      {
+        "name": "vexproof:bundleComponentCount",
+        "value": "170"
+      },
+      {
+        "name": "vexproof:lockfileComponentCount",
+        "value": "467"
+      },
+      {
+        "name": "vexproof:input:lockfile-sbom:sha256",
+        "value": "48aedcc17028a711f09a2c900d218dbc07eb5ec4415cb4ab3c3f77cb2f68c46b"
+      },
+      {
+        "name": "vexproof:input:findings-pnpm-audit:sha256",
+        "value": "431e14447c89558c82ce0cb8c3251090bf7fd320ec908d26f370cba112738970"
+      },
+      {
+        "name": "vexproof:input:modules-vite-modules (vite 8.3.0 (rolldown 1.2.6)):sha256",
+        "value": "ff5ce73d4d719cc14fd5ecce326c81f6323f406aa04d2a6ed92131b14a662fca"
+      }
+    ]
+  },
+  "vulnerabilities": [
+    {
+      "id": "GHSA-r5fr-rjxr-66jc",
+      "references": [
+        {
+          "id": "CVE-2026-4800",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "in_triage",
+        "detail": "npm/lodash-es (4.18.1, 4.17.23) is present in the shipped bundle; requires manual review.",
+        "firstIssued": "2026-09-27T03:30:10.540Z",
+        "lastUpdated": "2026-09-27T03:30:10.540Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:21d3aa11-5757-4b01-9953-4c5737dc2d4e/1#pkg%3Anpm%2Flodash-es%404.17.23"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash-es@4.17.23"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        }
+      ]
+    },
+    {
+      "id": "CVE-2026-4800",
+      "references": [
+        {
+          "id": "GHSA-r5fr-rjxr-66jc",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "in_triage",
+        "detail": "npm/lodash-es (4.18.1, 4.17.23) is present in the shipped bundle; requires manual review.",
+        "firstIssued": "2026-09-27T03:30:10.540Z",
+        "lastUpdated": "2026-09-27T03:30:10.540Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:21d3aa11-5757-4b01-9953-4c5737dc2d4e/1#pkg%3Anpm%2Flodash-es%404.17.23"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash-es@4.17.23"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:alias-of",
+          "value": "GHSA-r5fr-rjxr-66jc"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-f23m-r3pf-42rh",
+      "references": [
+        {
+          "id": "CVE-2026-2950",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "in_triage",
+        "detail": "npm/lodash-es (4.18.1, 4.17.23) is present in the shipped bundle; requires manual review.",
+        "firstIssued": "2026-09-27T03:30:10.540Z",
+        "lastUpdated": "2026-09-27T03:30:10.540Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:21d3aa11-5757-4b01-9953-4c5737dc2d4e/1#pkg%3Anpm%2Flodash-es%404.17.23"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash-es@4.17.23"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        }
+      ]
+    },
+    {
+      "id": "CVE-2026-2950",
+      "references": [
+        {
+          "id": "GHSA-f23m-r3pf-42rh",
+          "source": {
+            "name": "alias"
+          }
+        }
+      ],
+      "analysis": {
+        "state": "in_triage",
+        "detail": "npm/lodash-es (4.18.1, 4.17.23) is present in the shipped bundle; requires manual review.",
+        "firstIssued": "2026-09-27T03:30:10.540Z",
+        "lastUpdated": "2026-09-27T03:30:10.540Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:21d3aa11-5757-4b01-9953-4c5737dc2d4e/1#pkg%3Anpm%2Flodash-es%404.17.23"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/lodash-es@4.17.23"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:alias-of",
+          "value": "GHSA-f23m-r3pf-42rh"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-hmw2-7cc7-3qxx",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/form-data@4.0.5 appears in the lockfile SBOM but no component named npm/form-data appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+        "firstIssued": "2026-09-27T03:30:10.540Z",
+        "lastUpdated": "2026-09-27T03:30:10.540Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:21d3aa11-5757-4b01-9953-4c5737dc2d4e/1#pkg%3Anpm%2Fform-data%404.0.5"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/form-data@4.0.5"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "package"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-52cp-r559-cp3m",
+      "analysis": {
+        "state": "in_triage",
+        "detail": "npm/js-yaml (4.2.0, 5.4.2) is present in the shipped bundle; requires manual review. Module-level check: no module rules for js-yaml.",
+        "firstIssued": "2026-09-27T03:30:10.540Z",
+        "lastUpdated": "2026-09-27T03:30:10.540Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:21d3aa11-5757-4b01-9953-4c5737dc2d4e/1#pkg%3Anpm%2Fjs-yaml%404.2.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/js-yaml@4.2.0"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-5p4m-2wfm-xmqj",
+      "analysis": {
+        "state": "in_triage",
+        "detail": "npm/js-yaml (4.2.0, 5.4.2) is present in the shipped bundle; requires manual review. Module-level check: no module rules for js-yaml.",
+        "firstIssued": "2026-09-27T03:30:10.540Z",
+        "lastUpdated": "2026-09-27T03:30:10.540Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:21d3aa11-5757-4b01-9953-4c5737dc2d4e/1#pkg%3Anpm%2Fjs-yaml%404.2.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/js-yaml@4.2.0"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-w9m9-85wc-3x92",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_present",
+        "detail": "npm/postcss-selector-parser@6.1.2 appears in the lockfile SBOM but no component named npm/postcss-selector-parser appears in the bundle SBOM generated from the production build. The package's code is not present in the shipped artifact.",
+        "firstIssued": "2026-09-27T03:30:10.540Z",
+        "lastUpdated": "2026-09-27T03:30:10.540Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:21d3aa11-5757-4b01-9953-4c5737dc2d4e/1#pkg%3Anpm%2Fpostcss-selector-parser%406.1.2"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/postcss-selector-parser@6.1.2"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        },
+        {
+          "name": "vexproof:level",
+          "value": "package"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-px8p-9vwx-vf98",
+      "analysis": {
+        "state": "in_triage",
+        "detail": "npm/fflate (0.8.2) is present in the shipped bundle; requires manual review. Module-level check: no module rules for fflate.",
+        "firstIssued": "2026-09-27T03:30:10.540Z",
+        "lastUpdated": "2026-09-27T03:30:10.540Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:21d3aa11-5757-4b01-9953-4c5737dc2d4e/1#pkg%3Anpm%2Ffflate%400.8.2"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/fflate@0.8.2"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-2883-xcg3-v3hh",
+      "analysis": {
+        "state": "in_triage",
+        "detail": "npm/js-yaml (4.2.0, 5.4.2) is present in the shipped bundle; requires manual review. Module-level check: no module rules for js-yaml.",
+        "firstIssued": "2026-09-27T03:30:10.540Z",
+        "lastUpdated": "2026-09-27T03:30:10.540Z"
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:21d3aa11-5757-4b01-9953-4c5737dc2d4e/1#pkg%3Anpm%2Fjs-yaml%404.2.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "vexproof:package",
+          "value": "pkg:npm/js-yaml@4.2.0"
+        },
+        {
+          "name": "vexproof:origin",
+          "value": "auto"
+        }
+      ]
+    }
+  ]
+}

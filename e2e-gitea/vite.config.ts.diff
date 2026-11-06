@@ -1,0 +1,27 @@
+diff --git a/vite.config.ts b/vite.config.ts
+index ddddaf1..c020793 100644
+--- a/vite.config.ts
++++ b/vite.config.ts
+@@ -1,4 +1,5 @@
+ import {build, defineConfig} from 'vite';
++import vexproof from 'vexproof/vite';
+ import {stringPlugin} from 'vite-string-plugin';
+ import {sharedPlugins, vueDefines} from './tools/shared.ts';
+ import {licensePlugin, wrap} from 'rolldown-license-plugin';
+@@ -87,7 +88,7 @@ function iifeBuildOpts({sourceFileName, write}: {sourceFileName: string, write?:
+       rolldownOptions: {output: {entryFileNames: entryFileName}},
+       ...(write === false && {write: false}),
+     },
+-    plugins: [stringPlugin()],
++    plugins: [stringPlugin(), vexproof()],
+   });
+ }
+ 
+@@ -297,6 +298,7 @@ export default defineConfig(commonViteOpts({
+   },
+   define: vueDefines,
+   plugins: [
++    vexproof(),
+     iifePlugin('iife.ts'),
+     iifePlugin('external-render-helper.ts'),
+     viteDevServerPortPlugin(),

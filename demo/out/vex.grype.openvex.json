@@ -1,0 +1,84 @@
+{
+  "@context": "https://openvex.dev/ns/v0.2.0",
+  "@id": "urn:uuid:668341ae-fa34-4c10-95ba-997358dcc97d",
+  "author": "Demo Org",
+  "role": "Document Creator",
+  "timestamp": "2026-09-27T02:51:23.965Z",
+  "version": 1,
+  "tooling": "vexproof/0.3.0",
+  "statements": [
+    {
+      "vulnerability": {
+        "name": "GHSA-r5fr-rjxr-66jc",
+        "aliases": [
+          "CVE-2026-4800"
+        ]
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/chart-dashboard@1.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/lodash@4.17.21"
+            }
+          ]
+        },
+        {
+          "@id": "pkg:npm/lodash@4.17.21"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_present",
+      "impact_statement": "npm/lodash@4.17.21 is in the bundle, but only 225 of its files survived the production build (esbuild-metafile). The code affected by GHSA-r5fr-rjxr-66jc — _.template — lives in template.js, none of which are present in the shipped output.",
+      "timestamp": "2026-09-27T02:51:23.965Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-f23m-r3pf-42rh",
+        "aliases": [
+          "CVE-2026-2950"
+        ]
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/chart-dashboard@1.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/lodash@4.17.21"
+            }
+          ]
+        },
+        {
+          "@id": "pkg:npm/lodash@4.17.21"
+        }
+      ],
+      "status": "under_investigation",
+      "status_notes": "npm/lodash (4.17.21) is present in the shipped bundle; requires manual review. Module-level check: vulnerable file(s) bundled: _baseUnset.js, omit.js.",
+      "timestamp": "2026-09-27T02:51:23.965Z"
+    },
+    {
+      "vulnerability": {
+        "name": "GHSA-xxjr-mmjv-4gpg",
+        "aliases": [
+          "CVE-2025-13465"
+        ]
+      },
+      "products": [
+        {
+          "@id": "pkg:npm/chart-dashboard@1.0.0",
+          "subcomponents": [
+            {
+              "@id": "pkg:npm/lodash@4.17.21"
+            }
+          ]
+        },
+        {
+          "@id": "pkg:npm/lodash@4.17.21"
+        }
+      ],
+      "status": "under_investigation",
+      "status_notes": "npm/lodash (4.17.21) is present in the shipped bundle; requires manual review. Module-level check: vulnerable file(s) bundled: _baseUnset.js, omit.js.",
+      "timestamp": "2026-09-27T02:51:23.965Z"
+    }
+  ]
+}

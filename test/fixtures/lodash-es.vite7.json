@@ -1,0 +1,83 @@
+{
+ "vexproof": 1,
+ "bundler": "vite 7.3.6 (rollup 4.63.5)",
+ "inputs": {},
+ "outputs": {
+  "dist/assets/index-Dnj5JGJ0.js": {
+   "inputs": {
+    "vite/modulepreload-polyfill.js": {
+     "bytesInOutput": 1168
+    },
+    "node_modules/lodash-es/_freeGlobal.js": {
+     "bytesInOutput": 142
+    },
+    "node_modules/lodash-es/_root.js": {
+     "bytesInOutput": 231
+    },
+    "node_modules/lodash-es/_Symbol.js": {
+     "bytesInOutput": 61
+    },
+    "node_modules/lodash-es/_getRawTag.js": {
+     "bytesInOutput": 1099
+    },
+    "node_modules/lodash-es/_objectToString.js": {
+     "bytesInOutput": 530
+    },
+    "node_modules/lodash-es/_baseGetTag.js": {
+     "bytesInOutput": 637
+    },
+    "node_modules/lodash-es/isObjectLike.js": {
+     "bytesInOutput": 581
+    },
+    "node_modules/lodash-es/isSymbol.js": {
+     "bytesInOutput": 563
+    },
+    "node_modules/lodash-es/_arrayMap.js": {
+     "bytesInOutput": 527
+    },
+    "node_modules/lodash-es/isArray.js": {
+     "bytesInOutput": 460
+    },
+    "node_modules/lodash-es/_baseToString.js": {
+     "bytesInOutput": 895
+    },
+    "node_modules/lodash-es/toString.js": {
+     "bytesInOutput": 503
+    },
+    "node_modules/lodash-es/_baseSlice.js": {
+     "bytesInOutput": 726
+    },
+    "node_modules/lodash-es/_castSlice.js": {
+     "bytesInOutput": 445
+    },
+    "node_modules/lodash-es/_hasUnicode.js": {
+     "bytesInOutput": 946
+    },
+    "node_modules/lodash-es/_asciiToArray.js": {
+     "bytesInOutput": 224
+    },
+    "node_modules/lodash-es/_unicodeToArray.js": {
+     "bytesInOutput": 1553
+    },
+    "node_modules/lodash-es/_stringToArray.js": {
+     "bytesInOutput": 274
+    },
+    "node_modules/lodash-es/_createCaseFirst.js": {
+     "bytesInOutput": 603
+    },
+    "node_modules/lodash-es/upperFirst.js": {
+     "bytesInOutput": 385
+    },
+    "node_modules/lodash-es/capitalize.js": {
+     "bytesInOutput": 417
+    },
+    "src/main.js": {
+     "bytesInOutput": 48
+    }
+   }
+  }
+ },
+ "outDirs": [
+  "dist"
+ ]
+}

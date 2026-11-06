@@ -1,0 +1,222 @@
+{
+ "schema": 1,
+ "version": "2026-09-27",
+ "origin": "derived",
+ "packages": {
+  "lodash-es": {
+   "advisories": {
+    "GHSA-35jh-r3h4-6jhm@4.17.20": {
+     "id": "GHSA-35jh-r3h4-6jhm",
+     "versions": [
+      "4.17.20"
+     ],
+     "files": [
+      "lodash.default.js",
+      "parseInt.js",
+      "template.js",
+      "toNumber.js",
+      "trim.js",
+      "trimEnd.js",
+      "trimStart.js"
+     ],
+     "affects": "Command Injection in lodash",
+     "source": "https://github.com/advisories/GHSA-35jh-r3h4-6jhm",
+     "origin": "derived",
+     "derivedFrom": {
+      "installed": "4.17.20",
+      "fixed": "4.17.21"
+     },
+     "aliases": []
+    },
+    "GHSA-29mw-wpgm-hmr9@4.17.20": {
+     "id": "GHSA-29mw-wpgm-hmr9",
+     "versions": [
+      "4.17.20"
+     ],
+     "files": [
+      "lodash.default.js",
+      "parseInt.js",
+      "template.js",
+      "toNumber.js",
+      "trim.js",
+      "trimEnd.js",
+      "trimStart.js"
+     ],
+     "affects": "Regular Expression Denial of Service (ReDoS) in lodash",
+     "source": "https://github.com/advisories/GHSA-29mw-wpgm-hmr9",
+     "origin": "derived",
+     "derivedFrom": {
+      "installed": "4.17.20",
+      "fixed": "4.17.21"
+     },
+     "aliases": []
+    },
+    "GHSA-r5fr-rjxr-66jc@4.17.20": {
+     "id": "GHSA-r5fr-rjxr-66jc",
+     "versions": [
+      "4.17.20"
+     ],
+     "files": [
+      "_baseOrderBy.js",
+      "_baseUnset.js",
+      "_setCacheHas.js",
+      "compact.js",
+      "fromPairs.js",
+      "lodash.default.js",
+      "parseInt.js",
+      "random.js",
+      "template.js",
+      "templateSettings.js",
+      "toNumber.js",
+      "trim.js",
+      "trimEnd.js",
+      "trimStart.js"
+     ],
+     "affects": "lodash vulnerable to Code Injection via `_.template` imports key names",
+     "source": "https://github.com/advisories/GHSA-r5fr-rjxr-66jc",
+     "origin": "derived",
+     "derivedFrom": {
+      "installed": "4.17.20",
+      "fixed": "4.18.0"
+     },
+     "aliases": []
+    },
+    "GHSA-f23m-r3pf-42rh@4.17.20": {
+     "id": "GHSA-f23m-r3pf-42rh",
+     "versions": [
+      "4.17.20"
+     ],
+     "files": [
+      "_baseOrderBy.js",
+      "_baseUnset.js",
+      "_setCacheHas.js",
+      "compact.js",
+      "fromPairs.js",
+      "lodash.default.js",
+      "parseInt.js",
+      "random.js",
+      "template.js",
+      "templateSettings.js",
+      "toNumber.js",
+      "trim.js",
+      "trimEnd.js",
+      "trimStart.js"
+     ],
+     "affects": "lodash vulnerable to Prototype Pollution via array path bypass in `_.unset` and `_.omit`",
+     "source": "https://github.com/advisories/GHSA-f23m-r3pf-42rh",
+     "origin": "derived",
+     "derivedFrom": {
+      "installed": "4.17.20",
+      "fixed": "4.18.0"
+     },
+     "aliases": []
+    },
+    "GHSA-xxjr-mmjv-4gpg@4.17.20": {
+     "id": "GHSA-xxjr-mmjv-4gpg",
+     "versions": [
+      "4.17.20"
+     ],
+     "files": [
+      "_baseUnset.js",
+      "lodash.default.js",
+      "parseInt.js",
+      "template.js",
+      "toNumber.js",
+      "trim.js",
+      "trimEnd.js",
+      "trimStart.js"
+     ],
+     "affects": "Lodash has Prototype Pollution Vulnerability in `_.unset` and `_.omit` functions",
+     "source": "https://github.com/advisories/GHSA-xxjr-mmjv-4gpg",
+     "origin": "derived",
+     "derivedFrom": {
+      "installed": "4.17.20",
+      "fixed": "4.17.23"
+     },
+     "aliases": []
+    }
+   }
+  },
+  "lodash": {
+   "advisories": {
+    "GHSA-r5fr-rjxr-66jc@4.17.21": {
+     "id": "GHSA-r5fr-rjxr-66jc",
+     "versions": [
+      "4.17.21"
+     ],
+     "files": [
+      "_baseOrderBy.js",
+      "_baseUnset.js",
+      "_setCacheHas.js",
+      "compact.js",
+      "core.js",
+      "core.min.js",
+      "fromPairs.js",
+      "lodash.js",
+      "lodash.min.js",
+      "random.js",
+      "template.js",
+      "templateSettings.js"
+     ],
+     "affects": "lodash vulnerable to Code Injection via `_.template` imports key names",
+     "source": "https://github.com/advisories/GHSA-r5fr-rjxr-66jc",
+     "origin": "derived",
+     "derivedFrom": {
+      "installed": "4.17.21",
+      "fixed": "4.18.0"
+     },
+     "aliases": []
+    },
+    "GHSA-f23m-r3pf-42rh@4.17.21": {
+     "id": "GHSA-f23m-r3pf-42rh",
+     "versions": [
+      "4.17.21"
+     ],
+     "files": [
+      "_baseOrderBy.js",
+      "_baseUnset.js",
+      "_setCacheHas.js",
+      "compact.js",
+      "core.js",
+      "core.min.js",
+      "fromPairs.js",
+      "lodash.js",
+      "lodash.min.js",
+      "random.js",
+      "template.js",
+      "templateSettings.js"
+     ],
+     "affects": "lodash vulnerable to Prototype Pollution via array path bypass in `_.unset` and `_.omit`",
+     "source": "https://github.com/advisories/GHSA-f23m-r3pf-42rh",
+     "origin": "derived",
+     "derivedFrom": {
+      "installed": "4.17.21",
+      "fixed": "4.18.0"
+     },
+     "aliases": []
+    },
+    "GHSA-xxjr-mmjv-4gpg@4.17.21": {
+     "id": "GHSA-xxjr-mmjv-4gpg",
+     "versions": [
+      "4.17.21"
+     ],
+     "files": [
+      "_baseUnset.js",
+      "core.js",
+      "core.min.js",
+      "lodash.js",
+      "lodash.min.js"
+     ],
+     "affects": "Lodash has Prototype Pollution Vulnerability in `_.unset` and `_.omit` functions",
+     "source": "https://github.com/advisories/GHSA-xxjr-mmjv-4gpg",
+     "origin": "derived",
+     "derivedFrom": {
+      "installed": "4.17.21",
+      "fixed": "4.17.23"
+     },
+     "aliases": []
+    }
+   }
+  }
+ }
+}

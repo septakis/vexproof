@@ -1,0 +1,203 @@
+{
+  "advisories": {
+    "1115805": {
+      "findings": [
+        {
+          "version": "4.17.23",
+          "paths": [
+            ".>mermaid>chevrotain>lodash-es",
+            ".>mermaid>chevrotain>@chevrotain/gast>lodash-es",
+            ".>mermaid>chevrotain>@chevrotain/cst-dts-gen>lodash-es",
+            ".>mermaid>chevrotain>@chevrotain/cst-dts-gen>@chevrotain/gast>lodash-es"
+          ],
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "id": 1115805,
+      "title": "lodash vulnerable to Code Injection via `_.template` imports key names",
+      "module_name": "lodash-es",
+      "vulnerable_versions": ">=4.0.0 <=4.17.23",
+      "patched_versions": ">=4.18.1",
+      "severity": "high",
+      "cwe": "CWE-94",
+      "github_advisory_id": "GHSA-r5fr-rjxr-66jc",
+      "url": "https://github.com/advisories/GHSA-r5fr-rjxr-66jc"
+    },
+    "1115809": {
+      "findings": [
+        {
+          "version": "4.17.23",
+          "paths": [
+            ".>mermaid>chevrotain>lodash-es",
+            ".>mermaid>chevrotain>@chevrotain/gast>lodash-es",
+            ".>mermaid>chevrotain>@chevrotain/cst-dts-gen>lodash-es",
+            ".>mermaid>chevrotain>@chevrotain/cst-dts-gen>@chevrotain/gast>lodash-es"
+          ],
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "id": 1115809,
+      "title": "lodash vulnerable to Prototype Pollution via array path bypass in `_.unset` and `_.omit`",
+      "module_name": "lodash-es",
+      "vulnerable_versions": "<=4.17.23",
+      "patched_versions": ">=4.18.1",
+      "severity": "moderate",
+      "cwe": "CWE-1321",
+      "github_advisory_id": "GHSA-f23m-r3pf-42rh",
+      "url": "https://github.com/advisories/GHSA-f23m-r3pf-42rh"
+    },
+    "1120743": {
+      "findings": [
+        {
+          "version": "4.0.5",
+          "paths": [
+            ".>@mcaptcha/vanilla-glue>jest-environment-jsdom>jsdom>form-data"
+          ],
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "id": 1120743,
+      "title": "form-data: CRLF injection in form-data via unescaped multipart field names and filenames",
+      "module_name": "form-data",
+      "vulnerable_versions": ">=4.0.0 <4.0.6",
+      "patched_versions": ">=4.0.6",
+      "severity": "high",
+      "cwe": "CWE-93",
+      "github_advisory_id": "GHSA-hmw2-7cc7-3qxx",
+      "url": "https://github.com/advisories/GHSA-hmw2-7cc7-3qxx"
+    },
+    "1123911": {
+      "findings": [
+        {
+          "version": "4.2.0",
+          "paths": [
+            ".>@citation-js/plugin-software-formats>@citation-js/plugin-cff>@citation-js/plugin-yaml>js-yaml",
+            ".>@citation-js/plugin-software-formats>@citation-js/plugin-yaml>js-yaml"
+          ],
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "id": 1123911,
+      "title": "js-yaml: YAML merge-key chains can force quadratic CPU consumption",
+      "module_name": "js-yaml",
+      "vulnerable_versions": ">=4.0.0 <4.3.0",
+      "patched_versions": ">=4.3.0",
+      "severity": "high",
+      "cwe": "CWE-400, CWE-407",
+      "github_advisory_id": "GHSA-52cp-r559-cp3m",
+      "url": "https://github.com/advisories/GHSA-52cp-r559-cp3m"
+    },
+    "1138115": {
+      "findings": [
+        {
+          "version": "4.2.0",
+          "paths": [
+            ".>@citation-js/plugin-software-formats>@citation-js/plugin-cff>@citation-js/plugin-yaml>js-yaml",
+            ".>@citation-js/plugin-software-formats>@citation-js/plugin-yaml>js-yaml"
+          ],
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "id": 1138115,
+      "title": "JS-YAML: Quadratic CPU consumption in !!omap resolution (3.x and 4.x) — CVE-2026-59870 fix not backported",
+      "module_name": "js-yaml",
+      "vulnerable_versions": ">=4.0.0 <4.3.1",
+      "patched_versions": ">=4.3.1",
+      "severity": "high",
+      "cwe": "CWE-407",
+      "github_advisory_id": "GHSA-5p4m-2wfm-xmqj",
+      "url": "https://github.com/advisories/GHSA-5p4m-2wfm-xmqj"
+    },
+    "1153170": {
+      "findings": [
+        {
+          "version": "6.1.2",
+          "paths": [
+            ".>tailwindcss>postcss-selector-parser",
+            ".>tailwindcss>postcss-nested>postcss-selector-parser"
+          ],
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "id": 1153170,
+      "title": "postcss-selector-parser allows denial of service through uncontrolled AST recursion",
+      "module_name": "postcss-selector-parser",
+      "vulnerable_versions": ">=6.1.0 <6.1.3",
+      "patched_versions": ">=6.1.3",
+      "severity": "low",
+      "cwe": "CWE-404",
+      "github_advisory_id": "GHSA-w9m9-85wc-3x92",
+      "url": "https://github.com/advisories/GHSA-w9m9-85wc-3x92"
+    },
+    "1164782": {
+      "findings": [
+        {
+          "version": "0.8.2",
+          "paths": [
+            ".>online-3d-viewer>fflate"
+          ],
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "id": 1164782,
+      "title": "fflate unzipSync can enter an infinite loop when parsing malformed ZIP64 archives",
+      "module_name": "fflate",
+      "vulnerable_versions": ">=0.8.0 <0.8.3",
+      "patched_versions": ">=0.8.3",
+      "severity": "moderate",
+      "cwe": "CWE-400",
+      "github_advisory_id": "GHSA-px8p-9vwx-vf98",
+      "url": "https://github.com/advisories/GHSA-px8p-9vwx-vf98"
+    },
+    "1193727": {
+      "findings": [
+        {
+          "version": "4.2.0",
+          "paths": [
+            ".>@citation-js/plugin-software-formats>@citation-js/plugin-cff>@citation-js/plugin-yaml>js-yaml",
+            ".>@citation-js/plugin-software-formats>@citation-js/plugin-yaml>js-yaml"
+          ],
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "id": 1193727,
+      "title": "js-yaml: maxTotalMergeKeys does not limit CPU use for empty merge sources",
+      "module_name": "js-yaml",
+      "vulnerable_versions": ">=4.0.0 <4.3.2",
+      "patched_versions": ">=4.3.2",
+      "severity": "high",
+      "cwe": "CWE-400, CWE-407",
+      "github_advisory_id": "GHSA-2883-xcg3-v3hh",
+      "url": "https://github.com/advisories/GHSA-2883-xcg3-v3hh"
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 1,
+      "moderate": 2,
+      "high": 5,
+      "critical": 0
+    },
+    "dependencies": 459,
+    "devDependencies": 0,
+    "optionalDependencies": 73,
+    "totalDependencies": 532
+  }
+}

@@ -1,0 +1,2670 @@
+{
+  "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "version": 1,
+  "serialNumber": "urn:uuid:9084eaf1-ed4f-4f86-8a2a-0b500c49b2e2",
+  "metadata": {
+    "timestamp": "2026-09-27T02:48:07.431Z",
+    "tools": {
+      "components": [
+        {
+          "type": "application",
+          "name": "npm",
+          "version": "10.9.7"
+        },
+        {
+          "type": "application",
+          "name": "cyclonedx-npm",
+          "group": "@cyclonedx",
+          "version": "6.0.1",
+          "author": "Jan Kowalleck",
+          "description": "Create CycloneDX Software Bill of Materials (SBOM) from NPM projects.",
+          "licenses": [
+            {
+              "license": {
+                "id": "Apache-2.0"
+              }
+            }
+          ],
+          "externalReferences": [
+            {
+              "url": "git+https://github.com/CycloneDX/cyclonedx-node-npm.git",
+              "type": "vcs",
+              "comment": "as detected from PackageJson property \"repository.url\""
+            },
+            {
+              "url": "https://github.com/CycloneDX/cyclonedx-node-npm#readme",
+              "type": "website",
+              "comment": "as detected from PackageJson property \"homepage\""
+            },
+            {
+              "url": "https://github.com/CycloneDX/cyclonedx-node-npm/issues",
+              "type": "issue-tracker",
+              "comment": "as detected from PackageJson property \"bugs.url\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:constraint:engine:node",
+              "value": ">=20.18.0"
+            },
+            {
+              "name": "cdx:npm:package:constraint:engine:npm",
+              "value": ">=9"
+            }
+          ]
+        },
+        {
+          "type": "library",
+          "name": "cyclonedx-library",
+          "group": "@cyclonedx",
+          "version": "10.3.0",
+          "author": "Jan Kowalleck",
+          "description": "Core functionality of CycloneDX for JavaScript (Node.js or WebBrowser).",
+          "licenses": [
+            {
+              "license": {
+                "id": "Apache-2.0"
+              }
+            }
+          ],
+          "externalReferences": [
+            {
+              "url": "git+https://github.com/CycloneDX/cyclonedx-javascript-library.git",
+              "type": "vcs",
+              "comment": "as detected from PackageJson property \"repository.url\""
+            },
+            {
+              "url": "https://github.com/CycloneDX/cyclonedx-javascript-library#readme",
+              "type": "website",
+              "comment": "as detected from PackageJson property \"homepage\""
+            },
+            {
+              "url": "https://github.com/CycloneDX/cyclonedx-javascript-library/issues",
+              "type": "issue-tracker",
+              "comment": "as detected from PackageJson property \"bugs.url\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:constraint:engine:node",
+              "value": ">=20.18.0"
+            }
+          ]
+        }
+      ]
+    },
+    "component": {
+      "type": "application",
+      "name": "chart-dashboard",
+      "version": "1.0.0",
+      "bom-ref": "chart-dashboard@1.0.0",
+      "purl": "pkg:npm/chart-dashboard@1.0.0",
+      "properties": [
+        {
+          "name": "cdx:npm:package:private",
+          "value": "true"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": ""
+        }
+      ]
+    }
+  },
+  "components": [
+    {
+      "type": "library",
+      "name": "react-dom",
+      "version": "18.3.1",
+      "bom-ref": "chart-dashboard@1.0.0|react-dom@18.3.1",
+      "description": "React package for working with the DOM.",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/react-dom@18.3.1",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/facebook/react.git#packages/react-dom",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://reactjs.org/",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/facebook/react/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/react-dom/-/react-dom-18.3.1.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "e66e2740aa7ead945bd3d2cd1f9f463380714e1f76e75ff295b2886e97bb4e91b17c9fbd92fe812e42c15c88e3b296e06e720136a948db7b519d3593d2c9d423"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/react-dom"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "react",
+      "version": "18.3.1",
+      "bom-ref": "chart-dashboard@1.0.0|react@18.3.1",
+      "description": "React is a JavaScript library for building user interfaces.",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/react@18.3.1",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/facebook/react.git#packages/react",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://reactjs.org/",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/facebook/react/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/react/-/react-18.3.1.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "c12fa1020252851d0a844bcf240adfb8f54dd7e1f3d6dd18ea7e632eb1906e46f8bab80f13fd11bdefb590c075bffa16807826e1621c57e8bb176a53563fb689"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:constraint:engine:node",
+          "value": ">=0.10.0"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/react"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "recharts",
+      "version": "2.15.4",
+      "bom-ref": "chart-dashboard@1.0.0|recharts@2.15.4",
+      "author": "recharts group",
+      "description": "React charts",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/recharts@2.15.4",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/recharts/recharts.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/recharts/recharts",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/recharts/recharts/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/recharts/-/recharts-2.15.4.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "513feae9fc12ddcd5d1db5efdae160609f413051eeddfc2777b01865a110857b98438860b312efb145f319d29e66b5b9c68a730c2bee036378d5627cf08ef323"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:constraint:engine:node",
+          "value": ">=14"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/recharts"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "loose-envify",
+      "version": "1.4.0",
+      "bom-ref": "chart-dashboard@1.0.0|loose-envify@1.4.0",
+      "author": "Andres Suarez",
+      "description": "Fast (and loose) selective `process.env` replacer using js-tokens instead of an AST",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/loose-envify@1.4.0",
+      "externalReferences": [
+        {
+          "url": "git://github.com/zertosh/loose-envify.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/zertosh/loose-envify",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/zertosh/loose-envify/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/loose-envify/-/loose-envify-1.4.0.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "972bb13c6aff59f86b95e9b608bfd472751cd7372a280226043cee918ed8e45ff242235d928ebe7d12debe5c351e03324b0edfeb5d54218e34f04b71452a0add"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/loose-envify"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "scheduler",
+      "version": "0.23.2",
+      "bom-ref": "chart-dashboard@1.0.0|scheduler@0.23.2",
+      "description": "Cooperative scheduler for the browser environment.",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/scheduler@0.23.2",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/facebook/react.git#packages/scheduler",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://reactjs.org/",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/facebook/react/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/scheduler/-/scheduler-0.23.2.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "50e4a1b0fc33ecdacc52a851eadd215a315dbaf3b36edbfbb680c7d7f848adf44d2030679c159dd02c094c6bd3a67815966c0609d3fdfd997fb55ac3a9cb98cd"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/scheduler"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "clsx",
+      "version": "2.1.1",
+      "bom-ref": "chart-dashboard@1.0.0|clsx@2.1.1",
+      "author": "Luke Edwards",
+      "description": "A tiny (239B) utility for constructing className strings conditionally.",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/clsx@2.1.1",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/lukeed/clsx.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/lukeed/clsx#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/lukeed/clsx/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/clsx/-/clsx-2.1.1.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "7989b441606d52b0566561b4777f3a386030d7a67df793e2395a3607b6e35926c779d1a5e5ed1959aabae6438681448d7ac1080e407d2126d383f24af5d84264"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:constraint:engine:node",
+          "value": ">=6"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/clsx"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "eventemitter3",
+      "version": "4.0.7",
+      "bom-ref": "chart-dashboard@1.0.0|eventemitter3@4.0.7",
+      "author": "Arnout Kazemier",
+      "description": "EventEmitter3 focuses on performance while maintaining a Node.js AND browser compatible interface.",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/eventemitter3@4.0.7",
+      "externalReferences": [
+        {
+          "url": "git://github.com/primus/eventemitter3.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/primus/eventemitter3#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/primus/eventemitter3/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/eventemitter3/-/eventemitter3-4.0.7.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "f20b870590b02a716161d1ebdb2b2e45612b4f08683765fc5c42d196b470a667de6368e3b94378b5a40cb142ca515a352b80ef665fb4a607f2a32b07c6f9af13"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/eventemitter3"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "lodash",
+      "version": "4.17.21",
+      "bom-ref": "chart-dashboard@1.0.0|lodash@4.17.21",
+      "author": "John-David Dalton",
+      "description": "Lodash modular utilities.",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/lodash@4.17.21",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/lodash/lodash.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://lodash.com/",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/lodash/lodash/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "bf690311ee7b95e713ba568322e3533f2dd1cb880b189e99d4edef13592b81764daec43e2c54c61d5c558dc5cfb35ecb85b65519e74026ff17675b6f8f916f4a"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/lodash"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "react-is",
+      "version": "18.3.1",
+      "bom-ref": "chart-dashboard@1.0.0|react-is@18.3.1",
+      "description": "Brand checking of React Elements.",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/react-is@18.3.1",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/facebook/react.git#packages/react-is",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://reactjs.org/",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/facebook/react/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/react-is/-/react-is-18.3.1.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "fcb2cc5726acd258e302da1888fa9888bf15597cd451d4e1ae6539fa7db40d9bfe6be0a54687af533c3927153e21e879fdcf3bcada13055f46d4588a7cd25d9a"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/react-is"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "react-smooth",
+      "version": "4.0.4",
+      "bom-ref": "chart-dashboard@1.0.0|react-smooth@4.0.4",
+      "author": "JasonHzq",
+      "description": "react animation library",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/react-smooth@4.0.4",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/recharts/react-smooth.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/recharts/react-smooth#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/recharts/react-smooth/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/react-smooth/-/react-smooth-4.0.4.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "82718a4e9630a8bd088a2d3d807a1b36896f5f82a2ab83cac7a7960426188b1fbc71dc3e706a37768f74ea5d4d04f2a4496c750e0842d5d9561bd2f6b8677ad5"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/react-smooth"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "recharts-scale",
+      "version": "0.4.5",
+      "bom-ref": "chart-dashboard@1.0.0|recharts-scale@0.4.5",
+      "author": "recharts group",
+      "description": "Scale of Cartesian Coordinates",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/recharts-scale@0.4.5",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/recharts/recharts-scale.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/recharts/recharts-scale",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/recharts/recharts-scale/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/recharts-scale/-/recharts-scale-0.4.5.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "922bcd14efb439c50dbbb8d0aae2d7031cf5148c198fc9eb8fe62438a739ebde0d6e30af713e9a499888ccdcddd8aba5e28e2b4eda3c41547d94c36dc43e06d7"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/recharts-scale"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "tiny-invariant",
+      "version": "1.3.3",
+      "bom-ref": "chart-dashboard@1.0.0|tiny-invariant@1.3.3",
+      "author": "Alex Reardon",
+      "description": "A tiny invariant function",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/tiny-invariant@1.3.3",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/alexreardon/tiny-invariant.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/alexreardon/tiny-invariant#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/alexreardon/tiny-invariant/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/tiny-invariant/-/tiny-invariant-1.3.3.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "f856c13c4d68f50018bef89abbfa82e5213771ac36d6adf192f58a06d8dae6f82a3962071c9de2a1aab554f7e7fd2cea72dcf66d4fe861e29df7fcf904bf8f56"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/tiny-invariant"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "victory-vendor",
+      "version": "36.9.2",
+      "bom-ref": "chart-dashboard@1.0.0|victory-vendor@36.9.2",
+      "author": "Formidable",
+      "description": "Vendored dependencies for Victory",
+      "licenses": [
+        {
+          "expression": "MIT AND ISC",
+          "acknowledgement": "declared"
+        }
+      ],
+      "purl": "pkg:npm/victory-vendor@36.9.2",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/FormidableLabs/victory.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://commerce.nearform.com/open-source/victory",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/FormidableLabs/victory/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/victory-vendor/-/victory-vendor-36.9.2.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "3e7a5040cbb197061da1c0bc7c826a557be4795887633a2d23e349ac2b9abf4658168abdd76647064de609eba3fb9fd5a6874e8cf7b5cf4164da2860ce55ea8d"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/victory-vendor"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "js-tokens",
+      "version": "4.0.0",
+      "bom-ref": "chart-dashboard@1.0.0|js-tokens@4.0.0",
+      "author": "Simon Lydell",
+      "description": "A regex that tokenizes JavaScript.",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/js-tokens@4.0.0",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/lydell/js-tokens.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/lydell/js-tokens#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/lydell/js-tokens/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/js-tokens/-/js-tokens-4.0.0.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "45d2547e5704ddc5332a232a420b02bb4e853eef5474824ed1b7986cf84737893a6a9809b627dca02b53f5b7313a9601b690f690233a49bce0e026aeb16fcf29"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/js-tokens"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "fast-equals",
+      "version": "5.4.3",
+      "bom-ref": "chart-dashboard@1.0.0|fast-equals@5.4.3",
+      "author": "Tony Quetano",
+      "description": "A blazing fast equality comparison, either shallow or deep",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/fast-equals@5.4.3",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/planttheidea/fast-equals.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/planttheidea/fast-equals#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/planttheidea/fast-equals/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/fast-equals/-/fast-equals-5.4.3.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "f2e9e6bc0d2aadfa455816146ad7bd0531ad41d28758162df8a7402246a0ed5bf17bbc33f10da7260edf2cc0b46c9a9ed1b8cfdf591c6bb0a469ac2bb3822cb6"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:constraint:engine:node",
+          "value": ">=6.0.0"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/fast-equals"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "prop-types",
+      "version": "15.8.1",
+      "bom-ref": "chart-dashboard@1.0.0|prop-types@15.8.1",
+      "description": "Runtime type checking for React props and similar objects.",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/prop-types@15.8.1",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/facebook/prop-types.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://facebook.github.io/react/",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/facebook/prop-types/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/prop-types/-/prop-types-15.8.1.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "a23f3b0a064809dba5528868815011ec08e50b4df6ed4e1e9782fa780bcea827ae74c0d553435384d695f9bf437f87578123f58173139cf7617deff6a831f972"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/prop-types"
+        }
+      ],
+      "components": [
+        {
+          "type": "library",
+          "name": "react-is",
+          "version": "16.13.1",
+          "bom-ref": "chart-dashboard@1.0.0|prop-types@15.8.1|react-is@16.13.1",
+          "description": "Brand checking of React Elements.",
+          "licenses": [
+            {
+              "license": {
+                "id": "MIT",
+                "acknowledgement": "declared"
+              }
+            }
+          ],
+          "purl": "pkg:npm/react-is@16.13.1",
+          "externalReferences": [
+            {
+              "url": "git+https://github.com/facebook/react.git#packages/react-is",
+              "type": "vcs",
+              "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+            },
+            {
+              "url": "https://reactjs.org/",
+              "type": "website",
+              "comment": "as detected from PackageJson property \"homepage\""
+            },
+            {
+              "url": "https://github.com/facebook/react/issues",
+              "type": "issue-tracker",
+              "comment": "as detected from PackageJson property \"bugs.url\""
+            },
+            {
+              "url": "https://registry.npmjs.org/react-is/-/react-is-16.13.1.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "db87baca71361fe38ab7892ab0ebcd77c901a55eb9ce8c5b038055b04381dc0455590922fc31f3694a02e4ab8e37f06271c0da0824d906e39c7d9b3bd2447c6d"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/prop-types/node_modules/react-is"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "react-transition-group",
+      "version": "4.4.5",
+      "bom-ref": "chart-dashboard@1.0.0|react-transition-group@4.4.5",
+      "description": "A react component toolset for managing animations",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/react-transition-group@4.4.5",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/reactjs/react-transition-group.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/reactjs/react-transition-group#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/reactjs/react-transition-group/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/react-transition-group/-/react-transition-group-4.4.5.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "a5971dd4c089a222a2051d8d471782460d77b825dbc9d3e7981e0439e46b63be3cd2a3563bc2088101bace50e49bab9132c5115cfb8aab4196b62339f5ae50ea"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/react-transition-group"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "decimal.js-light",
+      "version": "2.5.1",
+      "bom-ref": "chart-dashboard@1.0.0|decimal.js-light@2.5.1",
+      "author": "Michael Mclaughlin",
+      "description": "An arbitrary-precision Decimal type for JavaScript.",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/decimal.js-light@2.5.1",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/MikeMcl/decimal.js-light.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/MikeMcl/decimal.js-light#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/MikeMcl/decimal.js-light/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/decimal.js-light/-/decimal.js-light-2.5.1.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "a88305a533199a7cbe30c222b4007a0fb8953c4a2b570e984115a4bdaad3913e2d05e48b2e21f37308faab4326612142895a62a8f253244608ae970fcd5108be"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/decimal.js-light"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "d3-array",
+      "group": "@types",
+      "version": "3.2.2",
+      "bom-ref": "chart-dashboard@1.0.0|@types/d3-array@3.2.2",
+      "description": "TypeScript definitions for d3-array",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40types/d3-array@3.2.2",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/DefinitelyTyped/DefinitelyTyped.git#types/d3-array",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/d3-array",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/DefinitelyTyped/DefinitelyTyped/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/@types/d3-array/-/d3-array-3.2.2.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "84e2d655b9bbb91cdad01617a48216e69c5faca7b45be0f996b162004611fa96fac373764b048c6896d77547d212ff9d4f831f1c12ed9f98ecd0b01668eea8b7"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@types/d3-array"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "d3-ease",
+      "group": "@types",
+      "version": "3.0.2",
+      "bom-ref": "chart-dashboard@1.0.0|@types/d3-ease@3.0.2",
+      "description": "TypeScript definitions for d3-ease",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40types/d3-ease@3.0.2",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/DefinitelyTyped/DefinitelyTyped.git#types/d3-ease",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/d3-ease",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/DefinitelyTyped/DefinitelyTyped/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/@types/d3-ease/-/d3-ease-3.0.2.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "35c5752633b9a03ce82b6ea83336c82c4e875bbb955ce1cb42f1ec841516e1431d6467e263abf905e43087d6bdb42ceff8279e7d940726de524602b5e7846d88"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@types/d3-ease"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "d3-interpolate",
+      "group": "@types",
+      "version": "3.0.4",
+      "bom-ref": "chart-dashboard@1.0.0|@types/d3-interpolate@3.0.4",
+      "description": "TypeScript definitions for d3-interpolate",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40types/d3-interpolate@3.0.4",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/DefinitelyTyped/DefinitelyTyped.git#types/d3-interpolate",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/d3-interpolate",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/DefinitelyTyped/DefinitelyTyped/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/@types/d3-interpolate/-/d3-interpolate-3.0.4.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "9a02cf11396ba55575611248825af8133e3b83b6318e5d658fb60ab223026f6ed5247f56f0d54ce816fd77c924a46fee0104b90266c0e3cab6200a2528aa3530"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@types/d3-interpolate"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "d3-scale",
+      "group": "@types",
+      "version": "4.0.9",
+      "bom-ref": "chart-dashboard@1.0.0|@types/d3-scale@4.0.9",
+      "description": "TypeScript definitions for d3-scale",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40types/d3-scale@4.0.9",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/DefinitelyTyped/DefinitelyTyped.git#types/d3-scale",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/d3-scale",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/DefinitelyTyped/DefinitelyTyped/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/@types/d3-scale/-/d3-scale-4.0.9.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "74b9adc01f3390078efe3b8031f9d5fac22d2a396cc3694a759555cba2d1af470199e8314800622c4a4656648927c3b4f22e3eb0647aa90b5be96b6ec0976f57"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@types/d3-scale"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "d3-shape",
+      "group": "@types",
+      "version": "3.2.0",
+      "bom-ref": "chart-dashboard@1.0.0|@types/d3-shape@3.2.0",
+      "description": "TypeScript definitions for d3-shape",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40types/d3-shape@3.2.0",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/DefinitelyTyped/DefinitelyTyped.git#types/d3-shape",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/d3-shape",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/DefinitelyTyped/DefinitelyTyped/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/@types/d3-shape/-/d3-shape-3.2.0.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "91577be2d6bd7a87f77893af6cd775bc6292fd711147241b4f6e8e83ade122cbc33bce1c8c3e6010e86c5dfdbac37152a0d94f573f380ce15c2affe8a2ef9f33"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@types/d3-shape"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "d3-time",
+      "group": "@types",
+      "version": "3.0.4",
+      "bom-ref": "chart-dashboard@1.0.0|@types/d3-time@3.0.4",
+      "description": "TypeScript definitions for d3-time",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40types/d3-time@3.0.4",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/DefinitelyTyped/DefinitelyTyped.git#types/d3-time",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/d3-time",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/DefinitelyTyped/DefinitelyTyped/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/@types/d3-time/-/d3-time-3.0.4.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "caecd9ba0d6790001a0650418a42994e0cc2780fa4d6ecb8645c1600d39f2b0e73e4b46157480d03b80d90a9bb1e82be1d1374c17dc49311a4d1fa5b5a1981ee"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@types/d3-time"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "d3-timer",
+      "group": "@types",
+      "version": "3.0.2",
+      "bom-ref": "chart-dashboard@1.0.0|@types/d3-timer@3.0.2",
+      "description": "TypeScript definitions for d3-timer",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40types/d3-timer@3.0.2",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/DefinitelyTyped/DefinitelyTyped.git#types/d3-timer",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/d3-timer",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/DefinitelyTyped/DefinitelyTyped/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/@types/d3-timer/-/d3-timer-3.0.2.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "3ecdd3f04f1d6436a6e9f5323623247a42b75d4b1a5048a4fa274ef7f6233ed7e3daaaee17cb450574bb5e1b44e2221704bc6198b8cfdd25e92e155fdb523d2f"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@types/d3-timer"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "d3-array",
+      "version": "3.2.4",
+      "bom-ref": "chart-dashboard@1.0.0|d3-array@3.2.4",
+      "author": "Mike Bostock",
+      "description": "Array manipulation, ordering, searching, summarizing, etc.",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/d3-array@3.2.4",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/d3/d3-array.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://d3js.org/d3-array/",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/d3/d3-array/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/d3-array/-/d3-array-3.2.4.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "b5d4009b2035f22e09ef0a6ba58abc0a5731672dd20b7d5031e072c8217246dec1547751110679969ce87b998511865459efa8abc1c1be4f498e989bc8457826"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:constraint:engine:node",
+          "value": ">=12"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/d3-array"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "d3-ease",
+      "version": "3.0.1",
+      "bom-ref": "chart-dashboard@1.0.0|d3-ease@3.0.1",
+      "author": "Mike Bostock",
+      "description": "Easing functions for smooth animation.",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/d3-ease@3.0.1",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/d3/d3-ease.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://d3js.org/d3-ease/",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/d3/d3-ease/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/d3-ease/-/d3-ease-3.0.1.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "c11fd72b70f75dc2c8670a5bbd0c10e5f2bef1891db358a9ec0d93c5ed32c6771749dab52fdb24706edb95c79d90e5fe65c83118098b5f516b4466c00f0ce2d3"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:constraint:engine:node",
+          "value": ">=12"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/d3-ease"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "d3-interpolate",
+      "version": "3.0.1",
+      "bom-ref": "chart-dashboard@1.0.0|d3-interpolate@3.0.1",
+      "author": "Mike Bostock",
+      "description": "Interpolate numbers, colors, strings, arrays, objects, whatever!",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/d3-interpolate@3.0.1",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/d3/d3-interpolate.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://d3js.org/d3-interpolate/",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/d3/d3-interpolate/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/d3-interpolate/-/d3-interpolate-3.0.1.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "ddb62cd6b383df7ba8f1aa897ca3f72563c089b830f199b6f8bf6f04a107276460faf89347ba39326bf999972278df854586803965f94890135fa9353d6cfbda"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:constraint:engine:node",
+          "value": ">=12"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/d3-interpolate"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "d3-scale",
+      "version": "4.0.2",
+      "bom-ref": "chart-dashboard@1.0.0|d3-scale@4.0.2",
+      "author": "Mike Bostock",
+      "description": "Encodings that map abstract data to visual representation.",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/d3-scale@4.0.2",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/d3/d3-scale.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://d3js.org/d3-scale/",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/d3/d3-scale/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/d3-scale/-/d3-scale-4.0.2.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "1995b8eb8835487eda83763b8578dff11a14b80148aa494e02adcc465e0e69669b4c5258f4f37f1356249615cb87e390ddf33dc92da73a40a84be58b67a92fc5"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:constraint:engine:node",
+          "value": ">=12"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/d3-scale"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "d3-shape",
+      "version": "3.2.0",
+      "bom-ref": "chart-dashboard@1.0.0|d3-shape@3.2.0",
+      "author": "Mike Bostock",
+      "description": "Graphical primitives for visualization, such as lines and areas.",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/d3-shape@3.2.0",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/d3/d3-shape.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://d3js.org/d3-shape/",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/d3/d3-shape/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/d3-shape/-/d3-shape-3.2.0.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "49a2c1bb01a6dcc395891ab600193778ba31c1910ba47eb3865dc56c0a09ed59b58287cac7a125d486f9cf6dcd504845f40b0697bcbe7732dee42c36000ac64c"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:constraint:engine:node",
+          "value": ">=12"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/d3-shape"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "d3-time",
+      "version": "3.1.0",
+      "bom-ref": "chart-dashboard@1.0.0|d3-time@3.1.0",
+      "author": "Mike Bostock",
+      "description": "A calculator for humanity’s peculiar conventions of time.",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/d3-time@3.1.0",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/d3/d3-time.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://d3js.org/d3-time/",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/d3/d3-time/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/d3-time/-/d3-time-3.1.0.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "56a2a3cc12de8db48c4f82206e65600e3a6462b3565182676c21a8f3be2eecc30a216b082d15fe3a95ff81393c32a8e94f503f73a1d8d9d080efb64dd25910d9"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:constraint:engine:node",
+          "value": ">=12"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/d3-time"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "d3-timer",
+      "version": "3.0.1",
+      "bom-ref": "chart-dashboard@1.0.0|d3-timer@3.0.1",
+      "author": "Mike Bostock",
+      "description": "An efficient queue capable of managing thousands of concurrent animations.",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/d3-timer@3.0.1",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/d3/d3-timer.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://d3js.org/d3-timer/",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/d3/d3-timer/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/d3-timer/-/d3-timer-3.0.1.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "9dd7c9fc9c7131dde7c37d6ec8aa18da76a2bc5fabdbd57e2dcd2cbd9c5ed49bef2119a2f2152caccbdd3b0812d68eae0479a2cfdd60790d3294f3f46a3d5550"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:constraint:engine:node",
+          "value": ">=12"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/d3-timer"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "object-assign",
+      "version": "4.1.1",
+      "bom-ref": "chart-dashboard@1.0.0|object-assign@4.1.1",
+      "author": "Sindre Sorhus",
+      "description": "ES2015 `Object.assign()` ponyfill",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/object-assign@4.1.1",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/sindresorhus/object-assign.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/sindresorhus/object-assign#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/sindresorhus/object-assign/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/object-assign/-/object-assign-4.1.1.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "ac98134279149c7d6c170f324fa552537cc3dec5a6bbab19848b1e63c557f8646edcfe85ec5bbe24d0e85df9251256cb2529dcdc55101d57b8714e618fe05c52"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:constraint:engine:node",
+          "value": ">=0.10.0"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/object-assign"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "runtime",
+      "group": "@babel",
+      "version": "7.29.7",
+      "bom-ref": "chart-dashboard@1.0.0|@babel/runtime@7.29.7",
+      "author": "The Babel Team",
+      "description": "babel's modular runtime helpers",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40babel/runtime@7.29.7",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/babel/babel.git#packages/babel-runtime",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://babel.dev/docs/en/next/babel-runtime",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/babel/babel/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/@babel/runtime/-/runtime-7.29.7.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "36af0e8465a264864657a84b1e8c8028b2dc26284fff115e04c189a14af14d7da9b08f1d0a27f32e16484856fe5564b7c053110e6086c3947e74ec920aa3cb87"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:constraint:engine:node",
+          "value": ">=6.9.0"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@babel/runtime"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "dom-helpers",
+      "version": "5.2.1",
+      "bom-ref": "chart-dashboard@1.0.0|dom-helpers@5.2.1",
+      "author": "Jason Quense",
+      "description": "tiny modular DOM lib for ie9+",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/dom-helpers@5.2.1",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/react-bootstrap/dom-helpers.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/react-bootstrap/dom-helpers#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/react-bootstrap/dom-helpers/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/dom-helpers/-/dom-helpers-5.2.1.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "9d109aec22b7553accd8d986908cb871b2bb219960044fcf60c9f9e6bad779faf9c570cfd0b76d7cf9db9450e855d7007ec949ee8afa8aa0149f1d0208621640"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/dom-helpers"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "d3-color",
+      "group": "@types",
+      "version": "3.1.3",
+      "bom-ref": "chart-dashboard@1.0.0|@types/d3-color@3.1.3",
+      "description": "TypeScript definitions for d3-color",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40types/d3-color@3.1.3",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/DefinitelyTyped/DefinitelyTyped.git#types/d3-color",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/d3-color",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/DefinitelyTyped/DefinitelyTyped/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/@types/d3-color/-/d3-color-3.1.3.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "88ef74b1cb61f5601b9a0bfba20a2ae7b3bd6292a61416e6a04a021c3076c4c058d3efca56ba806820f2084d7a754b2978ebc8c4515123ed2c12da83ab2d9be0"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@types/d3-color"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "d3-path",
+      "group": "@types",
+      "version": "3.1.1",
+      "bom-ref": "chart-dashboard@1.0.0|@types/d3-path@3.1.1",
+      "description": "TypeScript definitions for d3-path",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40types/d3-path@3.1.1",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/DefinitelyTyped/DefinitelyTyped.git#types/d3-path",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/d3-path",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/DefinitelyTyped/DefinitelyTyped/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/@types/d3-path/-/d3-path-3.1.1.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "54c64163242f6c6996c9655e6b4107b3f0702e0c5cf8c2a2d732c308e364b28cc8e1824c713b7c644b8847849bd4c31313c30c5b8f6fd08c08e7e6fb4667d696"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@types/d3-path"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "internmap",
+      "version": "2.0.3",
+      "bom-ref": "chart-dashboard@1.0.0|internmap@2.0.3",
+      "author": "Mike Bostock",
+      "description": "Map and Set with automatic key interning",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/internmap@2.0.3",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/mbostock/internmap.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/mbostock/internmap/",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/mbostock/internmap/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/internmap/-/internmap-2.0.3.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "e4787b635c106ef639a281a03db0da2f98982c03f331352b8ccba5b241cb1fac27bff03ed6ae6b8046a2baa12307ea3119721566cd4517e47f28f37765241862"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:constraint:engine:node",
+          "value": ">=12"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/internmap"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "d3-color",
+      "version": "3.1.0",
+      "bom-ref": "chart-dashboard@1.0.0|d3-color@3.1.0",
+      "author": "Mike Bostock",
+      "description": "Color spaces! RGB, HSL, Cubehelix, Lab and HCL (Lch).",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/d3-color@3.1.0",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/d3/d3-color.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://d3js.org/d3-color/",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/d3/d3-color/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/d3-color/-/d3-color-3.1.0.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "ce0fdc85b5f2781b4c4352db0ff592a16d83a42dc8d26a663dd5beca74538ffc760c0598ac863ba9e6481e2768cf0576e26e226afaf5e653702302f14663b184"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:constraint:engine:node",
+          "value": ">=12"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/d3-color"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "d3-format",
+      "version": "3.1.2",
+      "bom-ref": "chart-dashboard@1.0.0|d3-format@3.1.2",
+      "author": "Mike Bostock",
+      "description": "Format numbers for human consumption.",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/d3-format@3.1.2",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/d3/d3-format.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://d3js.org/d3-format/",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/d3/d3-format/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/d3-format/-/d3-format-3.1.2.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "0090dd60e767c910d5e5be80ae297308f3f07357a3907728c856abaa53ea4fbcd162385abdc4f7b92aea70cbec821d828283db2b7442c321da572c5870fd80ae"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:constraint:engine:node",
+          "value": ">=12"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/d3-format"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "d3-time-format",
+      "version": "4.1.0",
+      "bom-ref": "chart-dashboard@1.0.0|d3-time-format@4.1.0",
+      "author": "Mike Bostock",
+      "description": "A JavaScript time formatter and parser inspired by strftime and strptime.",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/d3-time-format@4.1.0",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/d3/d3-time-format.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://d3js.org/d3-time-format/",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/d3/d3-time-format/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/d3-time-format/-/d3-time-format-4.1.0.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "749c4f065cc2ecdba00763c32f0a3d43c2624d1dccddee3f5c0364ade29253117cbef5caaa6d587eae10e5d97c6ee765ba745595451a0d4805b7b780f03e8d2e"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:constraint:engine:node",
+          "value": ">=12"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/d3-time-format"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "d3-path",
+      "version": "3.1.0",
+      "bom-ref": "chart-dashboard@1.0.0|d3-path@3.1.0",
+      "author": "Mike Bostock",
+      "description": "Serialize Canvas path commands to SVG.",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/d3-path@3.1.0",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/d3/d3-path.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://d3js.org/d3-path/",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/d3/d3-path/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/d3-path/-/d3-path-3.1.0.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "a7728fe4709ffdbbe305248ab9789de99aa28f1ef021f356f89fe668fb3e8b0477e5ab792426cb513d0bcc5d5c9e36c21d686acd04c83762697bca5179b20415"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:constraint:engine:node",
+          "value": ">=12"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/d3-path"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "csstype",
+      "version": "3.2.3",
+      "bom-ref": "chart-dashboard@1.0.0|csstype@3.2.3",
+      "author": "Fredrik Nicol",
+      "description": "Strict TypeScript and Flow types for style based on MDN data",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/csstype@3.2.3",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/frenic/csstype.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/frenic/csstype#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/frenic/csstype/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/csstype/-/csstype-3.2.3.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "cf51c629c632db103c00641fc2b9f43c0cbe3c1ed7fc64a3dd45495bda8aca7e37c566be825e675e6538aaa2cc4735952c50bc2aeb145fc4ffd240a2398a4021"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/csstype"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "chart-dashboard@1.0.0",
+      "dependsOn": [
+        "chart-dashboard@1.0.0|react-dom@18.3.1",
+        "chart-dashboard@1.0.0|react@18.3.1",
+        "chart-dashboard@1.0.0|recharts@2.15.4"
+      ]
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|react-dom@18.3.1",
+      "dependsOn": [
+        "chart-dashboard@1.0.0|loose-envify@1.4.0",
+        "chart-dashboard@1.0.0|react@18.3.1",
+        "chart-dashboard@1.0.0|scheduler@0.23.2"
+      ]
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|react@18.3.1",
+      "dependsOn": [
+        "chart-dashboard@1.0.0|loose-envify@1.4.0"
+      ]
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|recharts@2.15.4",
+      "dependsOn": [
+        "chart-dashboard@1.0.0|clsx@2.1.1",
+        "chart-dashboard@1.0.0|eventemitter3@4.0.7",
+        "chart-dashboard@1.0.0|lodash@4.17.21",
+        "chart-dashboard@1.0.0|react-dom@18.3.1",
+        "chart-dashboard@1.0.0|react-is@18.3.1",
+        "chart-dashboard@1.0.0|react-smooth@4.0.4",
+        "chart-dashboard@1.0.0|react@18.3.1",
+        "chart-dashboard@1.0.0|recharts-scale@0.4.5",
+        "chart-dashboard@1.0.0|tiny-invariant@1.3.3",
+        "chart-dashboard@1.0.0|victory-vendor@36.9.2"
+      ]
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|loose-envify@1.4.0",
+      "dependsOn": [
+        "chart-dashboard@1.0.0|js-tokens@4.0.0"
+      ]
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|scheduler@0.23.2",
+      "dependsOn": [
+        "chart-dashboard@1.0.0|loose-envify@1.4.0"
+      ]
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|clsx@2.1.1"
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|eventemitter3@4.0.7"
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|lodash@4.17.21"
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|react-is@18.3.1"
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|react-smooth@4.0.4",
+      "dependsOn": [
+        "chart-dashboard@1.0.0|fast-equals@5.4.3",
+        "chart-dashboard@1.0.0|prop-types@15.8.1",
+        "chart-dashboard@1.0.0|react-dom@18.3.1",
+        "chart-dashboard@1.0.0|react-transition-group@4.4.5",
+        "chart-dashboard@1.0.0|react@18.3.1"
+      ]
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|recharts-scale@0.4.5",
+      "dependsOn": [
+        "chart-dashboard@1.0.0|decimal.js-light@2.5.1"
+      ]
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|tiny-invariant@1.3.3"
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|victory-vendor@36.9.2",
+      "dependsOn": [
+        "chart-dashboard@1.0.0|@types/d3-array@3.2.2",
+        "chart-dashboard@1.0.0|@types/d3-ease@3.0.2",
+        "chart-dashboard@1.0.0|@types/d3-interpolate@3.0.4",
+        "chart-dashboard@1.0.0|@types/d3-scale@4.0.9",
+        "chart-dashboard@1.0.0|@types/d3-shape@3.2.0",
+        "chart-dashboard@1.0.0|@types/d3-time@3.0.4",
+        "chart-dashboard@1.0.0|@types/d3-timer@3.0.2",
+        "chart-dashboard@1.0.0|d3-array@3.2.4",
+        "chart-dashboard@1.0.0|d3-ease@3.0.1",
+        "chart-dashboard@1.0.0|d3-interpolate@3.0.1",
+        "chart-dashboard@1.0.0|d3-scale@4.0.2",
+        "chart-dashboard@1.0.0|d3-shape@3.2.0",
+        "chart-dashboard@1.0.0|d3-time@3.1.0",
+        "chart-dashboard@1.0.0|d3-timer@3.0.1"
+      ]
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|js-tokens@4.0.0"
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|fast-equals@5.4.3"
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|prop-types@15.8.1",
+      "dependsOn": [
+        "chart-dashboard@1.0.0|loose-envify@1.4.0",
+        "chart-dashboard@1.0.0|object-assign@4.1.1",
+        "chart-dashboard@1.0.0|prop-types@15.8.1|react-is@16.13.1"
+      ]
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|prop-types@15.8.1|react-is@16.13.1"
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|react-transition-group@4.4.5",
+      "dependsOn": [
+        "chart-dashboard@1.0.0|@babel/runtime@7.29.7",
+        "chart-dashboard@1.0.0|dom-helpers@5.2.1",
+        "chart-dashboard@1.0.0|loose-envify@1.4.0",
+        "chart-dashboard@1.0.0|prop-types@15.8.1",
+        "chart-dashboard@1.0.0|react-dom@18.3.1",
+        "chart-dashboard@1.0.0|react@18.3.1"
+      ]
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|decimal.js-light@2.5.1"
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|@types/d3-array@3.2.2"
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|@types/d3-ease@3.0.2"
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|@types/d3-interpolate@3.0.4",
+      "dependsOn": [
+        "chart-dashboard@1.0.0|@types/d3-color@3.1.3"
+      ]
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|@types/d3-scale@4.0.9",
+      "dependsOn": [
+        "chart-dashboard@1.0.0|@types/d3-time@3.0.4"
+      ]
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|@types/d3-shape@3.2.0",
+      "dependsOn": [
+        "chart-dashboard@1.0.0|@types/d3-path@3.1.1"
+      ]
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|@types/d3-time@3.0.4"
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|@types/d3-timer@3.0.2"
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|d3-array@3.2.4",
+      "dependsOn": [
+        "chart-dashboard@1.0.0|internmap@2.0.3"
+      ]
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|d3-ease@3.0.1"
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|d3-interpolate@3.0.1",
+      "dependsOn": [
+        "chart-dashboard@1.0.0|d3-color@3.1.0"
+      ]
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|d3-scale@4.0.2",
+      "dependsOn": [
+        "chart-dashboard@1.0.0|d3-array@3.2.4",
+        "chart-dashboard@1.0.0|d3-format@3.1.2",
+        "chart-dashboard@1.0.0|d3-interpolate@3.0.1",
+        "chart-dashboard@1.0.0|d3-time-format@4.1.0",
+        "chart-dashboard@1.0.0|d3-time@3.1.0"
+      ]
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|d3-shape@3.2.0",
+      "dependsOn": [
+        "chart-dashboard@1.0.0|d3-path@3.1.0"
+      ]
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|d3-time@3.1.0",
+      "dependsOn": [
+        "chart-dashboard@1.0.0|d3-array@3.2.4"
+      ]
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|d3-timer@3.0.1"
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|object-assign@4.1.1"
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|@babel/runtime@7.29.7"
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|dom-helpers@5.2.1",
+      "dependsOn": [
+        "chart-dashboard@1.0.0|@babel/runtime@7.29.7",
+        "chart-dashboard@1.0.0|csstype@3.2.3"
+      ]
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|@types/d3-color@3.1.3"
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|@types/d3-path@3.1.1"
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|internmap@2.0.3"
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|d3-color@3.1.0"
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|d3-format@3.1.2"
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|d3-time-format@4.1.0",
+      "dependsOn": [
+        "chart-dashboard@1.0.0|d3-time@3.1.0"
+      ]
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|d3-path@3.1.0"
+    },
+    {
+      "ref": "chart-dashboard@1.0.0|csstype@3.2.3"
+    }
+  ]
+}

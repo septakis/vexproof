@@ -1,0 +1,853 @@
+{
+  "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "version": 1,
+  "serialNumber": "urn:uuid:dec57f44-196a-4e68-a043-2f9a3abb1eb1",
+  "metadata": {
+    "timestamp": "2026-09-26T01:37:11.336Z",
+    "tools": {
+      "components": [
+        {
+          "type": "application",
+          "name": "npm",
+          "version": "10.9.7"
+        },
+        {
+          "type": "application",
+          "name": "cyclonedx-npm",
+          "group": "@cyclonedx",
+          "version": "6.0.1",
+          "author": "Jan Kowalleck",
+          "description": "Create CycloneDX Software Bill of Materials (SBOM) from NPM projects.",
+          "licenses": [
+            {
+              "license": {
+                "id": "Apache-2.0"
+              }
+            }
+          ],
+          "externalReferences": [
+            {
+              "url": "git+https://github.com/CycloneDX/cyclonedx-node-npm.git",
+              "type": "vcs",
+              "comment": "as detected from PackageJson property \"repository.url\""
+            },
+            {
+              "url": "https://github.com/CycloneDX/cyclonedx-node-npm#readme",
+              "type": "website",
+              "comment": "as detected from PackageJson property \"homepage\""
+            },
+            {
+              "url": "https://github.com/CycloneDX/cyclonedx-node-npm/issues",
+              "type": "issue-tracker",
+              "comment": "as detected from PackageJson property \"bugs.url\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:constraint:engine:node",
+              "value": ">=20.18.0"
+            },
+            {
+              "name": "cdx:npm:package:constraint:engine:npm",
+              "value": ">=9"
+            }
+          ]
+        },
+        {
+          "type": "library",
+          "name": "cyclonedx-library",
+          "group": "@cyclonedx",
+          "version": "10.3.0",
+          "author": "Jan Kowalleck",
+          "description": "Core functionality of CycloneDX for JavaScript (Node.js or WebBrowser).",
+          "licenses": [
+            {
+              "license": {
+                "id": "Apache-2.0"
+              }
+            }
+          ],
+          "externalReferences": [
+            {
+              "url": "git+https://github.com/CycloneDX/cyclonedx-javascript-library.git",
+              "type": "vcs",
+              "comment": "as detected from PackageJson property \"repository.url\""
+            },
+            {
+              "url": "https://github.com/CycloneDX/cyclonedx-javascript-library#readme",
+              "type": "website",
+              "comment": "as detected from PackageJson property \"homepage\""
+            },
+            {
+              "url": "https://github.com/CycloneDX/cyclonedx-javascript-library/issues",
+              "type": "issue-tracker",
+              "comment": "as detected from PackageJson property \"bugs.url\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:constraint:engine:node",
+              "value": ">=20.18.0"
+            }
+          ]
+        }
+      ]
+    },
+    "component": {
+      "type": "application",
+      "name": "ngapp",
+      "version": "0.0.0",
+      "bom-ref": "ngapp@0.0.0",
+      "purl": "pkg:npm/ngapp@0.0.0",
+      "properties": [
+        {
+          "name": "cdx:npm:package:private",
+          "value": "true"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": ""
+        }
+      ]
+    }
+  },
+  "components": [
+    {
+      "type": "library",
+      "name": "common",
+      "group": "@angular",
+      "version": "20.3.32",
+      "bom-ref": "ngapp@0.0.0|@angular/common@20.3.32",
+      "author": "angular",
+      "description": "Angular - commonly needed directives and services",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40angular/common@20.3.32",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/angular/angular.git#packages/common",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://github.com/angular/angular#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/angular/angular/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/@angular/common/-/common-20.3.32.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "f266bc4c95182c3ca0fd5ffc36b3832c6d9952bb494870fdc637d7168feedfe96267f7bc97d6b94c3da133dc84c616cbda1be4e92e0a45e2ee28bfade0075783"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:constraint:engine:node",
+          "value": "^20.19.0 || ^22.12.0 || >=24.0.0"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@angular/common"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "compiler",
+      "group": "@angular",
+      "version": "20.3.32",
+      "bom-ref": "ngapp@0.0.0|@angular/compiler@20.3.32",
+      "author": "angular",
+      "description": "Angular - the compiler library",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40angular/compiler@20.3.32",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/angular/angular.git#packages/compiler",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://github.com/angular/angular#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/angular/angular/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/@angular/compiler/-/compiler-20.3.32.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "e81598f5f53a8e5419ff05bf269c2e631f75844781a15e61ee90f8488c74fffe29f21c8f781d9ba1562ec56c9cdb9a9b3749fa9aa7bb33395f2dbdcde94e4365"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:constraint:engine:node",
+          "value": "^20.19.0 || ^22.12.0 || >=24.0.0"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@angular/compiler"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "core",
+      "group": "@angular",
+      "version": "20.3.32",
+      "bom-ref": "ngapp@0.0.0|@angular/core@20.3.32",
+      "author": "angular",
+      "description": "Angular - the core framework",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40angular/core@20.3.32",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/angular/angular.git#packages/core",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://github.com/angular/angular#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/angular/angular/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/@angular/core/-/core-20.3.32.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "51a1daf1911bb1465114bb3cf5a1a4cf3488f4316b02690fb44d1edc27beabe35a5a3cbb52f0284462f97fd1b31cb3ac7339ae449d792444818a5eddb7a4ffa1"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:constraint:engine:node",
+          "value": "^20.19.0 || ^22.12.0 || >=24.0.0"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@angular/core"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "forms",
+      "group": "@angular",
+      "version": "20.3.32",
+      "bom-ref": "ngapp@0.0.0|@angular/forms@20.3.32",
+      "author": "angular",
+      "description": "Angular - directives and services for creating forms",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40angular/forms@20.3.32",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/angular/angular.git#packages/forms",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://github.com/angular/angular#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/angular/angular/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/@angular/forms/-/forms-20.3.32.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "63ebed3de6a297f8f4c6c253a3ef5f7f51264956ceb22aa5ccf6b9766d5c69172b20cc1e3008933d28eba42d63436618bd31b4b0bbab7f211f87a18a265335b2"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:constraint:engine:node",
+          "value": "^20.19.0 || ^22.12.0 || >=24.0.0"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@angular/forms"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "platform-browser",
+      "group": "@angular",
+      "version": "20.3.32",
+      "bom-ref": "ngapp@0.0.0|@angular/platform-browser@20.3.32",
+      "author": "angular",
+      "description": "Angular - library for using Angular in a web browser",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40angular/platform-browser@20.3.32",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/angular/angular.git#packages/platform-browser",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://github.com/angular/angular#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/angular/angular/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/@angular/platform-browser/-/platform-browser-20.3.32.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "58c4092f8dff46e13ba8348ecd91bc46fe8e14856d07253d771da03de005ab49300db042638f13cae7acb607e2d8a5a0a2768e9df325e4e2fef60cad13e11286"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:constraint:engine:node",
+          "value": "^20.19.0 || ^22.12.0 || >=24.0.0"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@angular/platform-browser"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "router",
+      "group": "@angular",
+      "version": "20.3.32",
+      "bom-ref": "ngapp@0.0.0|@angular/router@20.3.32",
+      "author": "angular",
+      "description": "Angular - the routing library",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40angular/router@20.3.32",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/angular/angular.git#packages/router",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://github.com/angular/angular/tree/main/packages/router",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/angular/angular/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/@angular/router/-/router-20.3.32.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "7a74d1e7d8448751984e4393ea42d00fc48d3fbc576bf52b749466915a17f478c856af1f1216bd30e80847cfcc58a557ecfcbdf88967c2d65252de07c7cbe779"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:constraint:engine:node",
+          "value": "^20.19.0 || ^22.12.0 || >=24.0.0"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@angular/router"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "dompurify",
+      "version": "2.3.0",
+      "bom-ref": "ngapp@0.0.0|dompurify@2.3.0",
+      "author": "Mario Heiderich",
+      "description": "DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG. It's written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (10+), Firefox and Chrome - as well as almost anything else using Blink or WebKit). DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not.",
+      "licenses": [
+        {
+          "expression": "(MPL-2.0 OR Apache-2.0)",
+          "acknowledgement": "declared"
+        }
+      ],
+      "purl": "pkg:npm/dompurify@2.3.0",
+      "externalReferences": [
+        {
+          "url": "git://github.com/cure53/DOMPurify.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/cure53/DOMPurify",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/cure53/DOMPurify/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/dompurify/-/dompurify-2.3.0.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "555e42e8aaf9dd854718e04a3bf17ce8e617ebf88b4f0db255223bdb580a7adc691c22bf5794da2c47fd3838d1825d4a2d2591318e9c52101bbff73e2149f043"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/dompurify"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "lodash-es",
+      "version": "4.17.20",
+      "bom-ref": "ngapp@0.0.0|lodash-es@4.17.20",
+      "author": "John-David Dalton",
+      "description": "Lodash exported as ES modules.",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/lodash-es@4.17.20",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/lodash/lodash.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://lodash.com/custom-builds",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/lodash/lodash-cli/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/lodash-es/-/lodash-es-4.17.20.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "243d4238c66cabc99a4fa9a7bb3d54315d23bd80f4134694b1239daebd7f9c01b7761a905f045181e5b4712a87d54e3720d29cab16a254840d3940e577b8110c"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/lodash-es"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "moment",
+      "version": "2.29.1",
+      "bom-ref": "ngapp@0.0.0|moment@2.29.1",
+      "author": "Iskren Ivov Chernev",
+      "description": "Parse, validate, manipulate, and display dates",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/moment@2.29.1",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/moment/moment.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://momentjs.com",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/moment/moment/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/moment/-/moment-2.29.1.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "9079a8c9b70f57c4aacb9f43c0d0d8dc979fafae252bf6f2fdd6b456215cb80e031f4bd083943a65ee558a6c647d03520be325b3f2b1e77b3b4e33f54611440d"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:constraint:engine:node",
+          "value": "*"
+        },
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/moment"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "rxjs",
+      "version": "7.8.2",
+      "bom-ref": "ngapp@0.0.0|rxjs@7.8.2",
+      "author": "Ben Lesh",
+      "description": "Reactive Extensions for modern JavaScript",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/rxjs@7.8.2",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/reactivex/rxjs.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://rxjs.dev",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/ReactiveX/RxJS/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/rxjs/-/rxjs-7.8.2.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "76129ff74dd4fcf41963a6e834db4019d59b1bce5601b8d3ff5c58a19202ec5018d3259aa4e05056c56b0e5e7c5bcebffded55a4c341b5157831a5df74cc9214"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/rxjs"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "tslib",
+      "version": "2.8.1",
+      "bom-ref": "ngapp@0.0.0|tslib@2.8.1",
+      "author": "Microsoft Corp.",
+      "description": "Runtime library for TypeScript helper functions",
+      "licenses": [
+        {
+          "license": {
+            "id": "0BSD",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/tslib@2.8.1",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/Microsoft/tslib.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://www.typescriptlang.org/",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/Microsoft/TypeScript/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/tslib/-/tslib-2.8.1.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "a0916ef781d06fe29576e49440bef09e99aa9df98bb0e03f9c087a6fa107d30084a0ad3f98f79753a737c0a0d5f373243ae1cf447b525ca294f7d2016b34bfdb"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/tslib"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "zone.js",
+      "version": "0.15.1",
+      "bom-ref": "ngapp@0.0.0|zone.js@0.15.1",
+      "author": "Brian Ford",
+      "description": "Zones for JavaScript",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/zone.js@0.15.1",
+      "externalReferences": [
+        {
+          "url": "git://github.com/angular/angular.git#packages/zone.js",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\" and \"repository.directory\""
+        },
+        {
+          "url": "https://github.com/angular/angular#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/angular/angular/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/zone.js/-/zone.js-0.15.1.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "5c4f7a9f9e8842924cecd0285ecc18dd744b716156f37c5ed0188039e303ecae64e7179c39eba5dd0729c7a1aa11e7873645b90d62f9ccec936c47c1e1eb62f3"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/zone.js"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "ngapp@0.0.0",
+      "dependsOn": [
+        "ngapp@0.0.0|@angular/common@20.3.32",
+        "ngapp@0.0.0|@angular/compiler@20.3.32",
+        "ngapp@0.0.0|@angular/core@20.3.32",
+        "ngapp@0.0.0|@angular/forms@20.3.32",
+        "ngapp@0.0.0|@angular/platform-browser@20.3.32",
+        "ngapp@0.0.0|@angular/router@20.3.32",
+        "ngapp@0.0.0|dompurify@2.3.0",
+        "ngapp@0.0.0|lodash-es@4.17.20",
+        "ngapp@0.0.0|moment@2.29.1",
+        "ngapp@0.0.0|rxjs@7.8.2",
+        "ngapp@0.0.0|tslib@2.8.1",
+        "ngapp@0.0.0|zone.js@0.15.1"
+      ]
+    },
+    {
+      "ref": "ngapp@0.0.0|@angular/common@20.3.32",
+      "dependsOn": [
+        "ngapp@0.0.0|@angular/core@20.3.32",
+        "ngapp@0.0.0|rxjs@7.8.2",
+        "ngapp@0.0.0|tslib@2.8.1"
+      ]
+    },
+    {
+      "ref": "ngapp@0.0.0|@angular/compiler@20.3.32",
+      "dependsOn": [
+        "ngapp@0.0.0|tslib@2.8.1"
+      ]
+    },
+    {
+      "ref": "ngapp@0.0.0|@angular/core@20.3.32",
+      "dependsOn": [
+        "ngapp@0.0.0|@angular/compiler@20.3.32",
+        "ngapp@0.0.0|rxjs@7.8.2",
+        "ngapp@0.0.0|tslib@2.8.1",
+        "ngapp@0.0.0|zone.js@0.15.1"
+      ]
+    },
+    {
+      "ref": "ngapp@0.0.0|@angular/forms@20.3.32",
+      "dependsOn": [
+        "ngapp@0.0.0|@angular/common@20.3.32",
+        "ngapp@0.0.0|@angular/core@20.3.32",
+        "ngapp@0.0.0|@angular/platform-browser@20.3.32",
+        "ngapp@0.0.0|rxjs@7.8.2",
+        "ngapp@0.0.0|tslib@2.8.1"
+      ]
+    },
+    {
+      "ref": "ngapp@0.0.0|@angular/platform-browser@20.3.32",
+      "dependsOn": [
+        "ngapp@0.0.0|@angular/common@20.3.32",
+        "ngapp@0.0.0|@angular/core@20.3.32",
+        "ngapp@0.0.0|tslib@2.8.1"
+      ]
+    },
+    {
+      "ref": "ngapp@0.0.0|@angular/router@20.3.32",
+      "dependsOn": [
+        "ngapp@0.0.0|@angular/common@20.3.32",
+        "ngapp@0.0.0|@angular/core@20.3.32",
+        "ngapp@0.0.0|@angular/platform-browser@20.3.32",
+        "ngapp@0.0.0|rxjs@7.8.2",
+        "ngapp@0.0.0|tslib@2.8.1"
+      ]
+    },
+    {
+      "ref": "ngapp@0.0.0|dompurify@2.3.0"
+    },
+    {
+      "ref": "ngapp@0.0.0|lodash-es@4.17.20"
+    },
+    {
+      "ref": "ngapp@0.0.0|moment@2.29.1"
+    },
+    {
+      "ref": "ngapp@0.0.0|rxjs@7.8.2",
+      "dependsOn": [
+        "ngapp@0.0.0|tslib@2.8.1"
+      ]
+    },
+    {
+      "ref": "ngapp@0.0.0|tslib@2.8.1"
+    },
+    {
+      "ref": "ngapp@0.0.0|zone.js@0.15.1"
+    }
+  ]
+}

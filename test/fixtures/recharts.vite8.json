@@ -1,0 +1,1316 @@
+{
+ "vexproof": 1,
+ "bundler": "vite 8.3.1 (rolldown 1.2.11)",
+ "inputs": {},
+ "outputs": {
+  "dist/assets/index-BPmSjmjl.js": {
+   "inputs": {
+    "rolldown/runtime.js": {
+     "bytesInOutput": 1426
+    },
+    "vite/modulepreload-polyfill.js": {
+     "bytesInOutput": 1205
+    },
+    "node_modules/react/cjs/react.production.min.js": {
+     "bytesInOutput": 8785
+    },
+    "node_modules/react/index.js": {
+     "bytesInOutput": 180
+    },
+    "node_modules/scheduler/cjs/scheduler.production.min.js": {
+     "bytesInOutput": 5696
+    },
+    "node_modules/scheduler/index.js": {
+     "bytesInOutput": 192
+    },
+    "node_modules/react-dom/cjs/react-dom.production.min.js": {
+     "bytesInOutput": 183824
+    },
+    "node_modules/react-dom/index.js": {
+     "bytesInOutput": 472
+    },
+    "node_modules/react-dom/client.js": {
+     "bytesInOutput": 232
+    },
+    "node_modules/clsx/dist/clsx.mjs": {
+     "bytesInOutput": 531
+    },
+    "node_modules/lodash/isArray.js": {
+     "bytesInOutput": 192
+    },
+    "node_modules/lodash/_freeGlobal.js": {
+     "bytesInOutput": 266
+    },
+    "node_modules/lodash/_root.js": {
+     "bytesInOutput": 344
+    },
+    "node_modules/lodash/_Symbol.js": {
+     "bytesInOutput": 199
+    },
+    "node_modules/lodash/_getRawTag.js": {
+     "bytesInOutput": 772
+    },
+    "node_modules/lodash/_objectToString.js": {
+     "bytesInOutput": 320
+    },
+    "node_modules/lodash/_baseGetTag.js": {
+     "bytesInOutput": 635
+    },
+    "node_modules/lodash/isObjectLike.js": {
+     "bytesInOutput": 264
+    },
+    "node_modules/lodash/isSymbol.js": {
+     "bytesInOutput": 409
+    },
+    "node_modules/lodash/_isKey.js": {
+     "bytesInOutput": 653
+    },
+    "node_modules/lodash/isObject.js": {
+     "bytesInOutput": 291
+    },
+    "node_modules/lodash/isFunction.js": {
+     "bytesInOutput": 586
+    },
+    "node_modules/lodash/_coreJsData.js": {
+     "bytesInOutput": 230
+    },
+    "node_modules/lodash/_isMasked.js": {
+     "bytesInOutput": 456
+    },
+    "node_modules/lodash/_toSource.js": {
+     "bytesInOutput": 397
+    },
+    "node_modules/lodash/_baseIsNative.js": {
+     "bytesInOutput": 937
+    },
+    "node_modules/lodash/_getValue.js": {
+     "bytesInOutput": 252
+    },
+    "node_modules/lodash/_getNative.js": {
+     "bytesInOutput": 374
+    },
+    "node_modules/lodash/_nativeCreate.js": {
+     "bytesInOutput": 239
+    },
+    "node_modules/lodash/_hashClear.js": {
+     "bytesInOutput": 317
+    },
+    "node_modules/lodash/_hashDelete.js": {
+     "bytesInOutput": 311
+    },
+    "node_modules/lodash/_hashGet.js": {
+     "bytesInOutput": 541
+    },
+    "node_modules/lodash/_hashHas.js": {
+     "bytesInOutput": 399
+    },
+    "node_modules/lodash/_hashSet.js": {
+     "bytesInOutput": 449
+    },
+    "node_modules/lodash/_Hash.js": {
+     "bytesInOutput": 715
+    },
+    "node_modules/lodash/_listCacheClear.js": {
+     "bytesInOutput": 256
+    },
+    "node_modules/lodash/eq.js": {
+     "bytesInOutput": 243
+    },
+    "node_modules/lodash/_assocIndexOf.js": {
+     "bytesInOutput": 350
+    },
+    "node_modules/lodash/_listCacheDelete.js": {
+     "bytesInOutput": 509
+    },
+    "node_modules/lodash/_listCacheGet.js": {
+     "bytesInOutput": 364
+    },
+    "node_modules/lodash/_listCacheHas.js": {
+     "bytesInOutput": 305
+    },
+    "node_modules/lodash/_listCacheSet.js": {
+     "bytesInOutput": 436
+    },
+    "node_modules/lodash/_ListCache.js": {
+     "bytesInOutput": 835
+    },
+    "node_modules/lodash/_Map.js": {
+     "bytesInOutput": 209
+    },
+    "node_modules/lodash/_mapCacheClear.js": {
+     "bytesInOutput": 433
+    },
+    "node_modules/lodash/_isKeyable.js": {
+     "bytesInOutput": 358
+    },
+    "node_modules/lodash/_getMapData.js": {
+     "bytesInOutput": 362
+    },
+    "node_modules/lodash/_mapCacheDelete.js": {
+     "bytesInOutput": 362
+    },
+    "node_modules/lodash/_mapCacheGet.js": {
+     "bytesInOutput": 290
+    },
+    "node_modules/lodash/_mapCacheHas.js": {
+     "bytesInOutput": 290
+    },
+    "node_modules/lodash/_mapCacheSet.js": {
+     "bytesInOutput": 391
+    },
+    "node_modules/lodash/_MapCache.js": {
+     "bytesInOutput": 811
+    },
+    "node_modules/lodash/memoize.js": {
+     "bytesInOutput": 804
+    },
+    "node_modules/lodash/_memoizeCapped.js": {
+     "bytesInOutput": 446
+    },
+    "node_modules/lodash/_stringToPath.js": {
+     "bytesInOutput": 682
+    },
+    "node_modules/lodash/_arrayMap.js": {
+     "bytesInOutput": 391
+    },
+    "node_modules/lodash/_baseToString.js": {
+     "bytesInOutput": 783
+    },
+    "node_modules/lodash/toString.js": {
+     "bytesInOutput": 292
+    },
+    "node_modules/lodash/_castPath.js": {
+     "bytesInOutput": 461
+    },
+    "node_modules/lodash/_toKey.js": {
+     "bytesInOutput": 403
+    },
+    "node_modules/lodash/_baseGet.js": {
+     "bytesInOutput": 476
+    },
+    "node_modules/lodash/get.js": {
+     "bytesInOutput": 348
+    },
+    "node_modules/lodash/isNil.js": {
+     "bytesInOutput": 208
+    },
+    "node_modules/lodash/isString.js": {
+     "bytesInOutput": 462
+    },
+    "node_modules/react-is/cjs/react-is.production.min.js": {
+     "bytesInOutput": 1165
+    },
+    "node_modules/react-is/index.js": {
+     "bytesInOutput": 189
+    },
+    "node_modules/lodash/isNumber.js": {
+     "bytesInOutput": 409
+    },
+    "node_modules/lodash/isNaN.js": {
+     "bytesInOutput": 265
+    },
+    "node_modules/recharts/es6/util/DataUtils.js": {
+     "bytesInOutput": 2991
+    },
+    "node_modules/recharts/es6/util/ShallowEqual.js": {
+     "bytesInOutput": 354
+    },
+    "node_modules/recharts/es6/util/types.js": {
+     "bytesInOutput": 9460
+    },
+    "node_modules/recharts/es6/util/ReactUtils.js": {
+     "bytesInOutput": 8514
+    },
+    "node_modules/recharts/es6/container/Surface.js": {
+     "bytesInOutput": 2160
+    },
+    "node_modules/recharts/es6/container/Layer.js": {
+     "bytesInOutput": 1671
+    },
+    "node_modules/recharts/es6/util/LogUtils.js": {
+     "bytesInOutput": 260
+    },
+    "node_modules/lodash/_baseSlice.js": {
+     "bytesInOutput": 561
+    },
+    "node_modules/lodash/_castSlice.js": {
+     "bytesInOutput": 394
+    },
+    "node_modules/lodash/_hasUnicode.js": {
+     "bytesInOutput": 358
+    },
+    "node_modules/lodash/_asciiToArray.js": {
+     "bytesInOutput": 242
+    },
+    "node_modules/lodash/_unicodeToArray.js": {
+     "bytesInOutput": 1233
+    },
+    "node_modules/lodash/_stringToArray.js": {
+     "bytesInOutput": 431
+    },
+    "node_modules/lodash/_createCaseFirst.js": {
+     "bytesInOutput": 714
+    },
+    "node_modules/lodash/upperFirst.js": {
+     "bytesInOutput": 232
+    },
+    "node_modules/d3-shape/src/constant.js": {
+     "bytesInOutput": 142
+    },
+    "node_modules/d3-shape/src/math.js": {
+     "bytesInOutput": 186
+    },
+    "node_modules/d3-path/src/path.js": {
+     "bytesInOutput": 3231
+    },
+    "node_modules/d3-shape/src/path.js": {
+     "bytesInOutput": 377
+    },
+    "node_modules/d3-shape/src/array.js": {
+     "bytesInOutput": 191
+    },
+    "node_modules/d3-shape/src/curve/linear.js": {
+     "bytesInOutput": 756
+    },
+    "node_modules/d3-shape/src/point.js": {
+     "bytesInOutput": 122
+    },
+    "node_modules/d3-shape/src/line.js": {
+     "bytesInOutput": 1550
+    },
+    "node_modules/d3-shape/src/area.js": {
+     "bytesInOutput": 2870
+    },
+    "node_modules/d3-shape/src/curve/bump.js": {
+     "bytesInOutput": 984
+    },
+    "node_modules/d3-shape/src/symbol/circle.js": {
+     "bytesInOutput": 204
+    },
+    "node_modules/d3-shape/src/symbol/cross.js": {
+     "bytesInOutput": 489
+    },
+    "node_modules/d3-shape/src/symbol/diamond.js": {
+     "bytesInOutput": 343
+    },
+    "node_modules/d3-shape/src/symbol/square.js": {
+     "bytesInOutput": 187
+    },
+    "node_modules/d3-shape/src/symbol/star.js": {
+     "bytesInOutput": 568
+    },
+    "node_modules/d3-shape/src/symbol/triangle.js": {
+     "bytesInOutput": 297
+    },
+    "node_modules/d3-shape/src/symbol/wye.js": {
+     "bytesInOutput": 716
+    },
+    "node_modules/d3-shape/src/symbol.js": {
+     "bytesInOutput": 944
+    },
+    "node_modules/d3-shape/src/noop.js": {
+     "bytesInOutput": 84
+    },
+    "node_modules/d3-shape/src/curve/basis.js": {
+     "bytesInOutput": 1391
+    },
+    "node_modules/d3-shape/src/curve/basisClosed.js": {
+     "bytesInOutput": 1458
+    },
+    "node_modules/d3-shape/src/curve/basisOpen.js": {
+     "bytesInOutput": 1067
+    },
+    "node_modules/d3-shape/src/curve/linearClosed.js": {
+     "bytesInOutput": 556
+    },
+    "node_modules/d3-shape/src/curve/monotone.js": {
+     "bytesInOutput": 2606
+    },
+    "node_modules/d3-shape/src/curve/natural.js": {
+     "bytesInOutput": 1588
+    },
+    "node_modules/d3-shape/src/curve/step.js": {
+     "bytesInOutput": 1289
+    },
+    "node_modules/d3-shape/src/offset/none.js": {
+     "bytesInOutput": 352
+    },
+    "node_modules/d3-shape/src/order/none.js": {
+     "bytesInOutput": 178
+    },
+    "node_modules/d3-shape/src/stack.js": {
+     "bytesInOutput": 1267
+    },
+    "node_modules/d3-shape/src/offset/expand.js": {
+     "bytesInOutput": 359
+    },
+    "node_modules/d3-shape/src/offset/silhouette.js": {
+     "bytesInOutput": 362
+    },
+    "node_modules/d3-shape/src/offset/wiggle.js": {
+     "bytesInOutput": 690
+    },
+    "node_modules/recharts/es6/shape/Symbols.js": {
+     "bytesInOutput": 5324
+    },
+    "node_modules/recharts/es6/component/DefaultLegendContent.js": {
+     "bytesInOutput": 9681
+    },
+    "node_modules/lodash/_stackClear.js": {
+     "bytesInOutput": 292
+    },
+    "node_modules/lodash/_stackDelete.js": {
+     "bytesInOutput": 308
+    },
+    "node_modules/lodash/_stackGet.js": {
+     "bytesInOutput": 229
+    },
+    "node_modules/lodash/_stackHas.js": {
+     "bytesInOutput": 229
+    },
+    "node_modules/lodash/_stackSet.js": {
+     "bytesInOutput": 678
+    },
+    "node_modules/lodash/_Stack.js": {
+     "bytesInOutput": 678
+    },
+    "node_modules/lodash/_setCacheAdd.js": {
+     "bytesInOutput": 320
+    },
+    "node_modules/lodash/_setCacheHas.js": {
+     "bytesInOutput": 245
+    },
+    "node_modules/lodash/_SetCache.js": {
+     "bytesInOutput": 575
+    },
+    "node_modules/lodash/_arraySome.js": {
+     "bytesInOutput": 373
+    },
+    "node_modules/lodash/_cacheHas.js": {
+     "bytesInOutput": 228
+    },
+    "node_modules/lodash/_equalArrays.js": {
+     "bytesInOutput": 1766
+    },
+    "node_modules/lodash/_Uint8Array.js": {
+     "bytesInOutput": 219
+    },
+    "node_modules/lodash/_mapToArray.js": {
+     "bytesInOutput": 343
+    },
+    "node_modules/lodash/_setToArray.js": {
+     "bytesInOutput": 331
+    },
+    "node_modules/lodash/_equalByTag.js": {
+     "bytesInOutput": 2280
+    },
+    "node_modules/lodash/_arrayPush.js": {
+     "bytesInOutput": 357
+    },
+    "node_modules/lodash/_baseGetAllKeys.js": {
+     "bytesInOutput": 428
+    },
+    "node_modules/lodash/_arrayFilter.js": {
+     "bytesInOutput": 455
+    },
+    "node_modules/lodash/stubArray.js": {
+     "bytesInOutput": 208
+    },
+    "node_modules/lodash/_getSymbols.js": {
+     "bytesInOutput": 633
+    },
+    "node_modules/lodash/_baseTimes.js": {
+     "bytesInOutput": 317
+    },
+    "node_modules/lodash/_baseIsArguments.js": {
+     "bytesInOutput": 410
+    },
+    "node_modules/lodash/isArguments.js": {
+     "bytesInOutput": 651
+    },
+    "node_modules/lodash/stubFalse.js": {
+     "bytesInOutput": 211
+    },
+    "node_modules/lodash/isBuffer.js": {
+     "bytesInOutput": 575
+    },
+    "node_modules/lodash/_isIndex.js": {
+     "bytesInOutput": 497
+    },
+    "node_modules/lodash/isLength.js": {
+     "bytesInOutput": 334
+    },
+    "node_modules/lodash/_baseIsTypedArray.js": {
+     "bytesInOutput": 2065
+    },
+    "node_modules/lodash/_baseUnary.js": {
+     "bytesInOutput": 256
+    },
+    "node_modules/lodash/_nodeUtil.js": {
+     "bytesInOutput": 739
+    },
+    "node_modules/lodash/isTypedArray.js": {
+     "bytesInOutput": 452
+    },
+    "node_modules/lodash/_arrayLikeKeys.js": {
+     "bytesInOutput": 1126
+    },
+    "node_modules/lodash/_isPrototype.js": {
+     "bytesInOutput": 369
+    },
+    "node_modules/lodash/_overArg.js": {
+     "bytesInOutput": 266
+    },
+    "node_modules/lodash/_nativeKeys.js": {
+     "bytesInOutput": 232
+    },
+    "node_modules/lodash/_baseKeys.js": {
+     "bytesInOutput": 543
+    },
+    "node_modules/lodash/isArrayLike.js": {
+     "bytesInOutput": 356
+    },
+    "node_modules/lodash/keys.js": {
+     "bytesInOutput": 380
+    },
+    "node_modules/lodash/_getAllKeys.js": {
+     "bytesInOutput": 376
+    },
+    "node_modules/lodash/_equalObjects.js": {
+     "bytesInOutput": 1886
+    },
+    "node_modules/lodash/_DataView.js": {
+     "bytesInOutput": 234
+    },
+    "node_modules/lodash/_Promise.js": {
+     "bytesInOutput": 229
+    },
+    "node_modules/lodash/_Set.js": {
+     "bytesInOutput": 209
+    },
+    "node_modules/lodash/_WeakMap.js": {
+     "bytesInOutput": 229
+    },
+    "node_modules/lodash/_getTag.js": {
+     "bytesInOutput": 1554
+    },
+    "node_modules/lodash/_baseIsEqualDeep.js": {
+     "bytesInOutput": 2122
+    },
+    "node_modules/lodash/_baseIsEqual.js": {
+     "bytesInOutput": 586
+    },
+    "node_modules/lodash/_baseIsMatch.js": {
+     "bytesInOutput": 1207
+    },
+    "node_modules/lodash/_isStrictComparable.js": {
+     "bytesInOutput": 320
+    },
+    "node_modules/lodash/_getMatchData.js": {
+     "bytesInOutput": 523
+    },
+    "node_modules/lodash/_matchesStrictComparable.js": {
+     "bytesInOutput": 422
+    },
+    "node_modules/lodash/_baseMatches.js": {
+     "bytesInOutput": 624
+    },
+    "node_modules/lodash/_baseHasIn.js": {
+     "bytesInOutput": 258
+    },
+    "node_modules/lodash/_hasPath.js": {
+     "bytesInOutput": 875
+    },
+    "node_modules/lodash/hasIn.js": {
+     "bytesInOutput": 326
+    },
+    "node_modules/lodash/_baseMatchesProperty.js": {
+     "bytesInOutput": 935
+    },
+    "node_modules/lodash/identity.js": {
+     "bytesInOutput": 212
+    },
+    "node_modules/lodash/_baseProperty.js": {
+     "bytesInOutput": 294
+    },
+    "node_modules/lodash/_basePropertyDeep.js": {
+     "bytesInOutput": 330
+    },
+    "node_modules/lodash/property.js": {
+     "bytesInOutput": 430
+    },
+    "node_modules/lodash/_baseIteratee.js": {
+     "bytesInOutput": 652
+    },
+    "node_modules/lodash/_baseFindIndex.js": {
+     "bytesInOutput": 441
+    },
+    "node_modules/lodash/_baseIsNaN.js": {
+     "bytesInOutput": 228
+    },
+    "node_modules/lodash/_strictIndexOf.js": {
+     "bytesInOutput": 370
+    },
+    "node_modules/lodash/_baseIndexOf.js": {
+     "bytesInOutput": 473
+    },
+    "node_modules/lodash/_arrayIncludes.js": {
+     "bytesInOutput": 352
+    },
+    "node_modules/lodash/_arrayIncludesWith.js": {
+     "bytesInOutput": 407
+    },
+    "node_modules/lodash/noop.js": {
+     "bytesInOutput": 173
+    },
+    "node_modules/lodash/_createSet.js": {
+     "bytesInOutput": 395
+    },
+    "node_modules/lodash/_baseUniq.js": {
+     "bytesInOutput": 1457
+    },
+    "node_modules/lodash/uniqBy.js": {
+     "bytesInOutput": 362
+    },
+    "node_modules/recharts/es6/util/payload/getUniqPayload.js": {
+     "bytesInOutput": 398
+    },
+    "node_modules/recharts/es6/component/Legend.js": {
+     "bytesInOutput": 10462
+    },
+    "node_modules/lodash/_isFlattenable.js": {
+     "bytesInOutput": 503
+    },
+    "node_modules/lodash/_baseFlatten.js": {
+     "bytesInOutput": 733
+    },
+    "node_modules/lodash/_createBaseFor.js": {
+     "bytesInOutput": 531
+    },
+    "node_modules/lodash/_baseFor.js": {
+     "bytesInOutput": 207
+    },
+    "node_modules/lodash/_baseForOwn.js": {
+     "bytesInOutput": 332
+    },
+    "node_modules/lodash/_createBaseEach.js": {
+     "bytesInOutput": 679
+    },
+    "node_modules/lodash/_baseEach.js": {
+     "bytesInOutput": 263
+    },
+    "node_modules/lodash/_baseMap.js": {
+     "bytesInOutput": 508
+    },
+    "node_modules/lodash/_baseSortBy.js": {
+     "bytesInOutput": 341
+    },
+    "node_modules/lodash/_compareAscending.js": {
+     "bytesInOutput": 1097
+    },
+    "node_modules/lodash/_compareMultiple.js": {
+     "bytesInOutput": 701
+    },
+    "node_modules/lodash/_baseOrderBy.js": {
+     "bytesInOutput": 1247
+    },
+    "node_modules/lodash/_apply.js": {
+     "bytesInOutput": 471
+    },
+    "node_modules/lodash/_overRest.js": {
+     "bytesInOutput": 727
+    },
+    "node_modules/lodash/constant.js": {
+     "bytesInOutput": 240
+    },
+    "node_modules/lodash/_defineProperty.js": {
+     "bytesInOutput": 378
+    },
+    "node_modules/lodash/_baseSetToString.js": {
+     "bytesInOutput": 539
+    },
+    "node_modules/lodash/_shortOut.js": {
+     "bytesInOutput": 559
+    },
+    "node_modules/lodash/_setToString.js": {
+     "bytesInOutput": 284
+    },
+    "node_modules/lodash/_baseRest.js": {
+     "bytesInOutput": 386
+    },
+    "node_modules/lodash/_isIterateeCall.js": {
+     "bytesInOutput": 606
+    },
+    "node_modules/lodash/sortBy.js": {
+     "bytesInOutput": 731
+    },
+    "node_modules/recharts/es6/component/DefaultTooltipContent.js": {
+     "bytesInOutput": 7794
+    },
+    "node_modules/recharts/es6/util/tooltip/translate.js": {
+     "bytesInOutput": 4350
+    },
+    "node_modules/recharts/es6/component/TooltipBoundingBox.js": {
+     "bytesInOutput": 9176
+    },
+    "node_modules/recharts/es6/util/Global.js": {
+     "bytesInOutput": 561
+    },
+    "node_modules/recharts/es6/component/Tooltip.js": {
+     "bytesInOutput": 7293
+    },
+    "node_modules/lodash/now.js": {
+     "bytesInOutput": 233
+    },
+    "node_modules/lodash/_trimmedEndIndex.js": {
+     "bytesInOutput": 360
+    },
+    "node_modules/lodash/_baseTrim.js": {
+     "bytesInOutput": 375
+    },
+    "node_modules/lodash/toNumber.js": {
+     "bytesInOutput": 961
+    },
+    "node_modules/lodash/debounce.js": {
+     "bytesInOutput": 2871
+    },
+    "node_modules/lodash/throttle.js": {
+     "bytesInOutput": 708
+    },
+    "node_modules/recharts/es6/component/Cell.js": {
+     "bytesInOutput": 146
+    },
+    "node_modules/recharts/es6/util/DOMUtils.js": {
+     "bytesInOutput": 3793
+    },
+    "node_modules/recharts/es6/util/ReduceCSSCalc.js": {
+     "bytesInOutput": 8309
+    },
+    "node_modules/recharts/es6/component/Text.js": {
+     "bytesInOutput": 9672
+    },
+    "node_modules/d3-array/src/ascending.js": {
+     "bytesInOutput": 173
+    },
+    "node_modules/d3-array/src/descending.js": {
+     "bytesInOutput": 175
+    },
+    "node_modules/d3-array/src/bisector.js": {
+     "bytesInOutput": 1074
+    },
+    "node_modules/d3-array/src/number.js": {
+     "bytesInOutput": 426
+    },
+    "node_modules/d3-array/src/bisect.js": {
+     "bytesInOutput": 228
+    },
+    "node_modules/internmap/src/index.js": {
+     "bytesInOutput": 1171
+    },
+    "node_modules/d3-array/src/sort.js": {
+     "bytesInOutput": 511
+    },
+    "node_modules/d3-array/src/ticks.js": {
+     "bytesInOutput": 1911
+    },
+    "node_modules/d3-array/src/max.js": {
+     "bytesInOutput": 437
+    },
+    "node_modules/d3-array/src/min.js": {
+     "bytesInOutput": 437
+    },
+    "node_modules/d3-array/src/quickselect.js": {
+     "bytesInOutput": 1362
+    },
+    "node_modules/d3-array/src/quantile.js": {
+     "bytesInOutput": 869
+    },
+    "node_modules/d3-array/src/range.js": {
+     "bytesInOutput": 366
+    },
+    "node_modules/d3-scale/src/init.js": {
+     "bytesInOutput": 618
+    },
+    "node_modules/d3-scale/src/ordinal.js": {
+     "bytesInOutput": 972
+    },
+    "node_modules/d3-scale/src/band.js": {
+     "bytesInOutput": 2356
+    },
+    "node_modules/d3-color/src/define.js": {
+     "bytesInOutput": 386
+    },
+    "node_modules/d3-color/src/color.js": {
+     "bytesInOutput": 9968
+    },
+    "node_modules/d3-interpolate/src/basis.js": {
+     "bytesInOutput": 594
+    },
+    "node_modules/d3-interpolate/src/basisClosed.js": {
+     "bytesInOutput": 364
+    },
+    "node_modules/d3-interpolate/src/constant.js": {
+     "bytesInOutput": 106
+    },
+    "node_modules/d3-interpolate/src/color.js": {
+     "bytesInOutput": 548
+    },
+    "node_modules/d3-interpolate/src/rgb.js": {
+     "bytesInOutput": 1061
+    },
+    "node_modules/d3-interpolate/src/numberArray.js": {
+     "bytesInOutput": 378
+    },
+    "node_modules/d3-interpolate/src/array.js": {
+     "bytesInOutput": 376
+    },
+    "node_modules/d3-interpolate/src/date.js": {
+     "bytesInOutput": 218
+    },
+    "node_modules/d3-interpolate/src/number.js": {
+     "bytesInOutput": 171
+    },
+    "node_modules/d3-interpolate/src/object.js": {
+     "bytesInOutput": 371
+    },
+    "node_modules/d3-interpolate/src/string.js": {
+     "bytesInOutput": 1038
+    },
+    "node_modules/d3-interpolate/src/value.js": {
+     "bytesInOutput": 556
+    },
+    "node_modules/d3-interpolate/src/round.js": {
+     "bytesInOutput": 181
+    },
+    "node_modules/d3-interpolate/src/piecewise.js": {
+     "bytesInOutput": 430
+    },
+    "node_modules/d3-scale/src/constant.js": {
+     "bytesInOutput": 124
+    },
+    "node_modules/d3-scale/src/number.js": {
+     "bytesInOutput": 96
+    },
+    "node_modules/d3-scale/src/continuous.js": {
+     "bytesInOutput": 2847
+    },
+    "node_modules/d3-format/src/formatDecimal.js": {
+     "bytesInOutput": 501
+    },
+    "node_modules/d3-format/src/exponent.js": {
+     "bytesInOutput": 156
+    },
+    "node_modules/d3-format/src/formatGroup.js": {
+     "bytesInOutput": 489
+    },
+    "node_modules/d3-format/src/formatNumerals.js": {
+     "bytesInOutput": 221
+    },
+    "node_modules/d3-format/src/formatSpecifier.js": {
+     "bytesInOutput": 1561
+    },
+    "node_modules/d3-format/src/formatTrim.js": {
+     "bytesInOutput": 390
+    },
+    "node_modules/d3-format/src/formatPrefixAuto.js": {
+     "bytesInOutput": 625
+    },
+    "node_modules/d3-format/src/formatRounded.js": {
+     "bytesInOutput": 469
+    },
+    "node_modules/d3-format/src/formatTypes.js": {
+     "bytesInOutput": 571
+    },
+    "node_modules/d3-format/src/identity.js": {
+     "bytesInOutput": 106
+    },
+    "node_modules/d3-format/src/locale.js": {
+     "bytesInOutput": 4334
+    },
+    "node_modules/d3-format/src/defaultLocale.js": {
+     "bytesInOutput": 352
+    },
+    "node_modules/d3-format/src/precisionFixed.js": {
+     "bytesInOutput": 166
+    },
+    "node_modules/d3-format/src/precisionPrefix.js": {
+     "bytesInOutput": 247
+    },
+    "node_modules/d3-format/src/precisionRound.js": {
+     "bytesInOutput": 240
+    },
+    "node_modules/d3-scale/src/tickFormat.js": {
+     "bytesInOutput": 970
+    },
+    "node_modules/d3-scale/src/linear.js": {
+     "bytesInOutput": 1347
+    },
+    "node_modules/d3-scale/src/identity.js": {
+     "bytesInOutput": 607
+    },
+    "node_modules/d3-scale/src/nice.js": {
+     "bytesInOutput": 349
+    },
+    "node_modules/d3-scale/src/log.js": {
+     "bytesInOutput": 2988
+    },
+    "node_modules/d3-scale/src/symlog.js": {
+     "bytesInOutput": 734
+    },
+    "node_modules/d3-scale/src/pow.js": {
+     "bytesInOutput": 1025
+    },
+    "node_modules/d3-scale/src/radial.js": {
+     "bytesInOutput": 1270
+    },
+    "node_modules/d3-scale/src/quantile.js": {
+     "bytesInOutput": 1265
+    },
+    "node_modules/d3-scale/src/quantize.js": {
+     "bytesInOutput": 1147
+    },
+    "node_modules/d3-scale/src/threshold.js": {
+     "bytesInOutput": 897
+    },
+    "node_modules/d3-time/src/interval.js": {
+     "bytesInOutput": 1984
+    },
+    "node_modules/d3-time/src/millisecond.js": {
+     "bytesInOutput": 552
+    },
+    "node_modules/d3-time/src/duration.js": {
+     "bytesInOutput": 317
+    },
+    "node_modules/d3-time/src/second.js": {
+     "bytesInOutput": 347
+    },
+    "node_modules/d3-time/src/minute.js": {
+     "bytesInOutput": 672
+    },
+    "node_modules/d3-time/src/hour.js": {
+     "bytesInOutput": 686
+    },
+    "node_modules/d3-time/src/day.js": {
+     "bytesInOutput": 903
+    },
+    "node_modules/d3-time/src/week.js": {
+     "bytesInOutput": 1698
+    },
+    "node_modules/d3-time/src/month.js": {
+     "bytesInOutput": 759
+    },
+    "node_modules/d3-time/src/year.js": {
+     "bytesInOutput": 1307
+    },
+    "node_modules/d3-time/src/ticks.js": {
+     "bytesInOutput": 2027
+    },
+    "node_modules/d3-time-format/src/locale.js": {
+     "bytesInOutput": 16829
+    },
+    "node_modules/d3-time-format/src/defaultLocale.js": {
+     "bytesInOutput": 930
+    },
+    "node_modules/d3-scale/src/time.js": {
+     "bytesInOutput": 1972
+    },
+    "node_modules/d3-scale/src/utcTime.js": {
+     "bytesInOutput": 284
+    },
+    "node_modules/d3-scale/src/sequential.js": {
+     "bytesInOutput": 2350
+    },
+    "node_modules/d3-scale/src/sequentialQuantile.js": {
+     "bytesInOutput": 957
+    },
+    "node_modules/d3-scale/src/diverging.js": {
+     "bytesInOutput": 2474
+    },
+    "node_modules/victory-vendor/es/d3-scale.js": {
+     "bytesInOutput": 1065
+    },
+    "node_modules/lodash/_baseExtremum.js": {
+     "bytesInOutput": 584
+    },
+    "node_modules/lodash/_baseGt.js": {
+     "bytesInOutput": 221
+    },
+    "node_modules/lodash/max.js": {
+     "bytesInOutput": 371
+    },
+    "node_modules/lodash/_baseLt.js": {
+     "bytesInOutput": 221
+    },
+    "node_modules/lodash/min.js": {
+     "bytesInOutput": 371
+    },
+    "node_modules/lodash/map.js": {
+     "bytesInOutput": 434
+    },
+    "node_modules/lodash/flatMap.js": {
+     "bytesInOutput": 328
+    },
+    "node_modules/lodash/isEqual.js": {
+     "bytesInOutput": 278
+    },
+    "node_modules/decimal.js-light/decimal.js": {
+     "bytesInOutput": 25439
+    },
+    "node_modules/recharts-scale/es6/util/utils.js": {
+     "bytesInOutput": 3794
+    },
+    "node_modules/recharts-scale/es6/util/arithmetic.js": {
+     "bytesInOutput": 1063
+    },
+    "node_modules/recharts-scale/es6/getNiceTickValues.js": {
+     "bytesInOutput": 8642
+    },
+    "node_modules/tiny-invariant/dist/esm/tiny-invariant.js": {
+     "bytesInOutput": 204
+    },
+    "node_modules/recharts/es6/cartesian/ErrorBar.js": {
+     "bytesInOutput": 9977
+    },
+    "node_modules/recharts/es6/util/getLegendProps.js": {
+     "bytesInOutput": 3621
+    },
+    "node_modules/recharts/es6/util/ChartUtils.js": {
+     "bytesInOutput": 30611
+    },
+    "node_modules/recharts/es6/util/PolarUtils.js": {
+     "bytesInOutput": 4591
+    },
+    "node_modules/recharts/es6/component/Label.js": {
+     "bytesInOutput": 16208
+    },
+    "node_modules/lodash/last.js": {
+     "bytesInOutput": 275
+    },
+    "node_modules/recharts/es6/component/LabelList.js": {
+     "bytesInOutput": 7092
+    },
+    "node_modules/recharts/es6/shape/Sector.js": {
+     "bytesInOutput": 9153
+    },
+    "node_modules/recharts/es6/shape/Curve.js": {
+     "bytesInOutput": 5135
+    },
+    "node_modules/prop-types/lib/ReactPropTypesSecret.js": {
+     "bytesInOutput": 285
+    },
+    "node_modules/prop-types/factoryWithThrowingShims.js": {
+     "bytesInOutput": 1393
+    },
+    "node_modules/prop-types/index.js": {
+     "bytesInOutput": 196
+    },
+    "node_modules/fast-equals/dist/es/index.mjs": {
+     "bytesInOutput": 13220
+    },
+    "node_modules/react-smooth/es6/setRafTimeout.js": {
+     "bytesInOutput": 556
+    },
+    "node_modules/react-smooth/es6/AnimateManager.js": {
+     "bytesInOutput": 2642
+    },
+    "node_modules/react-smooth/es6/util.js": {
+     "bytesInOutput": 3391
+    },
+    "node_modules/react-smooth/es6/easing.js": {
+     "bytesInOutput": 6717
+    },
+    "node_modules/react-smooth/es6/configUpdate.js": {
+     "bytesInOutput": 7129
+    },
+    "node_modules/react-smooth/es6/Animate.js": {
+     "bytesInOutput": 17313
+    },
+    "node_modules/react-smooth/es6/index.js": {
+     "bytesInOutput": 89
+    },
+    "node_modules/recharts/es6/shape/Rectangle.js": {
+     "bytesInOutput": 9475
+    },
+    "node_modules/recharts/es6/shape/Polygon.js": {
+     "bytesInOutput": 5635
+    },
+    "node_modules/recharts/es6/shape/Dot.js": {
+     "bytesInOutput": 814
+    },
+    "node_modules/recharts/es6/shape/Cross.js": {
+     "bytesInOutput": 4189
+    },
+    "node_modules/lodash/_getPrototype.js": {
+     "bytesInOutput": 250
+    },
+    "node_modules/lodash/isPlainObject.js": {
+     "bytesInOutput": 927
+    },
+    "node_modules/lodash/isBoolean.js": {
+     "bytesInOutput": 419
+    },
+    "node_modules/recharts/es6/shape/Trapezoid.js": {
+     "bytesInOutput": 7015
+    },
+    "node_modules/recharts/es6/util/ActiveShapeUtils.js": {
+     "bytesInOutput": 9126
+    },
+    "node_modules/lodash/_baseRange.js": {
+     "bytesInOutput": 495
+    },
+    "node_modules/lodash/toFinite.js": {
+     "bytesInOutput": 500
+    },
+    "node_modules/lodash/_createRange.js": {
+     "bytesInOutput": 711
+    },
+    "node_modules/lodash/range.js": {
+     "bytesInOutput": 195
+    },
+    "node_modules/recharts/es6/util/CssPrefixUtils.js": {
+     "bytesInOutput": 2290
+    },
+    "node_modules/recharts/es6/cartesian/Brush.js": {
+     "bytesInOutput": 22868
+    },
+    "node_modules/lodash/_baseSome.js": {
+     "bytesInOutput": 418
+    },
+    "node_modules/lodash/some.js": {
+     "bytesInOutput": 600
+    },
+    "node_modules/recharts/es6/util/IfOverflowMatches.js": {
+     "bytesInOutput": 293
+    },
+    "node_modules/lodash/_baseAssignValue.js": {
+     "bytesInOutput": 483
+    },
+    "node_modules/lodash/mapValues.js": {
+     "bytesInOutput": 545
+    },
+    "node_modules/lodash/_arrayEvery.js": {
+     "bytesInOutput": 378
+    },
+    "node_modules/lodash/_baseEvery.js": {
+     "bytesInOutput": 428
+    },
+    "node_modules/lodash/every.js": {
+     "bytesInOutput": 610
+    },
+    "node_modules/recharts/es6/util/BarUtils.js": {
+     "bytesInOutput": 4405
+    },
+    "node_modules/recharts/es6/cartesian/Bar.js": {
+     "bytesInOutput": 18749
+    },
+    "node_modules/recharts/es6/util/CartesianUtils.js": {
+     "bytesInOutput": 10172
+    },
+    "node_modules/lodash/_createFind.js": {
+     "bytesInOutput": 783
+    },
+    "node_modules/lodash/toInteger.js": {
+     "bytesInOutput": 366
+    },
+    "node_modules/lodash/findIndex.js": {
+     "bytesInOutput": 635
+    },
+    "node_modules/lodash/find.js": {
+     "bytesInOutput": 209
+    },
+    "node_modules/recharts/es6/util/calculateViewBox.js": {
+     "bytesInOutput": 443
+    },
+    "node_modules/recharts/es6/context/chartLayoutContext.js": {
+     "bytesInOutput": 2525
+    },
+    "node_modules/recharts/es6/cartesian/ReferenceLine.js": {
+     "bytesInOutput": 10261
+    },
+    "node_modules/recharts/es6/cartesian/ReferenceDot.js": {
+     "bytesInOutput": 7333
+    },
+    "node_modules/recharts/es6/cartesian/ReferenceArea.js": {
+     "bytesInOutput": 7716
+    },
+    "node_modules/recharts/es6/util/getEveryNthWithCondition.js": {
+     "bytesInOutput": 380
+    },
+    "node_modules/recharts/es6/util/TickUtils.js": {
+     "bytesInOutput": 1037
+    },
+    "node_modules/recharts/es6/cartesian/getEquidistantTicks.js": {
+     "bytesInOutput": 1054
+    },
+    "node_modules/recharts/es6/cartesian/getTicks.js": {
+     "bytesInOutput": 6168
+    },
+    "node_modules/recharts/es6/cartesian/CartesianAxis.js": {
+     "bytesInOutput": 14991
+    },
+    "node_modules/recharts/es6/cartesian/Line.js": {
+     "bytesInOutput": 21395
+    },
+    "node_modules/recharts/es6/cartesian/XAxis.js": {
+     "bytesInOutput": 5403
+    },
+    "node_modules/recharts/es6/cartesian/YAxis.js": {
+     "bytesInOutput": 5416
+    },
+    "node_modules/recharts/es6/util/DetectReferenceElementsDomain.js": {
+     "bytesInOutput": 2857
+    },
+    "node_modules/eventemitter3/index.js": {
+     "bytesInOutput": 5322
+    },
+    "node_modules/recharts/es6/util/Events.js": {
+     "bytesInOutput": 240
+    },
+    "node_modules/recharts/es6/chart/AccessibilityManager.js": {
+     "bytesInOutput": 5055
+    },
+    "node_modules/recharts/es6/util/isDomainSpecifiedByUser.js": {
+     "bytesInOutput": 511
+    },
+    "node_modules/recharts/es6/util/cursor/getCursorRectangle.js": {
+     "bytesInOutput": 571
+    },
+    "node_modules/recharts/es6/util/cursor/getRadialCursorPoints.js": {
+     "bytesInOutput": 473
+    },
+    "node_modules/recharts/es6/util/cursor/getCursorPoints.js": {
+     "bytesInOutput": 1037
+    },
+    "node_modules/recharts/es6/component/Cursor.js": {
+     "bytesInOutput": 4026
+    },
+    "node_modules/recharts/es6/chart/generateCategoricalChart.js": {
+     "bytesInOutput": 72935
+    },
+    "node_modules/recharts/es6/chart/LineChart.js": {
+     "bytesInOutput": 287
+    },
+    "node_modules/lodash/_arrayEach.js": {
+     "bytesInOutput": 375
+    },
+    "node_modules/lodash/_assignValue.js": {
+     "bytesInOutput": 526
+    },
+    "node_modules/lodash/_copyObject.js": {
+     "bytesInOutput": 745
+    },
+    "node_modules/lodash/_baseAssign.js": {
+     "bytesInOutput": 345
+    },
+    "node_modules/lodash/_nativeKeysIn.js": {
+     "bytesInOutput": 323
+    },
+    "node_modules/lodash/_baseKeysIn.js": {
+     "bytesInOutput": 630
+    },
+    "node_modules/lodash/keysIn.js": {
+     "bytesInOutput": 400
+    },
+    "node_modules/lodash/_baseAssignIn.js": {
+     "bytesInOutput": 359
+    },
+    "node_modules/lodash/_cloneBuffer.js": {
+     "bytesInOutput": 766
+    },
+    "node_modules/lodash/_copyArray.js": {
+     "bytesInOutput": 361
+    },
+    "node_modules/lodash/_copySymbols.js": {
+     "bytesInOutput": 358
+    },
+    "node_modules/lodash/_getSymbolsIn.js": {
+     "bytesInOutput": 564
+    },
+    "node_modules/lodash/_copySymbolsIn.js": {
+     "bytesInOutput": 372
+    },
+    "node_modules/lodash/_getAllKeysIn.js": {
+     "bytesInOutput": 396
+    },
+    "node_modules/lodash/_initCloneArray.js": {
+     "bytesInOutput": 515
+    },
+    "node_modules/lodash/_cloneArrayBuffer.js": {
+     "bytesInOutput": 421
+    },
+    "node_modules/lodash/_cloneDataView.js": {
+     "bytesInOutput": 444
+    },
+    "node_modules/lodash/_cloneRegExp.js": {
+     "bytesInOutput": 366
+    },
+    "node_modules/lodash/_cloneSymbol.js": {
+     "bytesInOutput": 430
+    },
+    "node_modules/lodash/_cloneTypedArray.js": {
+     "bytesInOutput": 460
+    },
+    "node_modules/lodash/_initCloneByTag.js": {
+     "bytesInOutput": 1876
+    },
+    "node_modules/lodash/_baseCreate.js": {
+     "bytesInOutput": 528
+    },
+    "node_modules/lodash/_initCloneObject.js": {
+     "bytesInOutput": 470
+    },
+    "node_modules/lodash/_baseIsMap.js": {
+     "bytesInOutput": 366
+    },
+    "node_modules/lodash/isMap.js": {
+     "bytesInOutput": 375
+    },
+    "node_modules/lodash/_baseIsSet.js": {
+     "bytesInOutput": 366
+    },
+    "node_modules/lodash/isSet.js": {
+     "bytesInOutput": 375
+    },
+    "node_modules/lodash/_baseClone.js": {
+     "bytesInOutput": 4609
+    },
+    "node_modules/lodash/_parent.js": {
+     "bytesInOutput": 348
+    },
+    "node_modules/lodash/_baseUnset.js": {
+     "bytesInOutput": 465
+    },
+    "node_modules/lodash/_customOmitClone.js": {
+     "bytesInOutput": 320
+    },
+    "node_modules/lodash/flatten.js": {
+     "bytesInOutput": 309
+    },
+    "node_modules/lodash/_flatRest.js": {
+     "bytesInOutput": 377
+    },
+    "node_modules/lodash/omit.js": {
+     "bytesInOutput": 1096
+    },
+    "node_modules/recharts/es6/util/Constants.js": {
+     "bytesInOutput": 377
+    },
+    "node_modules/recharts/es6/chart/Treemap.js": {
+     "bytesInOutput": 23976
+    },
+    "node_modules/react/cjs/react-jsx-runtime.production.min.js": {
+     "bytesInOutput": 966
+    },
+    "node_modules/react/jsx-runtime.js": {
+     "bytesInOutput": 204
+    },
+    "src/main.jsx": {
+     "bytesInOutput": 1163
+    }
+   }
+  }
+ },
+ "outDirs": [
+  "dist"
+ ]
+}

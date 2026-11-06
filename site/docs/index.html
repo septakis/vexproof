@@ -1,0 +1,1213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>vexproof docs</title>
+<meta name="description" content="Guides and reference for vexproof: build-proven VEX for JavaScript bundles.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Cstyle%3E.i{fill:%231F1D1A}.a{stroke:%231E7A5A}@media (prefers-color-scheme:dark){.i{fill:%23EDE8E0}.a{stroke:%235FCB9C}}%3C/style%3E%3Crect x=%224%22 y=%224%22 width=%2216%22 height=%2216%22 rx=%223%22 class=%22i%22/%3E%3Crect x=%2224%22 y=%224%22 width=%2216%22 height=%2216%22 rx=%223%22 class=%22i%22/%3E%3Crect x=%2214%22 y=%2224%22 width=%2216%22 height=%2216%22 rx=%223%22 class=%22i%22/%3E%3Crect x=%2234%22 y=%2224%22 width=%2216%22 height=%2216%22 rx=%223%22 class=%22i%22/%3E%3Crect x=%2224%22 y=%2244%22 width=%2216%22 height=%2216%22 rx=%223%22 class=%22i%22/%3E%3Crect x=%2246%22 y=%226%22 width=%2212%22 height=%2212%22 rx=%222.5%22 fill=%22none%22 stroke-width=%224%22 class=%22a%22/%3E%3C/svg%3E">
+<link rel="canonical" href="https://vexproof.dev/docs/">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAF8F4; --panel:#FFFFFF; --ink:#1F1D1A; --ink-2:#4F4B46; --ink-3:#716B63;
+    --rule:#E8E3DB; --rule-2:#D3CCC1;
+    --accent:#1E7A5A; --accent-bg:#E4F2EA; --warn:#8F5A00; --warn-bg:#FAEFD9; --bad:#B23A2E; --bad-bg:#F9E6E2;
+    --term:#26231F; --term-text:#E8E3DB; --term-dim:#A29C92; --term-ok:#6FD3A6; --term-warn:#F0B35A; --term-hi:#FFFFFF; --term-rule:#3A352F; --btn-ink:#FFFFFF; --core-acc:#6FD3A6;
+    --pk0:#1F1D1A; --pk1:#253329; --pk2:#274939; --pk3:#266149; --pk4:#1E7A5A;
+    --sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --r:8px;
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#171512; --panel:#1F1C18; --ink:#EDE8E0; --ink-2:#BDB6AB; --ink-3:#9A9388;
+      --rule:#2C2823; --rule-2:#3D3831;
+      --accent:#5FCB9C; --accent-bg:#17302A; --warn:#E9B15C; --warn-bg:#2E2414; --bad:#EE8B7E; --bad-bg:#33201B;
+      --term:#100F0D; --term-rule:#2C2823; --btn-ink:#171512; --core-acc:#1E7A5A;
+      --pk0:#EDE8E0; --pk1:#CEE1CF; --pk2:#ADDABE; --pk3:#89D3AD; --pk4:#5FCB9C;
+      color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#171512; --panel:#1F1C18; --ink:#EDE8E0; --ink-2:#BDB6AB; --ink-3:#9A9388;
+    --rule:#2C2823; --rule-2:#3D3831;
+    --accent:#5FCB9C; --accent-bg:#17302A; --warn:#E9B15C; --warn-bg:#2E2414; --bad:#EE8B7E; --bad-bg:#33201B;
+    --term:#100F0D; --term-rule:#2C2823; --btn-ink:#171512; --core-acc:#1E7A5A;
+    --pk0:#EDE8E0; --pk1:#CEE1CF; --pk2:#ADDABE; --pk3:#89D3AD; --pk4:#5FCB9C;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  html{scroll-padding-top:calc(76px + env(safe-area-inset-top,0px));-webkit-font-smoothing:antialiased}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:1rem;line-height:1.65}
+  a{color:var(--ink);text-decoration-color:var(--rule-2);text-decoration-thickness:1px;text-underline-offset:3px}
+  a:hover{text-decoration-color:var(--ink)}
+  a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+  ::selection{background:var(--accent-bg)}
+  code,pre,kbd{font-family:var(--mono)}
+  :not(pre)>code{font-size:.84em;background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:.05em .35em;overflow-wrap:anywhere}
+
+  /* top bar: same bar as the product site */
+  .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:saturate(1.2) blur(8px);-webkit-backdrop-filter:saturate(1.2) blur(8px);border-bottom:1px solid var(--rule)}
+  .top-in{max-width:74rem;margin:0 auto;padding-inline:24px;display:flex;align-items:center;gap:14px;min-height:56px}
+  .brand{display:inline-flex;align-items:center;gap:10px;font-weight:600;font-size:1rem;text-decoration:none}
+  .brand svg{width:22px;height:22px;flex:none}
+  .sect{font-size:.88rem;color:var(--ink-2);padding-left:14px;border-left:1px solid var(--rule-2);line-height:1.2}
+  .ver{font-family:var(--mono);font-size:.72rem;color:var(--ink-3);border:1px solid var(--rule-2);border-radius:999px;padding:1px 8px}
+  .pk{width:1.15em;height:1.15em;vertical-align:-.2em;margin-right:.35em}
+  .by{display:inline-flex;align-items:center;font-size:.8rem;color:var(--ink-3);text-decoration:none;white-space:nowrap}
+  .by:hover{color:var(--ink)}
+  .by .pk{width:15px;height:15px;margin-right:6px;vertical-align:0}
+  .top nav{margin-left:auto;display:flex;gap:4px 22px;flex-wrap:wrap}
+  .top nav a{font-size:.88rem;color:var(--ink-2);text-decoration:none}
+  .top nav a:hover{color:var(--ink)}
+
+  /* layout */
+  .layout{max-width:74rem;margin:0 auto;padding-inline:24px;display:grid;grid-template-columns:14rem minmax(0,1fr);gap:56px;padding-block:36px 88px}
+  .toc{position:sticky;top:calc(76px + env(safe-area-inset-top,0px));align-self:start;max-height:calc(100vh - 96px);overflow:auto;font-size:.88rem}
+  .toc summary{display:none}
+  .toc h4{font-size:.8rem;font-weight:500;color:var(--ink-3);margin:0 0 8px}
+  .toc nav>div+div{margin-top:26px}
+  .toc ul{list-style:none;margin:0;padding:0;border-left:1px solid var(--rule)}
+  .toc li{margin:0}
+  .toc a{display:block;text-decoration:none;color:var(--ink-2);padding:4px 12px;margin-left:-1px;border-left:2px solid transparent}
+  .toc a:hover{color:var(--ink)}
+  .toc a.on{color:var(--ink);border-left-color:var(--accent);font-weight:500}
+  main{min-width:0;max-width:46rem}
+
+  /* type */
+  h1{font-size:clamp(2rem,4.4vw,2.75rem);line-height:1.1;letter-spacing:-.025em;font-weight:600;margin:0 0 18px;text-wrap:balance}
+  h1 .brandword{color:var(--accent)}
+  h2{font-size:clamp(1.5rem,2.4vw,1.8rem);line-height:1.2;letter-spacing:-.015em;font-weight:600;margin:0 0 14px;text-wrap:balance}
+  h3{font-size:1.08rem;font-weight:600;letter-spacing:-.005em;margin:36px 0 8px;text-wrap:balance}
+  h4{font-size:.96rem;font-weight:600;margin:24px 0 6px}
+  p,ul,ol{margin:0 0 14px}
+  ul,ol{padding-left:1.3em}
+  li{margin:3px 0}
+  li::marker{color:var(--ink-3)}
+  .lead{font-size:1.12rem;color:var(--ink-2);max-width:60ch;margin-bottom:20px}
+  .muted{color:var(--ink-2)}
+  section.doc{padding-top:60px;margin-top:60px;border-top:1px solid var(--rule)}
+  section.doc:first-of-type{border-top:0;margin-top:0;padding-top:0}
+  .eyebrow{display:flex;align-items:center;gap:8px;font-size:.8rem;font-weight:500;color:var(--ink-3);margin:0 0 10px}
+  .eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent);flex:none}
+
+  /* tier and verdict tags, as on the product site */
+  .chip{display:inline-block;font-size:.72rem;line-height:1.5;padding:1px 9px;border-radius:999px;border:1px solid;vertical-align:.1em;white-space:nowrap}
+  .chip.free{font-weight:600;color:var(--ink-2);border-color:var(--rule-2);background:var(--bg)}
+  .chip.pro{font-weight:600;color:var(--btn-ink);background:var(--accent);border-color:var(--accent)}
+  .chip.na,.chip.tri,.chip.stop{font-family:var(--mono);font-size:.74rem}
+  .chip.na{color:var(--accent);background:var(--accent-bg);border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
+  .chip.tri{color:var(--warn);background:var(--warn-bg);border-color:color-mix(in srgb,var(--warn) 35%,transparent)}
+  .chip.stop{color:var(--bad);background:var(--bad-bg);border-color:color-mix(in srgb,var(--bad) 35%,transparent)}
+
+  /* code */
+  .code{position:relative;margin:10px 0 18px;border:1px solid var(--rule);border-radius:var(--r);background:var(--panel);overflow:hidden}
+  .code pre{margin:0;padding:14px 16px;font-size:.8rem;line-height:1.65;overflow-x:auto;white-space:pre}
+  .code .lbl{display:block;font-family:var(--mono);font-size:.74rem;color:var(--ink-3);padding:8px 16px;border-bottom:1px solid var(--rule)}
+  .code .c{color:var(--ink-3)}
+  .copy{position:absolute;top:8px;right:8px;font-family:var(--sans);font-size:.74rem;background:var(--panel);color:var(--ink-2);border:1px solid var(--rule-2);border-radius:999px;padding:2px 10px;cursor:pointer}
+  .code:has(.lbl) .copy{top:5px}
+  .copy:hover{color:var(--ink);border-color:var(--ink-3)}
+  .term{background:var(--term);color:var(--term-text);font-family:var(--mono);font-size:.78rem;line-height:1.7;border:1px solid var(--term-rule);border-radius:var(--r);padding:16px 18px;overflow-x:auto;white-space:pre;margin:10px 0 18px}
+  .term .d{color:var(--term-dim)} .term .g{color:var(--term-ok)} .term .y{color:var(--term-warn)} .term .w{color:var(--term-hi)}
+
+  /* tables */
+  .tw{overflow-x:auto;margin:10px 0 20px;border:1px solid var(--rule);border-radius:var(--r);background:var(--panel)}
+  table{border-collapse:collapse;width:100%;font-size:.88rem}
+  th,td{text-align:left;vertical-align:top;padding:10px 14px;border-bottom:1px solid var(--rule)}
+  tr:last-child td{border-bottom:0}
+  th{font-weight:500;font-size:.8rem;color:var(--ink-3);border-bottom-color:var(--rule-2);white-space:nowrap}
+  td{color:var(--ink-2)}
+  td:first-child{color:var(--ink)}
+  td code{white-space:nowrap;background:none;border:0;padding:0;color:var(--ink)}
+  td.wrap code{white-space:normal}
+  .num{font-variant-numeric:tabular-nums}
+
+  /* notes */
+  .note{background:var(--panel);border:1px solid var(--rule);border-left:3px solid var(--accent);border-radius:var(--r);padding:14px 18px;margin:14px 0 18px;font-size:.94rem;color:var(--ink-2)}
+  .note.warn{border-left-color:var(--warn)}
+  .note p:last-child{margin:0}
+
+  /* pipeline diagram */
+  .pipe{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,.8fr) auto minmax(0,1fr);align-items:center;gap:10px;margin:22px 0 26px}
+  .pipe .col{display:grid;gap:8px}
+  .pipe .box{background:var(--panel);border:1px solid var(--rule);border-radius:var(--r);padding:10px 14px;font-size:.84rem;line-height:1.4}
+  .pipe .box b{display:block;font-weight:600;font-size:.86rem}
+  .pipe .box span:not(.chip){color:var(--ink-2)}
+  .pipe .box em{font-style:normal;font-family:var(--mono);font-size:.92em}
+  .pipe .core{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:600;font-size:.95rem;padding:20px 10px}
+  .pipe .core svg{width:20px;height:20px;flex:none}
+  .pipe .arr{display:grid;justify-items:center;gap:3px;color:var(--ink-3);font-family:var(--mono);font-size:.7rem;line-height:1}
+  .pipe .arr svg{display:block;width:30px;height:10px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+  .pipe .opt{border-style:dashed;border-color:var(--rule-2)}
+  .pipe .opt .chip{margin-left:6px;vertical-align:.05em}
+
+  /* steps */
+  ol.steps{list-style:none;padding:0;counter-reset:s}
+  ol.steps>li{counter-increment:s;position:relative;padding-left:40px;margin:0 0 8px}
+  ol.steps>li::before{content:counter(s);position:absolute;left:0;top:1px;width:26px;height:26px;border-radius:50%;background:var(--panel);border:1px solid var(--rule-2);font-size:.78rem;font-weight:500;display:grid;place-items:center;color:var(--ink-2)}
+  ol.steps>li>strong{display:block;font-weight:600}
+
+  dl.defs{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:8px 20px;margin:10px 0 18px;font-size:.92rem}
+  dl.defs dt{font-family:var(--mono);font-size:.82rem}
+  dl.defs dd{margin:0;color:var(--ink-2)}
+
+  /* footer */
+  .foot{border-top:1px solid var(--rule);color:var(--ink-2);font-size:.86rem}
+  .foot-in{max-width:74rem;margin:0 auto;padding:36px 24px 32px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px 40px}
+  .foot p{margin:0;max-width:52ch}
+  .foot nav{display:flex;flex-wrap:wrap;gap:6px 22px;align-content:start}
+  .foot nav a{color:var(--ink-2);text-decoration:none}
+  .foot nav a:hover{color:var(--ink)}
+  .maker{white-space:nowrap;font-weight:500}
+  .legal{flex-basis:100%;display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 24px;padding-top:16px;border-top:1px solid var(--rule);font-size:.8rem;color:var(--ink-3)}
+
+  @media (max-width:960px){
+    .layout{grid-template-columns:minmax(0,1fr);gap:20px;padding-top:20px}
+    .toc{position:static;max-height:none;background:var(--panel);border:1px solid var(--rule);border-radius:var(--r);padding:4px 16px}
+    .toc summary{display:block;cursor:pointer;font-weight:600;padding:9px 0;font-size:.95rem}
+    .toc[open] summary{border-bottom:1px solid var(--rule);margin-bottom:14px}
+    .toc nav{padding-bottom:14px;columns:2;column-gap:24px}
+    .toc nav>div{break-inside:avoid}
+  }
+  @media (max-width:640px){
+    .top-in,.layout{padding-inline:16px}
+    .foot-in{padding-inline:16px}
+    .by,.ver,.top nav a.wide-only{display:none}
+    .top nav{gap:4px 16px;flex-wrap:nowrap}
+    .pipe{grid-template-columns:minmax(0,1fr)}
+    .pipe .arr{grid-auto-flow:column;align-items:center;gap:8px;justify-self:center}
+    .pipe .arr svg{transform:rotate(90deg);width:22px}
+    .toc nav{columns:1}
+    .tw table:has(th:nth-child(3)){min-width:28rem}
+    .tw table:has(th:nth-child(4)){min-width:36rem}
+    dl.defs{grid-template-columns:minmax(0,1fr)}
+    dl.defs dd{margin-bottom:8px}
+  }
+  @media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <a class="brand" href="https://vexproof.dev/"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3" fill="currentColor"/><rect x="24" y="4" width="16" height="16" rx="3" fill="currentColor"/><rect x="14" y="24" width="16" height="16" rx="3" fill="currentColor"/><rect x="34" y="24" width="16" height="16" rx="3" fill="currentColor"/><rect x="24" y="44" width="16" height="16" rx="3" fill="currentColor"/><rect x="46" y="6" width="12" height="12" rx="2.5" fill="none" stroke-width="4" stroke="var(--accent)"/></svg>vexproof</a>
+    <a class="sect" href="#overview" style="text-decoration:none">Docs</a>
+    <span class="ver">v0.12.0</span>
+    <a class="by" href="https://septakis.io"><svg class="pk" viewBox="0 0 64 64" aria-hidden="true"><path d="M32.00 5.00L59.58 25.04Q56.45 38.59 43.49 43.64L44.72 26.05Q43.92 12.16 32.00 5.00Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M59.58 25.04L49.05 57.46Q35.19 58.67 26.38 47.91L43.49 43.64Q56.45 38.59 59.58 25.04Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M49.05 57.46L14.95 57.46Q9.52 44.66 17.04 32.95L26.38 47.91Q35.19 58.67 49.05 57.46Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M14.95 57.46L4.42 25.04Q14.92 15.91 28.37 19.45L17.04 32.95Q9.52 44.66 14.95 57.46Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M4.42 25.04L32.00 5.00Q43.92 12.16 44.72 26.05L28.37 19.45Q14.92 15.91 4.42 25.04Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M41.33 28.17L40.43 41.07L27.88 44.20L21.03 33.23L29.34 23.33Z" fill="var(--accent)"/></svg>by Septakis</a>
+    <nav aria-label="Site">
+      <a class="wide-only" href="https://vexproof.dev/">Product</a>
+      <a href="https://vexproof.dev/#pricing">Pricing</a>
+      <a href="https://github.com/septakis/vexproof">GitHub</a>
+      <a class="wide-only" href="https://www.npmjs.com/package/vexproof">npm</a>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+  <details class="toc" id="toc" open>
+    <summary>Contents</summary>
+    <nav aria-label="Contents">
+      <div>
+        <h4>Guides</h4>
+        <ul>
+          <li><a href="#overview">Overview</a></li>
+          <li><a href="#quickstart">Quick start</a></li>
+          <li><a href="#bundlers">Bundlers</a></li>
+          <li><a href="#package-managers">Package managers</a></li>
+          <li><a href="#scanners">Scanners</a></li>
+          <li><a href="#ci">CI and the gate</a></li>
+          <li><a href="#reviews">Reviews and baselines</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Concepts</h4>
+        <ul>
+          <li><a href="#verdicts">How verdicts are made</a></li>
+          <li><a href="#copies">Multiple copies</a></li>
+          <li><a href="#derived">Derived rules</a></li>
+          <li><a href="#server">Apps with a server</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Reference</h4>
+        <ul>
+          <li><a href="#cli">Command line</a></li>
+          <li><a href="#action">GitHub Action</a></li>
+          <li><a href="#dependabot">Dependabot</a></li>
+          <li><a href="#plugins">Plugins</a></li>
+          <li><a href="#inputs">Input formats</a></li>
+          <li><a href="#cyclonedx">CycloneDX output</a></li>
+          <li><a href="#openvex">OpenVEX output</a></li>
+          <li><a href="#rules">Module rules</a></li>
+          <li><a href="#messages">Messages</a></li>
+          <li><a href="#licensing">Licensing</a></li>
+        </ul>
+      </div>
+    </nav>
+  </details>
+
+  <main>
+
+<!-- ============================== OVERVIEW ============================== -->
+<section class="doc" id="overview">
+  <p class="eyebrow">Guide</p>
+  <h1><span class="brandword">vexproof</span> documentation</h1>
+  <p class="lead">Your scanner reports vulnerabilities in every package your lockfile installs. vexproof checks each finding against what your production build actually shipped. When the vulnerable code isn't in the bundle, it writes a <code>not_affected</code> statement with the evidence. Anything it can't prove stays open, with the reason.</p>
+
+  <p>The statements are VEX (Vulnerability Exploitability eXchange): a machine-readable record, per vulnerability and per product, of whether the product is affected. Scanners such as Trivy and Grype read VEX and stop reporting findings marked <code>not_affected</code>. Customers and auditors read the same file to see why. vexproof writes both common VEX formats, CycloneDX 1.6 and OpenVEX 0.2.0.</p>
+
+  <div class="pipe" role="img" aria-label="Three inputs, lockfile SBOM, findings and module map, go into vexproof, which writes CycloneDX VEX, OpenVEX and an HTML report.">
+    <div class="col">
+      <div class="box"><b>Lockfile SBOM</b><span>every package installed for production</span></div>
+      <div class="box"><b>Findings</b><span>your scanner or audit output, or OSV</span></div>
+      <div class="box"><b>Module map</b><span>every source file the bundler emitted</span></div>
+    </div>
+    <div class="arr"><span>reads</span><svg viewBox="0 0 30 10" aria-hidden="true"><path d="M1 5h27M24 1l4 4-4 4"/></svg></div>
+    <div class="box core"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3" fill="var(--bg)"/><rect x="24" y="4" width="16" height="16" rx="3" fill="var(--bg)"/><rect x="14" y="24" width="16" height="16" rx="3" fill="var(--bg)"/><rect x="34" y="24" width="16" height="16" rx="3" fill="var(--bg)"/><rect x="24" y="44" width="16" height="16" rx="3" fill="var(--bg)"/><rect x="46" y="6" width="12" height="12" rx="2.5" fill="none" stroke-width="4" stroke="var(--core-acc)"/></svg>vexproof</div>
+    <div class="arr"><span>writes</span><svg viewBox="0 0 30 10" aria-hidden="true"><path d="M1 5h27M24 1l4 4-4 4"/></svg></div>
+    <div class="col">
+      <div class="box"><b>CycloneDX VEX</b><span>vex.cdx.json</span></div>
+      <div class="box"><b>OpenVEX</b><span>vex.openvex.json</span></div>
+      <div class="box opt"><b>Evidence report</b><span>report.html</span><span class="chip pro">Pro</span></div>
+    </div>
+  </div>
+
+  <p>vexproof makes two kinds of claim, at two levels of detail:</p>
+  <div class="tw"><table>
+    <thead><tr><th>Level</th><th>Claim</th><th>Evidence</th><th>Tier</th></tr></thead>
+    <tbody>
+      <tr><td>Package</td><td>No file of the package is in the bundle.</td><td>The package name is in the lockfile SBOM and absent from the bundle.</td><td><span class="chip free">Free</span></td></tr>
+      <tr><td>Module</td><td>The package is bundled, but none of the files holding the vulnerable code are.</td><td>The bundler's own list of emitted files, checked against a rule naming the vulnerable files.</td><td><span class="chip pro">Pro</span></td></tr>
+    </tbody>
+  </table></div>
+  <p>It runs locally, in CI or on a laptop. It reads files and writes files. It makes network calls in two cases only: to the public OSV database when you don't pass a findings file or ask for alias lookup, and to the npm registry when you run <code>vexproof rules derive</code>. Those requests carry package names, versions and advisory IDs. Your code and your build output are never sent anywhere, and vexproof never contacts Septakis. With a findings file and no alias lookup, a run makes no network calls at all.</p>
+</section>
+
+<!-- ============================== QUICK START ============================== -->
+<section class="doc" id="quickstart">
+  <p class="eyebrow">Guide</p>
+  <h2>Quick start</h2>
+  <p>This walks through an npm project built with Vite. The <a href="#bundlers">bundler</a> and <a href="#package-managers">package manager</a> guides give the equivalent commands for other setups.</p>
+
+  <ol class="steps">
+    <li><strong>Install vexproof</strong>
+      <div class="code"><pre>npm install --save-dev vexproof</pre></div></li>
+    <li><strong>Add the plugin to your build</strong>
+      <div class="code"><span class="lbl">vite.config.js</span><pre>import vexproof from 'vexproof/vite';
+
+export default {
+  plugins: [vexproof()],
+};</pre></div>
+      <p>Build as usual. The plugin writes <code>vexproof-modules.json</code> in the project root, outside the deployed output.</p>
+      <div class="code"><pre>npx vite build</pre></div></li>
+    <li><strong>List what you depend on</strong>
+      <div class="code"><pre>npx @cyclonedx/cyclonedx-npm --omit dev -o bom.lockfile.json</pre></div></li>
+    <li><strong>Get the findings</strong>
+      <div class="code"><pre>npm audit --json --omit dev &gt; audit.json || true</pre></div>
+      <p class="muted"><code>npm audit</code> exits non-zero when it finds anything, hence <code>|| true</code>. You can skip this step: without <code>--findings</code>, vexproof queries OSV itself.</p></li>
+    <li><strong>Write the VEX</strong>
+      <div class="code"><pre>npx vexproof --lockfile bom.lockfile.json \
+  --modules vexproof-modules.json \
+  --findings audit.json \
+  --openvex vex.openvex.json</pre></div></li>
+  </ol>
+
+  <p>Here is the output for the demo app in the repository, a dashboard that uses recharts and never imports lodash itself. recharts does, and three lodash advisories come with it.</p>
+<div class="term"><span class="d">vexproof: findings from audit.json (npm-audit)
+vexproof: bundle contents taken from the module map (25 packages)</span>
+<span class="w">vexproof: 3 finding(s) → 1 not_affected (1 at module level), 2 in_triage → vex.cdx.json + vex.openvex.json</span>
+  <span class="y">in_triage</span>                GHSA-xxjr-mmjv-4gpg    pkg:npm/lodash@4.17.21  <span class="d">← vulnerable file(s) bundled: _baseUnset.js, omit.js</span>
+  <span class="g">not_affected (module)</span>    GHSA-r5fr-rjxr-66jc    pkg:npm/lodash@4.17.21
+  <span class="y">in_triage</span>                GHSA-f23m-r3pf-42rh    pkg:npm/lodash@4.17.21  <span class="d">← vulnerable file(s) bundled: _baseUnset.js, omit.js</span></div>
+  <p>The <code>_.template</code> advisory is settled because <code>template.js</code> was never emitted. The two <code>_.omit</code> advisories stay open because recharts' Treemap imports <code>lodash/omit</code>, so the vulnerable files ship. Whether attacker-controlled input can reach them is a question for a person, and <a href="#reviews"><code>vexproof review</code></a> records the answer.</p>
+  <p>The module-level verdict needs a Pro license. Without one, the same run settles only packages that are absent entirely, and prints how many open findings Pro would settle.</p>
+
+  <ol class="steps" start="6" style="counter-reset:s 5">
+    <li><strong>Apply it in your scanner</strong>
+      <div class="code"><pre>trivy fs . --vex vex.openvex.json</pre></div>
+      <p>See <a href="#scanners">Scanners</a> for Grype and Dependency-Track.</p></li>
+  </ol>
+</section>
+
+<!-- ============================== BUNDLERS ============================== -->
+<section class="doc" id="bundlers">
+  <p class="eyebrow">Guide</p>
+  <h2>Bundlers</h2>
+  <p>The module map is the bundler's own record of which source files ended up in the output. vexproof reads it to tell which packages, and which files of each package, you ship.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Bundler</th><th>How to get the module map</th><th>File</th></tr></thead>
+    <tbody>
+      <tr><td>Vite 7 (Rollup), Vite 8 (Rolldown)</td><td>Plugin from <code>vexproof/vite</code></td><td><code>vexproof-modules.json</code></td></tr>
+      <tr><td>Rollup</td><td>Plugin from <code>vexproof/rollup</code></td><td><code>vexproof-modules.json</code></td></tr>
+      <tr><td>webpack 5</td><td>Plugin from <code>vexproof/webpack</code>, or complete stats JSON</td><td><code>vexproof-modules.json</code></td></tr>
+      <tr><td>Rspack</td><td>Plugin from <code>vexproof/rspack</code> (required)</td><td><code>vexproof-modules.json</code></td></tr>
+      <tr><td>Angular 17+</td><td><code>ng build --stats-json</code></td><td><code>dist/&lt;app&gt;/stats.json</code></td></tr>
+      <tr><td>esbuild</td><td><code>metafile: true</code></td><td>the metafile you write</td></tr>
+      <tr><td>Bun</td><td><code>bun build --metafile=meta.json</code></td><td><code>meta.json</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Vite and Rollup</h3>
+  <div class="code"><span class="lbl">vite.config.js</span><pre>import vexproof from 'vexproof/vite';
+
+export default {
+  plugins: [vexproof()],
+  worker: { plugins: () =&gt; [vexproof()] },   <span class="c">// only if you ship web workers</span>
+};</pre></div>
+  <div class="code"><span class="lbl">rollup.config.js</span><pre>import vexproof from 'vexproof/rollup';
+
+export default { input: 'src/main.js', output: { dir: 'dist' }, plugins: [vexproof()] };</pre></div>
+  <p>Every build that ships code needs the plugin: the main build, web workers, and any nested <code>build()</code> calls. Instances in one process merge into one file. Server builds (SSR) are skipped, because they don't ship to the browser; pass <code>includeServer: true</code> to record them too.</p>
+  <div class="note"><p>You don't have to get plugin coverage right by inspection. The plugin records its output folders, and vexproof refuses to run if a <code>.js</code>, <code>.mjs</code> or <code>.cjs</code> file in them wasn't recorded, naming each file. On Gitea's frontend this caught two bundles made by nested builds.</p></div>
+
+  <h3>webpack and Rspack</h3>
+  <div class="code"><span class="lbl">webpack.config.js or rspack.config.js</span><pre>const { VexproofPlugin } = require('vexproof/webpack');
+
+module.exports = {
+  plugins: [new VexproofPlugin()],
+};</pre></div>
+  <p>With webpack you can instead pass a stats file, as long as it lists every module:</p>
+  <div class="code"><pre>webpack --json=stats.json</pre></div>
+  <p>vexproof refuses a stats file that leaves modules out: a <code>modulesSpace</code> limit, grouped or filtered children, or a concatenated module (<code>./x.js + 190 modules</code>) whose members aren't listed. Any of those would make shipped code look absent. Rspack's <code>--json</code> flag always produces such a file, whatever the config says, so Rspack needs the plugin.</p>
+
+  <h3>Angular</h3>
+  <p>Angular 17 and later build with esbuild, and <code>--stats-json</code> writes its metafile:</p>
+  <div class="code"><pre>ng build --configuration production --stats-json
+npx vexproof --lockfile bom.lockfile.json --modules dist/my-app/stats.json …</pre></div>
+
+  <h3>esbuild</h3>
+  <div class="code"><span class="lbl">build.mjs</span><pre>import * as esbuild from 'esbuild';
+import { writeFileSync } from 'node:fs';
+
+const result = await esbuild.build({ entryPoints: ['src/main.js'], bundle: true, minify: true, outdir: 'dist', metafile: true });
+writeFileSync('meta.json', JSON.stringify(result.metafile));</pre></div>
+
+  <h3>Bun</h3>
+  <div class="code"><pre>bun build src/main.jsx --outdir dist --minify --production --metafile=meta.json</pre></div>
+  <p>Bun writes the same metafile shape as esbuild. If you bundle with Vite under Bun, use the Vite plugin instead.</p>
+
+  <h3>Bundle SBOM (optional)</h3>
+  <p>With <code>--modules</code>, vexproof works out the bundle's packages from the module map. You can also pass a CycloneDX SBOM of the bundle with <code>--bundle</code>, for example from <code>@cyclonedx/webpack-plugin</code>. Then presence comes from that SBOM and file-level detail from the module map, and the two must agree.</p>
+</section>
+
+<!-- ============================== PACKAGE MANAGERS ============================== -->
+<section class="doc" id="package-managers">
+  <p class="eyebrow">Guide</p>
+  <h2>Package managers</h2>
+  <p>Each package manager needs two commands: one for the lockfile SBOM, and one for findings. All of these were tested on the same app, and each reaches the same verdicts.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Manager</th><th>Lockfile SBOM</th><th>Findings</th></tr></thead>
+    <tbody>
+      <tr><td>npm</td><td class="wrap"><code>npx @cyclonedx/cyclonedx-npm --omit dev -o bom.lockfile.json</code></td><td class="wrap"><code>npm audit --json</code></td></tr>
+      <tr><td>pnpm</td><td class="wrap"><code>pnpm sbom --sbom-format cyclonedx --sbom-type application --prod --out bom.lockfile.json</code></td><td class="wrap"><code>pnpm audit --json</code></td></tr>
+      <tr><td>Yarn 1</td><td class="wrap"><code>npx @cyclonedx/cyclonedx-npm --omit dev -o bom.lockfile.json</code></td><td class="wrap"><code>yarn audit --json</code></td></tr>
+      <tr><td>Yarn 2+</td><td class="wrap"><code>yarn dlx -q @cyclonedx/yarn-plugin-cyclonedx --prod -o bom.lockfile.json</code></td><td class="wrap"><code>yarn npm audit --json --recursive</code></td></tr>
+      <tr><td>Bun</td><td class="wrap"><code>npx @cyclonedx/cyclonedx-npm --omit dev -o bom.lockfile.json</code></td><td class="wrap"><code>bun audit --json</code></td></tr>
+    </tbody>
+  </table></div>
+  <p>Redirect the findings command into a file and pass it with <code>--findings</code>. Audit commands exit non-zero when they find something, so add <code>|| true</code> in scripts that stop on errors.</p>
+
+  <h3>Notes by manager</h3>
+  <dl class="defs">
+    <dt>Yarn 2+</dt><dd>Without <code>--recursive</code>, <code>yarn npm audit</code> checks direct dependencies only, and misses most of what ships. Plug'n'Play works: vexproof reads packages served from Yarn's zip cache and its <code>__virtual__</code> paths as one copy per version.</dd>
+    <dt>Bun</dt><dd>With the isolated linker, <code>cyclonedx-npm</code> needs <code>--ignore-npm-errors</code>. The SBOM then also lists build tooling such as Vite. That doesn't change any verdict, since tooling never ships. <code>bun audit</code> doesn't report installed versions; vexproof takes them from the lockfile SBOM and keeps the ones inside each advisory's range.</dd>
+    <dt>npm</dt><dd><code>npm audit</code> doesn't report installed versions either. vexproof takes every version of the package in the lockfile SBOM that falls inside each advisory's range.</dd>
+    <dt>pnpm</dt><dd>Store paths (<code>node_modules/.pnpm/name@version/…</code>) give each copy's version even when <code>package.json</code> isn't readable.</dd>
+  </dl>
+
+  <h3>Where node_modules lives</h3>
+  <p>vexproof reads each shipped package's installed <code>package.json</code> to learn its version. Run it from the project root, or pass <code>--root</code> pointing there. In a monorepo that is the folder the bundler resolved from, usually the app's own folder.</p>
+</section>
+
+<!-- ============================== SCANNERS ============================== -->
+<section class="doc" id="scanners">
+  <p class="eyebrow">Guide</p>
+  <h2>Scanners</h2>
+  <p>Keep the scanner you have. vexproof reads its findings and writes VEX it applies. Scanners disagree on advisory IDs (Trivy reports npm issues by CVE, npm audit and Grype by GHSA), so every statement carries both, and one file matches either.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Scanner</th><th>Write</th><th>Apply</th></tr></thead>
+    <tbody>
+      <tr><td>Trivy, any target</td><td><code>--openvex vex.openvex.json</code></td><td><code>trivy fs . --vex vex.openvex.json</code></td></tr>
+      <tr><td>Trivy, SBOM scan</td><td><code>--out vex.cdx.json</code></td><td><code>trivy sbom bom.lockfile.json --vex vex.cdx.json</code></td></tr>
+      <tr><td>Grype, SBOM or directory</td><td><code>--openvex vex.openvex.json --openvex-package-products</code></td><td><code>grype sbom:bom.lockfile.json --vex vex.openvex.json</code></td></tr>
+      <tr><td>Dependency-Track</td><td><code>--out vex.cdx.json</code></td><td>Upload after the lockfile SBOM has been analysed (<a href="#dependency-track">below</a>)</td></tr>
+      <tr><td>Other CycloneDX tools</td><td><code>--out vex.cdx.json</code></td><td>Upload beside the lockfile SBOM</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Trivy</h3>
+  <p>With OpenVEX, Trivy matches a statement when its product is the scanned project and its subcomponent is the vulnerable package. vexproof uses the lockfile SBOM's own component as the product, which is what Trivy sees as the project root. If yours differs, set it with <code>--product</code>.</p>
+  <p>With CycloneDX VEX, Trivy only applies statements that point into the exact SBOM it is scanning, by BOM-Link (<code>urn:cdx:&lt;serial&gt;/&lt;version&gt;#&lt;bom-ref&gt;</code>). vexproof writes those links from the lockfile SBOM, so scan that same file. Trivy keeps one CycloneDX statement per advisory ID, so prefer OpenVEX when two packages share an advisory.</p>
+
+  <h3>Grype</h3>
+  <p>On directory and SBOM scans, Grype only matches statements whose product is the package itself. <code>--openvex-package-products</code> adds that form to every statement. A file written this way says a package is unaffected in general, so use it only when scanning this app.</p>
+
+  <h3 id="dependency-track">Dependency-Track</h3>
+  <p>Dependency-Track applies a VEX only to findings it already has. Upload the lockfile SBOM, wait until its analysis is done, then upload the VEX. The API key needs <code>BOM_UPLOAD</code>, <code>VULNERABILITY_ANALYSIS</code> and, to create the project, <code>PROJECT_CREATION_UPLOAD</code>.</p>
+  <div class="code"><pre>DT=https://dtrack.example.com; KEY="$DT_API_KEY"; NAME=my-app; VERSION=1.4.0
+token=$(curl -sf -H "X-Api-Key: $KEY" -F autoCreate=true -F projectName=$NAME -F projectVersion=$VERSION \
+  -F bom=@bom.lockfile.json "$DT/api/v1/bom" | jq -r .token)
+while curl -sf -H "X-Api-Key: $KEY" "$DT/api/v1/event/token/$token" | jq -e .processing >/dev/null; do sleep 5; done
+curl -sf -H "X-Api-Key: $KEY" -F projectName=$NAME -F projectVersion=$VERSION -F vex=@vex.cdx.json "$DT/api/v1/vex"</pre></div>
+  <p>Each statement becomes an analysis with its state, justification and vexproof's reasoning as the details. Dependency-Track 4.x skips VEX entries that do not name a source, so vexproof names <code>GITHUB</code> for GHSA advisories (where Dependency-Track's GitHub and OSV mirrors both file them) and <code>NVD</code> for CVEs.</p>
+  <p>Dependency-Track applies a BOM-Link statement to every component in the project with that finding, not only the one linked. When two copies of a package get different verdicts on one advisory, vexproof writes the open statement last, so the copy that ships is never suppressed; both end up open for review.</p>
+
+  <h3>Checking what a scanner will filter</h3>
+  <p>In the repository, <code>interop/live.sh</code> runs the real Trivy and Grype on the demo app, with and without vexproof's VEX, and checks that each hides exactly the findings the VEX settles and still shows every other one. It covers Trivy <code>fs</code> and <code>sbom</code> scans with OpenVEX and CycloneDX 1.6 and 1.7, and Grype SBOM and directory scans, with VEX made from OSV and from each scanner's own report. Pass a version, such as <code>interop/live.sh vexproof@0.12.0</code>, to check a published package. It needs <code>trivy</code>, <code>grype</code> and network access.</p>
+  <p><code>interop/run.sh &lt;dir&gt;</code> is the offline check: it applies the files with the same matching code Trivy and Grype use (<code>openvex/go-vex</code>, <code>cyclonedx-go</code>'s BOM-Link parser, and Trivy's package-match rule), and prints what each would filter.</p>
+</section>
+
+<!-- ============================== CI ============================== -->
+<section class="doc" id="ci">
+  <p class="eyebrow">Guide</p>
+  <h2>CI and the gate</h2>
+  <p>Run vexproof after the production build and the SBOM step. The <a href="#action">GitHub Action</a> wraps the command; on other CI systems, call the CLI.</p>
+  <div class="code"><span class="lbl">.github/workflows/release.yml (excerpt)</span><pre>- run: npm ci
+- run: npx vite build
+- run: npx @cyclonedx/cyclonedx-npm --omit dev -o bom.lockfile.json
+- run: npm audit --json --omit dev &gt; audit.json || true
+- uses: septakis/vexproof@v0
+  with:
+    lockfile: bom.lockfile.json
+    modules: vexproof-modules.json
+    findings: audit.json
+    fail-on: in_triage
+    license: ${{ secrets.VEXPROOF_LICENSE }}
+- uses: actions/upload-artifact@v4
+  with: { name: vex, path: "vex.*.json" }</pre></div>
+  <div class="code"><span class="lbl">.gitlab-ci.yml (excerpt)</span><pre>vex:
+  stage: test
+  script:
+    - npm ci &amp;&amp; npx vite build
+    - npx @cyclonedx/cyclonedx-npm --omit dev -o bom.lockfile.json
+    - npm audit --json --omit dev &gt; audit.json || true
+    - npx vexproof --lockfile bom.lockfile.json --modules vexproof-modules.json
+        --findings audit.json --openvex vex.openvex.json --fail-on in_triage
+  artifacts:
+    paths: [vex.cdx.json, vex.openvex.json]</pre></div>
+
+  <h3>The gate</h3>
+  <p><code>--fail-on</code> makes the run exit with code 1 when it trips. It never trips for any other reason.</p>
+  <dl class="defs">
+    <dt>in_triage</dt><dd>Fails when any finding is still open after automatic verdicts and recorded reviews.</dd>
+    <dt>new</dt><dd><span class="chip pro">Pro</span> Fails only on open findings that weren't open or reviewed in the baseline. Needs <code>--baseline</code>; without it, the gate is skipped with a message.</dd>
+  </dl>
+  <p>A missing, invalid, expired or revoked license never fails a build. vexproof drops to free features and says so once.</p>
+</section>
+
+<!-- ============================== REVIEWS ============================== -->
+<section class="doc" id="reviews">
+  <p class="eyebrow">Guide</p>
+  <h2>Reviews and baselines</h2>
+  <p>Some findings need a person: the vulnerable code ships, and someone has to decide whether it can be reached. <code>vexproof review</code> records that decision in the VEX file, with who made it and why. Reviewing is free.</p>
+  <div class="code"><pre>npx vexproof review --vex vex.cdx.json --id GHSA-f23m-r3pf-42rh \
+  --state not_affected --justification code_not_reachable --same-cause \
+  --detail "omit() only receives a fixed key list from src/main.js" \
+  --by "Jane Doe"</pre></div>
+  <p><code>--id</code> matches the statement's ID or any of its aliases, so the CVE works too. <code>--same-cause</code> applies the decision to every open finding on the same vulnerable files: GHSA-xxjr-mmjv-4gpg and GHSA-f23m-r3pf-42rh are both bugs in <code>_baseUnset.js</code>, so one review covers both. The <a href="#cli-review">review reference</a> lists the states and justifications.</p>
+
+  <h3>Reviews that follow their evidence <span class="chip pro">Pro</span></h3>
+  <p>On the next release, pass the reviewed file as the baseline:</p>
+  <div class="code"><pre>npx vexproof --lockfile bom.lockfile.json --modules vexproof-modules.json \
+  --findings audit.json --baseline previous/vex.cdx.json --fail-on new</pre></div>
+  <p>A review is not tied to the lockfile or the version number. It is tied to what the decision rests on, which vexproof records on every open statement:</p>
+  <dl class="defs">
+    <dt>Vulnerable files</dt><dd>The shipped files holding the vulnerable code, each with a content hash.</dd>
+    <dt>Importers</dt><dd>The code outside the package that pulls those files in, found by walking the bundler's import graph back through the package's own files.</dd>
+  </dl>
+  <p>If both match, the decision carries into the new release, even across a version bump, keeping the reviewer, the date and the reasoning, and noting the version it was made for. If either changes, the finding goes back to the reviewer with the difference:</p>
+<div class="term">  <span class="g">not_affected (carried)</span>   GHSA-f23m-r3pf-42rh    pkg:npm/lodash-es@4.17.23
+<span class="d">  …after src/filters.js starts passing URL input to omit():</span>
+  <span class="y">in_triage</span>                GHSA-f23m-r3pf-42rh    pkg:npm/lodash-es@4.17.23  [new]
+    <span class="d">← the review by Jane Doe on 2026-09-27 needs re-confirming: new importer: src/filters.js</span></div>
+  <ul>
+    <li>Decisions resting on things vexproof can't see (<code>requires_configuration</code>, <code>requires_environment</code>, and the <code>protected_…</code> justifications) stay tied to the exact version.</li>
+    <li>Reviews older than 365 days need re-confirming. Change it with <code>--review-max-age &lt;days&gt;</code>; <code>0</code> turns it off.</li>
+    <li>An automatic <code>not_affected</code> always wins over an older review, because it comes with fresh evidence.</li>
+    <li>A finding is <em>new</em> when it is open now and was neither open nor validly reviewed in the baseline. That includes a package that used to be absent and is now bundled, and a review that needs re-confirming. New findings are marked <code>[new]</code>.</li>
+    <li>Matching uses every alias, so switching scanners (GHSA to CVE) doesn't lose decisions.</li>
+    <li>Import graphs come from the esbuild metafile, the Vite plugin and the webpack plugin. A module map without them falls back to matching the exact version.</li>
+  </ul>
+</section>
+
+<!-- ============================== VERDICTS ============================== -->
+<section class="doc" id="verdicts">
+  <p class="eyebrow">Concept</p>
+  <h2>How verdicts are made</h2>
+  <p>vexproof starts every finding at <code>in_triage</code> and changes it only when the inputs prove absence. Each check below errs toward making no claim. They run in this order, and the first that applies decides.</p>
+  <div class="tw"><table>
+    <thead><tr><th>#</th><th>Condition</th><th>Verdict</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td>The finding's package URL can't be parsed.</td><td><span class="chip tri">in_triage</span></td></tr>
+      <tr><td class="num">2</td><td>The bundle has no components at all. This almost always means a broken build or the wrong file.</td><td><span class="chip tri">in_triage</span></td></tr>
+      <tr><td class="num">3</td><td>The package isn't in the lockfile SBOM, so vexproof has no basis for a claim.</td><td><span class="chip tri">in_triage</span></td></tr>
+      <tr><td class="num">4</td><td>The package is in the lockfile SBOM and absent from the bundle.</td><td><span class="chip na">not_affected</span> package level</td></tr>
+      <tr><td class="num">5</td><td>The package is bundled, and the module check below passes.</td><td><span class="chip na">not_affected</span> module level <span class="chip pro">Pro</span></td></tr>
+      <tr><td class="num">6</td><td>Anything else.</td><td><span class="chip tri">in_triage</span> with the reason</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>The module check</h3>
+  <p>For a bundled package, vexproof settles a finding only when all of these hold:</p>
+  <ol>
+    <li>A module map was supplied, and the package is from npm.</li>
+    <li>There is a <a href="#rules">rule</a> for this package and this advisory, matched by ID or alias.</li>
+    <li>The module map shows files from the package, agreeing with the bundle.</li>
+    <li>The finding's version is one the bundle contains, and the copies at that version can be identified (see <a href="#copies">Multiple copies</a>).</li>
+    <li>No full build of the package ships from those copies (<code>lodash.js</code>, <code>lodash.min.js</code>, <code>fp/</code> and similar), since a full build contains every function.</li>
+    <li>None of the files the rule names ship from those copies.</li>
+  </ol>
+  <p>Without a Pro license, findings that pass this check stay <code>in_triage</code>, and the run reports how many Pro would settle.</p>
+
+  <h3>What the justification means</h3>
+  <p>Both automatic levels use the CycloneDX justification <code>code_not_present</code>. The <code>vexproof:level</code> property says which level applied, and module-level statements also list the files that did ship. In OpenVEX, package level becomes <code>component_not_present</code> and module level <code>vulnerable_code_not_present</code>.</p>
+  <p>vexproof never writes <code>code_not_reachable</code> (OpenVEX: <code>vulnerable_code_not_in_execute_path</code>), the justification reachability analysis uses. That one says the code ships but is never called, which is an inference about your program. <code>code_not_present</code> says the code is not in the artifact, which anyone can check against the build output. A person can still record <code>code_not_reachable</code> with <code>vexproof review</code>.</p>
+</section>
+
+<section class="doc" id="copies">
+  <p class="eyebrow">Concept</p>
+  <h2>Multiple copies</h2>
+  <p>A package can ship more than once, at different versions: npm nests conflicting versions, and pnpm and Bun keep one folder per version in their store. A file-level claim is only sound if it checks the copy at the vulnerable version.</p>
+  <p>vexproof groups shipped files by the folder they came from, and reads each folder's version from, in order:</p>
+  <ol>
+    <li>its installed <code>package.json</code>, under <code>--root</code>;</li>
+    <li>the store path: <code>.pnpm/name@version/</code>, <code>.bun/name@version/</code>, or a Yarn cache archive named <code>name-npm-version-….zip</code>.</li>
+  </ol>
+  <p>It then checks the finding against the files of the matching copies only. A vulnerable file shipping from a fixed copy doesn't block the verdict; one shipping from the vulnerable copy always does. The statement names the copies checked in <code>vexproof:copies-checked</code>.</p>
+  <p>No claim is made when several copies ship and any copy's version can't be read, when no shipped copy is at the finding's version, or when a single copy's installed version disagrees with the finding.</p>
+  <p class="muted">On Gitea's frontend, lodash-es ships at 4.17.23 and 4.18.1. The 4.17.23 advisories were checked against that copy's files alone.</p>
+</section>
+
+<section class="doc" id="derived">
+  <p class="eyebrow">Concept</p>
+  <h2>Derived rules <span class="chip pro">Pro</span></h2>
+  <p>Hand-checked rules cover lodash and lodash-es. For other packages, vexproof can derive a rule from the fix itself: the runtime files that changed between the version you have installed and the first release outside the advisory's range. If none of those files shipped, the fix touched no code you ship.</p>
+  <div class="code"><pre>npx vexproof rules derive --lockfile bom.lockfile.json --findings audit.json \
+  --modules vexproof-modules.json
+npx vexproof --lockfile bom.lockfile.json --modules vexproof-modules.json \
+  --findings audit.json --rules vexproof-rules.derived.json</pre></div>
+  <p>The diff runs from the installed version, not from the last vulnerable release. Advisory ranges can be wider than the real fix: lodash-es fixed GHSA-xxjr-mmjv-4gpg's code in 4.17.22, a release inside the advisory's range, so the narrow diff would show only unrelated files and wrongly clear shipped code.</p>
+
+  <h3>Why they only suggest</h3>
+  <p>A fix can change a caller, for example by adding validation in an entry file, while the vulnerable code sits in a file it didn't touch. So a derived rule leaves the finding <code>in_triage</code> and puts its reasoning in the detail. It settles the finding only when the run passes <code>--accept-derived</code>, or when someone records a review. Accepted statements carry <code>vexproof:rule-origin</code>.</p>
+  <p>vexproof makes no rule when the fix changed no JavaScript (a dependency update), or when more than half the package's files moved before the fix.</p>
+
+  <h3>How well they work</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Check</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td>10 lodash and lodash-es advisories with hand-checked rules</td><td>Every derived rule contains the file with the vulnerable code.</td></tr>
+      <tr><td>Angular, recharts and Gitea builds</td><td>Never cleared a finding the hand-checked rules keep open. Settled 4 fewer, because a fixed release that bundles several fixes yields one broad rule.</td></tr>
+      <tr><td>841 advisories in 80 popular frontend packages</td><td>796 got a rule. Most fixes rewrite the package's main file, which ships. The narrow ones cluster in framework server and compiler code.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="doc" id="server">
+  <p class="eyebrow">Concept</p>
+  <h2>Apps with a server</h2>
+  <p>In an app with server-side rendering, code also runs on a server, and packages used only there are absent from the browser bundle while still running in production. For these apps, point vexproof at what you deploy.</p>
+  <div class="code"><pre>npx vexproof --lockfile bom.lockfile.json --findings audit.json \
+  --deploy .next/standalone --deploy .next/static     <span class="c"># Next.js, output: 'standalone'</span>
+npx vexproof … --deploy .output                        <span class="c"># Nuxt / Nitro</span>
+npx vexproof … --deploy build --deploy node_modules    <span class="c"># runs with its node_modules, after npm prune --omit=dev</span></pre></div>
+  <p>A deployment folder is evidence in the same sense as a browser bundle: a file that isn't deployed can't run. vexproof reads two things in it:</p>
+  <dl class="defs">
+    <dt>Deployed package files</dt><dd>Files the framework copied into its output, such as Next's traced <code>standalone/node_modules</code> or Nitro's <code>.output/server/node_modules</code>. Nitro copies individual files, so file-level evidence holds there too.</dd>
+    <dt>Bundled code</dt><dd>Each bundled file's source map, which names every original file bundled into it.</dd>
+  </dl>
+  <p>Turn source maps on for the build:</p>
+  <div class="tw"><table>
+    <thead><tr><th>Framework</th><th>Setting</th></tr></thead>
+    <tbody>
+      <tr><td>Next.js</td><td><code>productionBrowserSourceMaps: true</code>, <code>experimental: { serverSourceMaps: true }</code>, <code>output: 'standalone'</code>. The standalone folder doesn't copy server maps; vexproof finds them in <code>.next</code>.</td></tr>
+      <tr><td>Nuxt</td><td><code>sourcemap: { server: true, client: 'hidden' }</code></td></tr>
+      <tr><td>Vite, SvelteKit</td><td><code>build.sourcemap: 'hidden'</code></td></tr>
+    </tbody>
+  </table></div>
+  <p>Maps outside the deployment folders are found with <code>--maps &lt;folder&gt;</code>. You can delete <code>.map</code> files from the public output after vexproof runs.</p>
+
+  <h3>What it refuses</h3>
+  <ul>
+    <li>A bundled file with no source map, unless it is an exact copy of an installed file (Next's polyfills) or glue code with no functions of its own (manifests, Next's <code>server.js</code>).</li>
+    <li>Bundled code that loads a lockfile package at runtime when that package isn't inside the deployment. Imports are parsed, so examples in comments and strings don't count, and packages linked under hashed names are followed to the real package.</li>
+    <li>A source-map source that can't be traced to an installed package.</li>
+  </ul>
+  <p>A package that publishes its own source maps is taken whole. Bundler maps point through them at its original sources, not the files that shipped (esbuild followed fast-equals' maps to <code>src/comparator.ts</code>), so its file-level rules can't be checked.</p>
+
+  <h3>Results on real apps</h3>
+  <div class="tw"><table>
+    <thead><tr><th>App</th><th>Findings</th><th>Settled</th><th>Still open, because the server runs them</th></tr></thead>
+    <tbody>
+      <tr><td>Next.js 16, Turbopack, standalone</td><td class="num">17</td><td class="num">9: lodash files not bundled; build-only postcss and @babel/traverse not deployed</td><td>js-yaml, marked, semver (imported by <code>next.config.mjs</code>, which Next deploys)</td></tr>
+      <tr><td>Nuxt 4, Nitro</td><td class="num">11</td><td class="num">4</td><td>js-yaml, marked</td></tr>
+    </tbody>
+  </table></div>
+  <p>On the recharts demo, the files named by source maps match the bundlers' own module lists file for file (Vite 8, webpack), and on esbuild once fast-equals is traced back through its maps.</p>
+
+  <h3>Without a server deployment</h3>
+  <p>vexproof refuses to run when the module map records a skipped server build, or the lockfile includes Next.js, Nuxt, SvelteKit, Remix, React Router's server runtime, Angular SSR, Vike, SolidStart, TanStack Start, Astro's Node adapter or Analog. <code>--browser-only</code> writes VEX for the browser bundle alone and marks it <code>vexproof:scope</code> = <code>browser-bundle</code>; give that artifact its own identifier with <code>--product</code>.</p>
+</section>
+
+<!-- ============================== CLI ============================== -->
+<section class="doc" id="cli">
+  <p class="eyebrow">Reference</p>
+  <h2>Command line</h2>
+  <div class="code"><pre>vexproof --lockfile &lt;sbom&gt; (--modules &lt;file&gt; | --bundle &lt;sbom&gt;) [options]
+vexproof review --vex &lt;file&gt; --id &lt;advisory&gt; --state &lt;state&gt; --detail &lt;text&gt; --by &lt;name&gt; [options]</pre></div>
+
+  <h3>Run options</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Option</th><th>Default</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>--lockfile &lt;file&gt;</code></td><td>required</td><td>CycloneDX JSON SBOM of every package installed for production.</td></tr>
+      <tr><td><code>--modules &lt;file&gt;</code></td><td></td><td>Module map: <code>vexproof-modules.json</code>, an esbuild or Bun metafile, Angular <code>stats.json</code>, or webpack stats JSON. Needed for module-level verdicts. Repeatable, or comma-separated.</td></tr>
+      <tr><td><code>--deploy &lt;folder&gt;</code></td><td></td><td>A deployment folder: its package files and the source maps of its bundled code. Repeatable. See <a href="#server">Apps with a server</a>.</td></tr>
+      <tr><td><code>--maps &lt;folder&gt;</code></td><td><code>.next</code> if present</td><td>Where else to find source maps for <code>--deploy</code>.</td></tr>
+      <tr><td><code>--bundle &lt;file&gt;</code></td><td>from module map</td><td>CycloneDX SBOM of the bundle. One of <code>--modules</code>, <code>--deploy</code> or <code>--bundle</code> is required.</td></tr>
+      <tr><td><code>--findings &lt;file&gt;</code></td><td>query OSV</td><td>Scanner or audit output. See <a href="#inputs">Input formats</a>.</td></tr>
+      <tr><td><code>--enrich-aliases</code></td><td>off</td><td>Look up GHSA and CVE aliases on OSV for a findings file. Automatic when querying OSV.</td></tr>
+      <tr><td><code>--root &lt;dir&gt;</code></td><td>current directory</td><td>Where <code>node_modules</code> and the build output live. Used for package versions and the plugin coverage check.</td></tr>
+      <tr><td><code>--product &lt;purl&gt;</code></td><td>lockfile SBOM's component</td><td>Package URL of your app, used as the VEX product. Falls back to <code>pkg:generic/app</code>.</td></tr>
+      <tr><td><code>--out &lt;file&gt;</code></td><td><code>vex.cdx.json</code></td><td>CycloneDX VEX output.</td></tr>
+      <tr><td><code>--spec-version &lt;v&gt;</code></td><td><code>1.6</code></td><td>CycloneDX version of the VEX: <code>1.6</code> or <code>1.7</code>. Trivy reads 1.7 from 0.71, Dependency-Track from 4.14.</td></tr>
+      <tr><td><code>--openvex &lt;file&gt;</code></td><td>not written</td><td>Also write OpenVEX.</td></tr>
+      <tr><td><code>--openvex-package-products</code></td><td>off</td><td>Add package-as-product statements for Grype. Use that file only for this app.</td></tr>
+      <tr><td><code>--rules &lt;file&gt;</code> <span class="chip pro">Pro</span></td><td></td><td>Extra module rules, such as the output of <code>rules derive</code>. Hand-checked rules win on overlap.</td></tr>
+      <tr><td><code>--accept-derived</code> <span class="chip pro">Pro</span></td><td>off</td><td>Let <a href="#derived">derived rules</a> settle findings. Without it they only suggest.</td></tr>
+      <tr><td><code>--browser-only</code></td><td>off</td><td>Scope the VEX to the browser bundle. Required for <a href="#server">apps with a server</a>.</td></tr>
+      <tr><td><code>--fail-on &lt;mode&gt;</code></td><td>no gate</td><td><code>in_triage</code> or <code>new</code>. Exit 1 when the gate trips.</td></tr>
+      <tr><td><code>--baseline &lt;file&gt;</code> <span class="chip pro">Pro</span></td><td></td><td>The previous release's CycloneDX VEX. Carries reviews forward while their evidence holds, and marks new findings.</td></tr>
+      <tr><td><code>--review-max-age &lt;days&gt;</code></td><td><code>365</code></td><td>Reviews older than this need re-confirming. <code>0</code> turns it off.</td></tr>
+      <tr><td><code>--report &lt;file&gt;</code> <span class="chip pro">Pro</span></td><td></td><td>Write the HTML evidence report.</td></tr>
+      <tr><td><code>--license &lt;token|file&gt;</code></td><td>see <a href="#licensing">Licensing</a></td><td>License token, or a path to a file holding it.</td></tr>
+      <tr><td><code>--quiet</code></td><td>off</td><td>Hide the free-tier hint.</td></tr>
+      <tr><td><code>--help</code>, <code>--version</code></td><td></td><td>Print usage or the version.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 id="cli-review">review</h3>
+  <p>Records a human decision on one statement, in place.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Option</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>--vex &lt;file&gt;</code></td><td>The CycloneDX VEX to update. Required.</td></tr>
+      <tr><td><code>--id &lt;advisory&gt;</code></td><td>Advisory ID or alias. Required.</td></tr>
+      <tr><td><code>--state &lt;state&gt;</code></td><td>Required. One of <code>not_affected</code>, <code>exploitable</code>, <code>in_triage</code>, <code>false_positive</code>, <code>resolved</code>, <code>resolved_with_pedigree</code>.</td></tr>
+      <tr><td><code>--justification &lt;j&gt;</code></td><td>Required with <code>not_affected</code>. One of <code>code_not_present</code>, <code>code_not_reachable</code>, <code>requires_configuration</code>, <code>requires_dependency</code>, <code>requires_environment</code>, <code>protected_by_compiler</code>, <code>protected_at_runtime</code>, <code>protected_at_perimeter</code>, <code>protected_by_mitigating_control</code>.</td></tr>
+      <tr><td><code>--detail &lt;text&gt;</code></td><td>Why. Required.</td></tr>
+      <tr><td><code>--by &lt;name&gt;</code></td><td>Who decided. Required.</td></tr>
+      <tr><td><code>--package &lt;purl&gt;</code></td><td>Pick the package when the advisory appears on several.</td></tr>
+      <tr><td><code>--same-cause</code></td><td>Also apply the decision to open findings on the same package whose vulnerable files overlap.</td></tr>
+    </tbody>
+  </table></div>
+  <p>The statement's origin becomes <code>reviewed</code>, the reviewer and time are recorded in <code>vexproof:reviewed-by</code> and <code>vexproof:reviewed-at</code>, and the evidence fingerprints stay, so the decision can be <a href="#reviews">carried forward</a>.</p>
+
+  <h3 id="cli-derive">rules derive</h3>
+  <p>Writes a rules file from each finding's fix, using the npm registry. See <a href="#derived">Derived rules</a>.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Option</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>--lockfile &lt;file&gt;</code></td><td>Lockfile SBOM, for versions. Required.</td></tr>
+      <tr><td><code>--findings &lt;file&gt;</code></td><td>Any supported findings file. Required.</td></tr>
+      <tr><td><code>--modules &lt;file&gt;</code></td><td>Derive only for packages that ship; the rest settle at package level anyway.</td></tr>
+      <tr><td><code>--out &lt;file&gt;</code></td><td>Default <code>vexproof-rules.derived.json</code>. Commit it next to your build config.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Exit codes</h3>
+  <dl class="defs">
+    <dt>0</dt><dd>Success. VEX written.</dd>
+    <dt>1</dt><dd>The <code>--fail-on</code> gate tripped. VEX is still written.</dd>
+    <dt>2</dt><dd>vexproof stopped: a missing option, an unreadable or unrecognised input, an incomplete module map, or a network failure. See <a href="#messages">Messages</a>.</dd>
+  </dl>
+
+  <h3>Environment</h3>
+  <dl class="defs">
+    <dt>VEXPROOF_LICENSE</dt><dd>License token, or a path to a file holding it.</dd>
+    <dt>VEXPROOF_QUIET=1</dt><dd>Same as <code>--quiet</code>.</dd>
+  </dl>
+  <p>The summary goes to standard output. Diagnostics, warnings and hints go to standard error.</p>
+</section>
+
+<!-- ============================== ACTION ============================== -->
+<section class="doc" id="action">
+  <p class="eyebrow">Reference</p>
+  <h2>GitHub Action</h2>
+  <p><code>septakis/vexproof@v0</code> is a composite action that runs <code>npx vexproof</code> with these inputs. Run it after your build and SBOM steps.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Input</th><th>Default</th><th>Maps to</th></tr></thead>
+    <tbody>
+      <tr><td><code>lockfile</code></td><td>required</td><td><code>--lockfile</code></td></tr>
+      <tr><td><code>modules</code></td><td></td><td><code>--modules</code>, comma-separated for several</td></tr>
+      <tr><td><code>deploy</code></td><td></td><td><code>--deploy</code>, comma-separated</td></tr>
+      <tr><td><code>bundle</code></td><td></td><td><code>--bundle</code></td></tr>
+      <tr><td><code>findings</code></td><td>query OSV</td><td><code>--findings</code></td></tr>
+      <tr><td><code>product</code></td><td></td><td><code>--product</code></td></tr>
+      <tr><td><code>out</code></td><td><code>vex.cdx.json</code></td><td><code>--out</code></td></tr>
+      <tr><td><code>spec-version</code></td><td><code>1.6</code></td><td><code>--spec-version</code></td></tr>
+      <tr><td><code>openvex</code></td><td><code>vex.openvex.json</code></td><td><code>--openvex</code>; empty to skip</td></tr>
+      <tr><td><code>report</code> <span class="chip pro">Pro</span></td><td></td><td><code>--report</code></td></tr>
+      <tr><td><code>baseline</code> <span class="chip pro">Pro</span></td><td></td><td><code>--baseline</code></td></tr>
+      <tr><td><code>fail-on</code></td><td></td><td><code>--fail-on</code></td></tr>
+      <tr><td><code>license</code></td><td></td><td><code>VEXPROOF_LICENSE</code>. Pass a secret.</td></tr>
+      <tr><td><code>dependabot</code> <span class="chip pro">Pro</span></td><td><code>false</code></td><td>Run <a href="#dependabot"><code>vexproof dependabot</code></a> after the VEX is written, including when <code>fail-on</code> stopped the job.</td></tr>
+      <tr><td><code>dependabot-token</code></td><td></td><td>A token that can write Dependabot alerts. Pass a secret. The workflow's own token cannot.</td></tr>
+      <tr><td><code>dependabot-manifest</code></td><td>repository root</td><td><code>--manifest</code>, comma-separated</td></tr>
+      <tr><td><code>version</code></td><td><code>latest</code></td><td>The vexproof version npx runs. Pin it for reproducible builds.</td></tr>
+    </tbody>
+  </table></div>
+  <p>Outputs: <code>vex</code> and <code>openvex</code>, the paths written.</p>
+</section>
+
+<!-- ============================== DEPENDABOT ============================== -->
+<section class="doc" id="dependabot">
+  <p class="eyebrow">Reference</p>
+  <h2>Dependabot <span class="chip pro">Pro</span></h2>
+  <p>Dependabot reads no VEX, so an alert for code that never shipped stays open. <code>vexproof dependabot</code> applies a VEX file to a repository's npm alerts through GitHub's API. Without a license that includes <code>dependabot</code>, the command says so and changes nothing, <code>--dry-run</code> included.</p>
+  <pre><code>vexproof dependabot --vex vex.cdx.json --lockfile bom.lockfile.json --dry-run</code></pre>
+  <div class="tw"><table>
+    <thead><tr><th>Option</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>--vex &lt;file&gt;</code></td><td>The CycloneDX VEX vexproof wrote. Repeatable.</td></tr>
+      <tr><td><code>--lockfile &lt;sbom&gt;</code></td><td>The lockfile SBOM that VEX was made from, matched by the hash the VEX records. Repeatable.</td></tr>
+      <tr><td><code>--manifest &lt;path&gt;</code></td><td>A manifest file or a folder whose alerts to change. Repeatable. Default: the current folder.</td></tr>
+      <tr><td><code>--repo owner/name</code></td><td>Default <code>GITHUB_REPOSITORY</code>, then the git origin.</td></tr>
+      <tr><td><code>--token &lt;token&gt;</code></td><td>Or <code>VEXPROOF_DEPENDABOT_TOKEN</code>, <code>GH_TOKEN</code>, <code>GITHUB_TOKEN</code>.</td></tr>
+      <tr><td><code>--link &lt;url&gt;</code></td><td>What the dismissal comment links to. Default: the Actions run.</td></tr>
+      <tr><td><code>--dry-run</code></td><td>Print what would change.</td></tr>
+    </tbody>
+  </table></div>
+  <h3>What it changes</h3>
+  <dl class="defs">
+    <dt>Dismiss</dt><dd>An open alert whose package versions in the vulnerable range are all <code>not_affected</code> or <code>false_positive</code> in the VEX. The comment starts with <code>vexproof:</code>, gives the reason and links to the run. A version the VEX says nothing about keeps the alert open.</dd>
+    <dt>Reopen</dt><dd>An alert vexproof dismissed that a later VEX no longer settles.</dd>
+    <dt>Left alone</dt><dd>Alerts a person dismissed, alerts with a dismissal request waiting for approval, development dependencies, and alerts on manifests outside <code>--manifest</code>.</dd>
+  </dl>
+  <h3>Token</h3>
+  <p>The token needs "Dependabot alerts" read and write: a fine-grained token or a GitHub App token. A workflow's own <code>GITHUB_TOKEN</code> can read alerts (<code>permissions: vulnerability-alerts: read</code>) but cannot change them, so it only works with <code>--dry-run</code>. In Actions, only a run of the default branch changes alerts, because Dependabot alerts describe that branch; other runs preview. A VEX written with <code>--browser-only</code> is refused.</p>
+  <p>Exit codes: 0 when the sync ran or no license covers it, 2 when it could not (token, repository, a VEX that does not match the lockfile) or an update failed.</p>
+</section>
+
+<!-- ============================== PLUGINS ============================== -->
+<section class="doc" id="plugins">
+  <p class="eyebrow">Reference</p>
+  <h2>Plugins</h2>
+
+  <h3><code>vexproof/vite</code> and <code>vexproof/rollup</code></h3>
+  <p>The same plugin, for Vite 7, Vite 8 and Rollup. Default export; also exported as <code>vexproof</code>.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Option</th><th>Default</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>output</code></td><td><code>'vexproof-modules.json'</code></td><td>File to write, relative to <code>root</code>.</td></tr>
+      <tr><td><code>includeServer</code></td><td><code>false</code></td><td>Also record Vite server (SSR) builds. Skipped server builds are counted in <code>serverBuildsSkipped</code>, and the CLI then needs <code>--browser-only</code>.</td></tr>
+      <tr><td><code>root</code></td><td>Vite's <code>root</code>, else the working directory</td><td>Base for <code>output</code> and for recorded paths.</td></tr>
+    </tbody>
+  </table></div>
+  <p>Runs on <code>vite build</code> only. For each output chunk it records every module that rendered code. Rollup's virtual IDs for CommonJS interop (<code>\0…?commonjs-es-import</code>) count toward the real file. All instances in one process share one file, rewritten after each build.</p>
+
+  <h3><code>vexproof/webpack</code> and <code>vexproof/rspack</code></h3>
+  <div class="code"><pre>const { VexproofPlugin } = require('vexproof/webpack');
+new VexproofPlugin({ output: 'vexproof-modules.json' })</pre></div>
+  <p>Writes complete stats JSON (every module, including concatenated and orphan modules, and who imports each) when compilation finishes, relative to webpack's <code>context</code>. It records whether webpack or Rspack produced it.</p>
+
+  <h3>The module map file</h3>
+  <p>The Vite plugin writes this shape. Any tool that writes it can feed vexproof. <code>inputs</code> is optional and holds the import graph, as in an esbuild metafile.</p>
+  <div class="code"><span class="lbl">vexproof-modules.json</span><pre>{
+  "vexproof": 1,
+  "bundler": "vite 8.3.1 (rolldown 1.2.11)",
+  "outDirs": ["dist"],
+  "inputs": {
+    "src/main.js": { "imports": [{ "path": "node_modules/lodash-es/lodash.js" }] }
+  },
+  "outputs": {
+    "dist/assets/index-B3kq1.js": {
+      "inputs": {
+        "node_modules/lodash/omit.js": { "bytesInOutput": 1152 },
+        "src/main.jsx": { "bytesInOutput": 2210 }
+      }
+    }
+  }
+}</pre></div>
+  <dl class="defs">
+    <dt>outputs</dt><dd>Every emitted chunk, keyed by path relative to the project root. Files with <code>bytesInOutput</code> of 0 count as not shipped.</dd>
+    <dt>outDirs</dt><dd>Folders to check for JavaScript files missing from <code>outputs</code>. Leave it out to skip that check.</dd>
+  </dl>
+</section>
+
+<!-- ============================== INPUTS ============================== -->
+<section class="doc" id="inputs">
+  <p class="eyebrow">Reference</p>
+  <h2>Input formats</h2>
+  <h3>Findings</h3>
+  <p>vexproof detects the format from the file's content. The label is printed at the start of each run and recorded with the file's hash.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Label</th><th>Produced by</th><th>Versions from</th></tr></thead>
+    <tbody>
+      <tr><td><code>npm-audit</code></td><td><code>npm audit --json</code></td><td>lockfile SBOM, filtered by advisory range</td></tr>
+      <tr><td><code>pnpm-audit</code></td><td><code>pnpm audit --json</code></td><td>the audit</td></tr>
+      <tr><td><code>yarn-audit</code></td><td><code>yarn audit --json</code> (Yarn 1, one JSON object per line)</td><td>the audit</td></tr>
+      <tr><td><code>yarn-berry-audit</code></td><td><code>yarn npm audit --json --recursive</code> (Yarn 2+)</td><td>the audit</td></tr>
+      <tr><td><code>bun-audit</code></td><td><code>bun audit --json</code></td><td>lockfile SBOM, filtered by advisory range</td></tr>
+      <tr><td><code>osv-scanner</code></td><td><code>osv-scanner --format json</code></td><td>the scan</td></tr>
+      <tr><td><code>trivy</code></td><td><code>trivy fs|sbom … --format json</code></td><td>the scan</td></tr>
+      <tr><td><code>grype</code></td><td><code>grype … -o json</code></td><td>the scan</td></tr>
+      <tr><td><code>snyk</code></td><td><code>snyk test --json</code></td><td>the scan</td></tr>
+      <tr><td><code>internal</code></td><td>your own tooling</td><td>the file</td></tr>
+    </tbody>
+  </table></div>
+  <p>Only npm packages are triaged; other ecosystems in a scanner's output stay <code>in_triage</code>. The internal shape is a JSON array:</p>
+  <div class="code"><pre>[
+  { "purl": "pkg:npm/lodash@4.17.21", "ids": ["GHSA-r5fr-rjxr-66jc"] },
+  { "purl": "pkg:npm/%40scope/pkg@2.0.0", "id": "GHSA-xxxx-xxxx-xxxx", "aliases": ["CVE-2026-0001"] }
+]</pre></div>
+  <p>Findings for the same package whose IDs or aliases overlap are merged into one.</p>
+
+  <h3>SBOMs</h3>
+  <p>CycloneDX JSON. vexproof reads the package URL (<code>purl</code>) of every component, nested ones included. For CycloneDX VEX that Trivy and Dependency-Track can apply, the lockfile SBOM needs a <code>serialNumber</code> and <code>bom-ref</code>s, which the CycloneDX generators write by default (not with <code>--output-reproducible</code>).</p>
+
+  <h3>Module maps</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Label</th><th>Produced by</th></tr></thead>
+    <tbody>
+      <tr><td><code>vite-modules (…)</code></td><td><code>vexproof/vite</code>, <code>vexproof/rollup</code>; the bundler and version in brackets</td></tr>
+      <tr><td><code>webpack-stats (…)</code></td><td><code>vexproof/webpack</code>, <code>vexproof/rspack</code>, or <code>webpack --json</code></td></tr>
+      <tr><td><code>esbuild-metafile</code></td><td>esbuild, <code>bun build --metafile</code>, Angular <code>--stats-json</code></td></tr>
+      <tr><td><code>deployment (…)</code></td><td><code>--deploy</code> folders: deployed package files and source maps</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============================== CYCLONEDX ============================== -->
+<section class="doc" id="cyclonedx">
+  <p class="eyebrow">Reference</p>
+  <h2>CycloneDX output</h2>
+  <p>A CycloneDX 1.6 JSON document with a <code>vulnerabilities</code> array, validated against the official schema; <code>--spec-version 1.7</code> writes the same statements as 1.7, validated against that schema. One statement is written per finding, plus one per alias (below). Settled statements come first and open ones last, because Trivy and Dependency-Track keep the last word on an advisory.</p>
+
+  <h3>Statement</h3>
+  <div class="code"><span class="lbl">one entry of vulnerabilities[]</span><pre>{
+  "id": "GHSA-r5fr-rjxr-66jc",
+  "source": { "name": "GITHUB", "url": "https://github.com/advisories/GHSA-r5fr-rjxr-66jc" },
+  "references": [{ "id": "CVE-2026-4800", "source": { "name": "alias" } }],
+  "analysis": {
+    "state": "not_affected",
+    "justification": "code_not_present",
+    "detail": "npm/lodash@4.17.21 is in the bundle, but only 225 of its files survived the production build (vite-modules (vite 8.3.1 (rolldown 1.2.11))). The code affected by GHSA-r5fr-rjxr-66jc — _.template — lives in template.js, none of which are present in the shipped output.",
+    "firstIssued": "2026-09-27T08:26:57.719Z",
+    "lastUpdated": "2026-09-27T08:26:57.719Z"
+  },
+  "affects": [{ "ref": "urn:cdx:4aa1d2a4-57fb-4b16-8fe9-d5e6744c0d33/1#chart-dashboard%401.0.0%7Clodash%404.17.21" }],
+  "properties": [
+    { "name": "vexproof:package", "value": "pkg:npm/lodash@4.17.21" },
+    { "name": "vexproof:origin", "value": "auto" },
+    { "name": "vexproof:level", "value": "module" },
+    { "name": "vexproof:rule-source", "value": "https://github.com/advisories/GHSA-r5fr-rjxr-66jc" },
+    { "name": "vexproof:surviving-files", "value": "_DataView.js _Hash.js _ListCache.js … omit.js …" },
+    { "name": "vexproof:copies-checked", "value": "node_modules/lodash" }
+  ]
+}</pre></div>
+  <dl class="defs">
+    <dt>analysis.state</dt><dd><code>not_affected</code> or <code>in_triage</code> from automatic checks; any CycloneDX state after a review.</dd>
+    <dt>analysis.detail</dt><dd>The reasoning in plain English, including why a finding stays open.</dd>
+    <dt>affects</dt><dd>BOM-Links to every lockfile SBOM component with the package's URL. If the SBOM has no usable serial number, the package URL itself.</dd>
+    <dt>source</dt><dd>Where the id comes from, as Dependency-Track names it: <code>GITHUB</code> for GHSA, <code>NVD</code> for CVE, <code>SNYK</code> for Snyk ids. Other ids have none.</dd>
+    <dt>references</dt><dd>Aliases, such as the CVE for a GHSA.</dd>
+  </dl>
+
+  <h3>Statement properties</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Property</th><th>Present</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td><code>vexproof:package</code></td><td>always</td><td>The finding's package URL.</td></tr>
+      <tr><td><code>vexproof:origin</code></td><td>always</td><td><code>auto</code>, or <code>reviewed</code> after <code>vexproof review</code>.</td></tr>
+      <tr><td><code>vexproof:level</code></td><td>automatic <code>not_affected</code></td><td><code>package</code> or <code>module</code>.</td></tr>
+      <tr><td><code>vexproof:rule-source</code></td><td>module level</td><td>The advisory the rule was written from.</td></tr>
+      <tr><td><code>vexproof:surviving-files</code></td><td>module level</td><td>Space-separated files of the package that shipped.</td></tr>
+      <tr><td><code>vexproof:copies-checked</code></td><td>module level</td><td>Folders of the copies at the finding's version.</td></tr>
+      <tr><td><code>vexproof:rule-origin</code></td><td>accepted derived rules</td><td>The versions the rule was derived from.</td></tr>
+      <tr><td><code>vexproof:reviewed-by</code>, <code>vexproof:reviewed-at</code></td><td>reviewed</td><td>Who decided, and when.</td></tr>
+      <tr><td><code>vexproof:carried-from</code></td><td>carried reviews</td><td>The package version the review was made for, and its date.</td></tr>
+      <tr><td><code>vexproof:vulnerable-files</code></td><td>open, with a rule</td><td>The rule's files that ship from the vulnerable copy.</td></tr>
+      <tr><td><code>vexproof:evidence-files</code>, <code>vexproof:evidence-files-digest</code></td><td>open, bundled</td><td>Content hashes of the vulnerable files (without a rule, of every shipped file of the copy).</td></tr>
+      <tr><td><code>vexproof:importers</code></td><td>open, with an import graph</td><td>Code outside the package that imports the vulnerable files: your paths, or <code>package@version/file</code>.</td></tr>
+      <tr><td><code>vexproof:alias-of</code></td><td>alias entries</td><td>The primary statement's ID.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Alias entries</h3>
+  <p>Scanners look statements up by their own ID scheme. For every GHSA or CVE alias, vexproof adds a copy of the statement under that ID, with <code>vexproof:alias-of</code> pointing at the primary one. Baselines and reviews ignore the copies.</p>
+
+  <h3>Document properties</h3>
+  <p>In <code>metadata.properties</code>, recording what the statements were derived from:</p>
+  <div class="tw"><table>
+    <thead><tr><th>Property</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td><code>vexproof:lockfileSbomSerial</code></td><td>Serial number of the lockfile SBOM.</td></tr>
+      <tr><td><code>vexproof:bundleSbomSerial</code></td><td>Serial number of the bundle SBOM; <code>null</code> when derived from the module map.</td></tr>
+      <tr><td><code>vexproof:lockfileComponentCount</code>, <code>vexproof:bundleComponentCount</code></td><td>Component counts.</td></tr>
+      <tr><td><code>vexproof:input:&lt;role&gt;:sha256</code></td><td>SHA-256 of each input file. Roles: <code>lockfile-sbom</code>, <code>bundle-sbom</code>, <code>findings-&lt;format&gt;</code>, <code>modules-&lt;format&gt;</code>, <code>rules</code>, <code>baseline-vex</code>.</td></tr>
+      <tr><td><code>vexproof:licensee</code></td><td>The licensed organization, on Pro runs.</td></tr>
+      <tr><td><code>vexproof:scope</code></td><td><code>browser-bundle</code> when run with <code>--browser-only</code>.</td></tr>
+    </tbody>
+  </table></div>
+  <p><code>metadata.component</code> is the product, and <code>metadata.tools</code> records the vexproof version.</p>
+</section>
+
+<!-- ============================== OPENVEX ============================== -->
+<section class="doc" id="openvex">
+  <p class="eyebrow">Reference</p>
+  <h2>OpenVEX output</h2>
+  <p>An OpenVEX 0.2.0 document with one statement per finding. Aliases go in <code>vulnerability.aliases</code>. The author is the licensed organization on Pro runs, otherwise <code>vexproof</code>.</p>
+  <div class="code"><span class="lbl">one entry of statements[]</span><pre>{
+  "vulnerability": { "name": "GHSA-r5fr-rjxr-66jc", "aliases": ["CVE-2026-4800"] },
+  "products": [
+    { "@id": "pkg:npm/chart-dashboard@1.0.0", "subcomponents": [{ "@id": "pkg:npm/lodash@4.17.21" }] }
+  ],
+  "status": "not_affected",
+  "justification": "vulnerable_code_not_present",
+  "impact_statement": "npm/lodash@4.17.21 is in the bundle, but only 225 of its files survived …",
+  "timestamp": "2026-09-27T08:26:57.720Z"
+}</pre></div>
+  <p>With <code>--openvex-package-products</code>, <code>products</code> also lists <code>{ "@id": "pkg:npm/lodash@4.17.21" }</code> on its own.</p>
+
+  <h3>State mapping</h3>
+  <div class="tw"><table>
+    <thead><tr><th>CycloneDX state</th><th>OpenVEX status</th><th>Carries</th></tr></thead>
+    <tbody>
+      <tr><td><code>not_affected</code></td><td><code>not_affected</code></td><td>justification, <code>impact_statement</code></td></tr>
+      <tr><td><code>false_positive</code></td><td><code>not_affected</code></td><td><code>impact_statement</code> starting "False positive:"</td></tr>
+      <tr><td><code>exploitable</code></td><td><code>affected</code></td><td><code>action_statement</code></td></tr>
+      <tr><td><code>resolved</code>, <code>resolved_with_pedigree</code></td><td><code>fixed</code></td><td></td></tr>
+      <tr><td><code>in_triage</code></td><td><code>under_investigation</code></td><td><code>status_notes</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Justification mapping</h3>
+  <div class="tw"><table>
+    <thead><tr><th>CycloneDX</th><th>OpenVEX</th></tr></thead>
+    <tbody>
+      <tr><td><code>code_not_present</code>, package level</td><td><code>component_not_present</code></td></tr>
+      <tr><td><code>code_not_present</code>, module level or reviewed</td><td><code>vulnerable_code_not_present</code></td></tr>
+      <tr><td><code>code_not_reachable</code></td><td><code>vulnerable_code_not_in_execute_path</code></td></tr>
+      <tr><td><code>requires_configuration</code>, <code>requires_dependency</code>, <code>requires_environment</code></td><td><code>vulnerable_code_cannot_be_controlled_by_adversary</code></td></tr>
+      <tr><td><code>protected_by_compiler</code>, <code>protected_at_runtime</code>, <code>protected_at_perimeter</code>, <code>protected_by_mitigating_control</code></td><td><code>inline_mitigations_already_exist</code></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============================== RULES ============================== -->
+<section class="doc" id="rules">
+  <p class="eyebrow">Reference</p>
+  <h2>Module rules</h2>
+  <p>A rule names the files of a package that hold an advisory's vulnerable code, or are the public entry to it. Module-level verdicts are only as good as their rules, so each one is checked against the package source before it ships. Rules live in <code>src/pro/rules/module-rules.json</code> inside the package, versioned by date (currently <code>2026.09.26</code>). Extra rules load with <code>--rules</code>; <a href="#derived">derived rules</a> use the same schema, with <code>origin</code>, <code>versions</code> and <code>derivedFrom</code> added.</p>
+
+  <h3>Coverage</h3>
+  <p>The same five advisories are covered for <code>lodash</code> and <code>lodash-es</code>:</p>
+  <div class="tw"><table>
+    <thead><tr><th>Advisory</th><th>Alias</th><th>Affects</th><th>Files</th></tr></thead>
+    <tbody>
+      <tr><td><code>GHSA-35jh-r3h4-6jhm</code></td><td><code>CVE-2021-23337</code></td><td><code>_.template</code>: command injection</td><td><code>template.js</code></td></tr>
+      <tr><td><code>GHSA-r5fr-rjxr-66jc</code></td><td><code>CVE-2026-4800</code></td><td><code>_.template</code>: code injection via imports</td><td><code>template.js</code></td></tr>
+      <tr><td><code>GHSA-29mw-wpgm-hmr9</code></td><td><code>CVE-2020-28500</code></td><td><code>toNumber</code>, <code>trim</code>, <code>trimEnd</code>: ReDoS</td><td><code>toNumber.js</code>, <code>trim.js</code>, <code>trimEnd.js</code></td></tr>
+      <tr><td><code>GHSA-xxjr-mmjv-4gpg</code></td><td><code>CVE-2025-13465</code></td><td><code>_.unset</code>, <code>_.omit</code>: prototype pollution</td><td><code>_baseUnset.js</code>, <code>unset.js</code>, <code>omit.js</code></td></tr>
+      <tr><td><code>GHSA-f23m-r3pf-42rh</code></td><td><code>CVE-2026-2950</code></td><td><code>_.unset</code>, <code>_.omit</code>: array-path bypass</td><td><code>_baseUnset.js</code>, <code>unset.js</code>, <code>omit.js</code></td></tr>
+    </tbody>
+  </table></div>
+  <p>Full builds that block every module-level claim: <code>lodash.js</code>, <code>lodash.min.js</code>, <code>core.js</code>, <code>core.min.js</code>, <code>fp.js</code> and anything under <code>fp/</code> for lodash; <code>lodash.default.js</code> for lodash-es.</p>
+  <p>Packages without hand-checked rules still get package-level verdicts, and derived rules can cover the rest. Single-file packages such as DOMPurify or moment can only ever be settled at package level.</p>
+
+  <h3>Schema</h3>
+  <div class="code"><pre>{
+  "schema": 1,
+  "version": "2026.09.26",
+  "packages": {
+    "lodash": {
+      "monoliths": ["lodash.js", "lodash.min.js", "core.js", "core.min.js", "fp.js"],
+      "monolithDirs": ["fp/"],
+      "advisories": {
+        "GHSA-r5fr-rjxr-66jc": {
+          "files": ["template.js"],
+          "affects": "_.template",
+          "source": "https://github.com/advisories/GHSA-r5fr-rjxr-66jc",
+          "aliases": ["CVE-2026-4800"]
+        }
+      }
+    }
+  }
+}</pre></div>
+  <dl class="defs">
+    <dt>files</dt><dd>Paths inside the package. If any ships from the vulnerable copy, no claim is made.</dd>
+    <dt>monoliths, monolithDirs</dt><dd>Files and folder prefixes that contain the whole library.</dd>
+    <dt>affects</dt><dd>Human-readable description, quoted in the statement's detail.</dd>
+    <dt>source</dt><dd>The advisory the rule was written from, recorded as <code>vexproof:rule-source</code>.</dd>
+    <dt>aliases</dt><dd>Other IDs the rule matches, also added to findings that lack them.</dd>
+  </dl>
+</section>
+
+<!-- ============================== MESSAGES ============================== -->
+<section class="doc" id="messages">
+  <p class="eyebrow">Reference</p>
+  <h2>Messages</h2>
+
+  <h3>Why a finding stays open</h3>
+  <p>With a module map, each open finding on a bundled package gives its reason after <code>←</code>, and in the statement's detail.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Reason</th><th>What it means</th></tr></thead>
+    <tbody>
+      <tr><td class="wrap"><code>vulnerable file(s) bundled: …</code></td><td>The vulnerable code ships. A person needs to decide whether it's reachable; record that with <code>vexproof review</code>, or update the package.</td></tr>
+      <tr><td class="wrap"><code>the full build (lodash.js) is bundled</code></td><td>Something imports the whole library. Per-method imports (<code>lodash/omit</code>) or <code>lodash-es</code> let the bundler drop unused code.</td></tr>
+      <tr><td class="wrap"><code>no module rules for &lt;package&gt;</code>, <code>no module rule for &lt;id&gt;</code></td><td>No rule covers it. Run <code>rules derive</code> to get one.</td></tr>
+      <tr><td class="wrap"><code>files the fix changed (A → B) are bundled: …</code></td><td>From a derived rule: code the fix changed ships. Review it, or update to B.</td></tr>
+      <tr><td class="wrap"><code>the review by &lt;name&gt; on &lt;date&gt; needs re-confirming: …</code></td><td>The evidence behind a review changed: a new importer, changed vulnerable files, a version change for a decision vexproof can't verify, or its age. Look at what changed and review again.</td></tr>
+      <tr><td class="wrap"><code>a derived rule suggests not affected; review it, or pass --accept-derived</code></td><td>Nothing the fix changed ships. Accept derived rules for the run, or review this finding.</td></tr>
+      <tr><td class="wrap"><code>&lt;package&gt; ships from N locations and the version of M is unknown</code></td><td>Copy versions couldn't be read. Run from the project root, or pass <code>--root</code>.</td></tr>
+      <tr><td class="wrap"><code>the shipped copy of &lt;package&gt; is A, but the finding and bundle SBOM say B</code></td><td>The installed package doesn't match the SBOM. Regenerate the SBOM after install, from the same checkout.</td></tr>
+      <tr><td class="wrap"><code>bundle has &lt;package&gt; at A, finding is for B</code></td><td>The findings describe a different version than the build. Usually a stale findings file.</td></tr>
+      <tr><td class="wrap"><code>no shipped copy of &lt;package&gt; is version V, which contradicts the bundle SBOM</code><br><code>module map shows no surviving files for &lt;package&gt;, which contradicts the bundle SBOM</code><br><code>bundle has &lt;package&gt; at A, B but the module map shows one copy</code></td><td>The bundle SBOM and module map come from different builds. Generate both from the same build, or drop <code>--bundle</code>.</td></tr>
+    </tbody>
+  </table></div>
+  <p>Package-level checks can also leave a finding open with <code>not listed in the lockfile SBOM; no claim made</code> (the findings and SBOM disagree about what's installed) or <code>Bundle SBOM contains no components</code> (the wrong file, or a failed build).</p>
+
+  <h3>Errors <span class="chip stop">exit 2</span></h3>
+  <div class="tw"><table>
+    <thead><tr><th>Message</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td class="wrap"><code>this app also runs JavaScript on a server…</code></td><td>An SSR build or a server framework was found. Add the server's deployment with <code>--deploy</code>, or pass <code>--browser-only</code>. See <a href="#server">Apps with a server</a>.</td></tr>
+      <tr><td class="wrap"><code>N bundled file(s) in the deployment have no source map…</code></td><td>Turn source maps on for that build, or point <code>--maps</code> at where they are.</td></tr>
+      <tr><td class="wrap"><code>code in the deployment loads X at runtime, but it is not in the deployment folders</code></td><td>Point <code>--deploy</code> at the self-contained output, or add the <code>node_modules</code> the server runs with.</td></tr>
+      <tr><td class="wrap"><code>N source(s) named in the deployment's source maps can't be traced…</code></td><td>Run vexproof where the build ran, with <code>node_modules</code> installed.</td></tr>
+      <tr><td class="wrap"><code>X publishes its own source maps…; only package-level claims apply</code></td><td>Why a finding stays open: file-level rules can't be checked for that package in a deployment read through source maps.</td></tr>
+      <tr><td class="wrap"><code>N shipped JavaScript file(s) are not in the module map…</code></td><td>A build made those files without the plugin. Add it to <code>worker.plugins</code> or the nested <code>build()</code> call, then rebuild.</td></tr>
+      <tr><td class="wrap"><code>This stats file leaves modules out…</code></td><td>Use <code>VexproofPlugin</code>, or set the stats options the message lists.</td></tr>
+      <tr><td class="wrap"><code>Unrecognised module map…</code></td><td>Pass one of the <a href="#inputs">supported module maps</a>.</td></tr>
+      <tr><td class="wrap"><code>Unrecognised findings format…</code>, <code>Unrecognised findings file…</code></td><td>Pass a <a href="#inputs">supported findings file</a>, or the internal shape.</td></tr>
+      <tr><td class="wrap"><code>need --bundle, or --modules…</code>, <code>missing --&lt;option&gt;</code></td><td>Add the option.</td></tr>
+      <tr><td class="wrap"><code>OSV querybatch failed: HTTP n</code></td><td>OSV was unreachable. Pass <code>--findings</code> to run without OSV.</td></tr>
+      <tr><td class="wrap"><code>unknown --fail-on mode</code></td><td>Use <code>in_triage</code> or <code>new</code>.</td></tr>
+      <tr><td class="wrap"><code>no statement for &lt;id&gt;</code>, <code>&lt;id&gt; appears on N packages; pass --package</code></td><td>From <code>review</code>: check the ID, or pick the package.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Warnings <span class="chip tri">run continues</span></h3>
+  <dl class="defs">
+    <dt>…; running free features only</dt><dd>The license didn't verify, was revoked, or expired more than 14 days ago.</dd>
+    <dt>license … expired on …; Pro features stop on …</dt><dd>In the grace period. Renew before the date given.</dd>
+    <dt>--baseline is a Pro feature; ignoring it</dt><dd>Same for <code>--report</code> and <code>--rules</code>. The run otherwise completes.</dd>
+    <dt>vexproof dependabot is a Pro feature; no alerts changed</dt><dd>Exits 0, so a job without a license still passes.</dd>
+    <dt>--fail-on new needs a Pro --baseline; gate not applied</dt><dd>Use <code>--fail-on in_triage</code>, or add a baseline.</dd>
+    <dt>aliases from OSV for x of y advisories</dt><dd>Fewer than all means OSV was unreachable or didn't know some IDs; those keep only their own.</dd>
+    <dt>the lockfile SBOM has no serialNumber…</dt><dd>The CycloneDX VEX can't link into the SBOM, so Trivy and Dependency-Track won't apply it. OpenVEX is unaffected. Generate the SBOM without <code>--output-reproducible</code>.</dd>
+  </dl>
+</section>
+
+<!-- ============================== LICENSING ============================== -->
+<section class="doc" id="licensing">
+  <p class="eyebrow">Reference</p>
+  <h2>Licensing</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Feature</th><th>Free (MIT)</th><th>Pro</th></tr></thead>
+    <tbody>
+      <tr><td>Package-level verdicts, CycloneDX and OpenVEX output</td><td>✓</td><td>✓</td></tr>
+      <tr><td>All findings formats, OSV lookup, GitHub Action</td><td>✓</td><td>✓</td></tr>
+      <tr><td><code>vexproof review</code>, <code>--fail-on in_triage</code></td><td>✓</td><td>✓</td></tr>
+      <tr><td>Count of findings Pro would settle</td><td>✓</td><td></td></tr>
+      <tr><td>Module-level verdicts (<code>modules</code>)</td><td></td><td>✓</td></tr>
+      <tr><td>Evidence report, <code>--report</code> (<code>report</code>)</td><td></td><td>✓</td></tr>
+      <tr><td>Baselines and <code>--fail-on new</code> (<code>baseline</code>)</td><td></td><td>✓</td></tr>
+      <tr><td>Dependabot alert dismissal, <code>vexproof dependabot</code> (<code>dependabot</code>)</td><td></td><td>✓</td></tr>
+      <tr><td>Derived rules, <code>--rules</code> and <code>--accept-derived</code> (<code>modules</code>)</td><td></td><td>✓</td></tr>
+    </tbody>
+  </table></div>
+  <h3 id="code-license">How the code is licensed</h3>
+  <p>vexproof is one npm package under two licenses.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Files</th><th>License</th><th>What it means</th></tr></thead>
+    <tbody>
+      <tr><td>Everything outside <code>src/pro/</code>: the CLI, bundler plugins, scanner readers, package-level analysis, both VEX writers, <code>review</code> and <code>rules derive</code></td><td>MIT (<code>LICENSE</code>)</td><td>Use, change and redistribute it freely. A copy with <code>src/pro/</code> deleted still runs all of it.</td></tr>
+      <tr><td><code>src/pro/</code>: module-level analysis and its rules, baselines, the report, Dependabot alert dismissal, the key check</td><td>vexproof Pro License (<code>src/pro/LICENSE.md</code>)</td><td>Read it, install it, pass on unmodified copies. Using the Pro features needs a license key. It can't be changed and redistributed, or copied into other software. Source-available, not open source.</td></tr>
+    </tbody>
+  </table></div>
+  <ul>
+    <li>Every source file names its license in an <code>SPDX-License-Identifier</code> line.</li>
+    <li>Without a key, vexproof uses the Pro files only to check for a key, to read the rules that ship with it, and to count the findings Pro would settle.</li>
+    <li>What vexproof writes for you (VEX, reports, rules) is yours, and stays valid after a key expires.</li>
+    <li><code>package.json</code> says <code>SEE LICENSE IN LICENSE</code>, npm's form for a package that isn't under one SPDX license. A license scanner that only allows MIT will ask about it.</li>
+  </ul>
+  <h3 id="license-keys">License keys</h3>
+  <p>A license key is a signed token, <code>vxp1.&lt;payload&gt;.&lt;signature&gt;</code>, verified on your machine against a public key built into vexproof. The payload names the organization, the features and the expiry date. vexproof looks for it in this order:</p>
+  <ol>
+    <li><code>--license</code>, a token or a path to a file holding one;</li>
+    <li>the <code>VEXPROOF_LICENSE</code> environment variable, likewise;</li>
+    <li>a <code>.vexproof-license</code> file in the working directory.</li>
+  </ol>
+  <ul>
+    <li>License checks make no network calls. Verification is local.</li>
+    <li>After expiry there is a 14-day grace period with a warning on each run.</li>
+    <li>A license can be revoked before it expires. Each vexproof release carries a list of revoked license ids, so a revocation applies from the first version that includes it.</li>
+    <li>A missing, invalid, expired or revoked license never fails a build. vexproof runs free features and says why, once.</li>
+    <li>The licensed organization is recorded in the VEX, and is the OpenVEX author.</li>
+  </ul>
+  <h3 id="pricing">Pricing</h3>
+  <p>Pro is $1,200 per organization per year, for every developer and repository in the organization. There are no seats.</p>
+  <h3 id="open-source">Open-source projects</h3>
+  <p>Pro is free for open-source projects: public repositories under an OSI-approved license. Ask with the repository URLs; licenses run a year and renew on request.</p>
+  <p>An open-source license names its repositories, and unlocks Pro only when vexproof runs in one of them. vexproof finds the repository without a network call, in this order:</p>
+  <ol>
+    <li><code>GITHUB_REPOSITORY</code> (with <code>GITHUB_SERVER_URL</code>), GitLab's <code>CI_PROJECT_PATH</code> (with <code>CI_SERVER_HOST</code>), or Bitbucket's <code>BITBUCKET_REPO_FULL_NAME</code>;</li>
+    <li>otherwise, the <code>origin</code> remote in the nearest <code>.git/config</code>, so a subfolder of a monorepo works too.</li>
+  </ol>
+  <p>Anywhere else, the license runs free features and says which repositories it covers. The evidence report reads "licensed to <em>org</em> (open-source license)".</p>
+</section>
+
+  </main>
+</div>
+
+<footer class="foot">
+  <div class="foot-in">
+    <p>vexproof is made by <a class="maker" href="https://septakis.io"><svg class="pk" viewBox="0 0 64 64" aria-hidden="true"><path d="M32.00 5.00L59.58 25.04Q56.45 38.59 43.49 43.64L44.72 26.05Q43.92 12.16 32.00 5.00Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M59.58 25.04L49.05 57.46Q35.19 58.67 26.38 47.91L43.49 43.64Q56.45 38.59 59.58 25.04Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M49.05 57.46L14.95 57.46Q9.52 44.66 17.04 32.95L26.38 47.91Q35.19 58.67 49.05 57.46Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M14.95 57.46L4.42 25.04Q14.92 15.91 28.37 19.45L17.04 32.95Q9.52 44.66 14.95 57.46Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M4.42 25.04L32.00 5.00Q43.92 12.16 44.72 26.05L28.37 19.45Q14.92 15.91 4.42 25.04Z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.6" stroke-linejoin="round"/><path d="M41.33 28.17L40.43 41.07L27.88 44.20L21.03 33.23L29.34 23.33Z" fill="var(--accent)"/></svg>Septakis</a>, a Chicago company.</p>
+    <nav aria-label="Footer"><a href="https://vexproof.dev/">Product</a><a href="https://vexproof.dev/#pricing">Pricing</a><a href="https://github.com/septakis/vexproof">GitHub</a><a href="https://www.npmjs.com/package/vexproof">npm</a></nav>
+    <div class="legal"><span>© 2026 Septakis</span><span>The vexproof core is MIT-licensed. Pro has its own commercial license.</span></div>
+  </div>
+</footer>
+
+<script>
+(() => {
+  // Contents: open on wide screens, collapsed on phones.
+  const toc = document.getElementById('toc');
+  const wide = matchMedia('(min-width: 961px)');
+  const sync = () => { if (wide.matches) toc.open = true; };
+  if (!wide.matches) toc.open = false;
+  wide.addEventListener('change', sync);
+  toc.addEventListener('click', (e) => { if (e.target.closest('nav a') && !wide.matches) toc.open = false; });
+
+  // Highlight the section in view.
+  const links = new Map([...toc.querySelectorAll('nav a')].map((a) => [a.getAttribute('href').slice(1), a]));
+  const seen = new Map();
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) seen.set(e.target.id, e.isIntersecting);
+    const first = [...links.keys()].find((id) => seen.get(id));
+    if (first) links.forEach((a, id) => a.classList.toggle('on', id === first));
+  }, { rootMargin: '-72px 0px -55% 0px' });
+  links.forEach((_, id) => { const s = document.getElementById(id); if (s) io.observe(s); });
+
+  // Copy buttons on code blocks.
+  document.querySelectorAll('.code').forEach((box) => {
+    const pre = box.querySelector('pre');
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'copy'; b.textContent = 'Copy';
+    b.addEventListener('click', () => {
+      const text = pre.innerText;
+      const done = (t) => { b.textContent = t; setTimeout(() => (b.textContent = 'Copy'), 1400); };
+      const select = () => { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); done('Selected'); };
+      try { navigator.clipboard.writeText(text).then(() => done('Copied'), select); } catch { select(); }
+    });
+    box.appendChild(b);
+  });
+})();
+</script>
+</body>
+</html>
