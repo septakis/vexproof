@@ -7,10 +7,10 @@ import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { PUBLIC_KEY_PEM } from './license-key.js';
 
-export const PRO_FEATURES = ['modules', 'report', 'baseline', 'dependabot'];
-// Reserved for Pro, not built yet. Keys carry them from now on, so a release that adds one works with keys
-// already issued. They unlock nothing until they move to PRO_FEATURES.
-export const RESERVED_FEATURES = ['csaf', 'signing', 'rollup'];
+export const PRO_FEATURES = ['modules', 'report', 'baseline', 'dependabot', 'csaf', 'signing', 'rollup'];
+// Names reserved for Pro features not built yet. Keys carry them, so a release that adds one works with keys
+// already issued. Empty since 1.0.0-beta.3, when csaf, signing and rollup shipped.
+export const RESERVED_FEATURES = [];
 export const GRACE_DAYS = 14;
 const PREFIX = 'vxp1';
 

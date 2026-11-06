@@ -67,8 +67,10 @@ Usage:
   vexproof --lockfile <sbom> --bundle <sbom> [options]   write VEX
            (or --modules <file> / --deploy <dir> in place of --bundle)
   vexproof review --vex <file> --id <advisory> ...       record a decision
-  vexproof dependabot --vex <file> --lockfile <sbom>     (Pro) apply to alerts
   vexproof rules derive --lockfile <sbom> --findings <file>
+  vexproof dependabot --vex <file> --lockfile <sbom>     (Pro) apply to alerts
+  vexproof rollup --vex <file>... --product <purl>       (Pro) one VEX per org
+  vexproof verify <file> [--key <pub.pem>]               check a signature
 
 Common options:
   --findings <file>   scanner or audit JSON (default: query OSV)
@@ -76,12 +78,13 @@ Common options:
   --out <file>        CycloneDX VEX (default vex.cdx.json)
   --openvex <file>    also write OpenVEX
   --fail-on <mode>    in_triage | new: exit 1 when the gate trips
+  --csaf <file>       (Pro) also write CSAF 2.0 VEX; needs --csaf-namespace
+  --sign <key.pem>    (Pro) sign every file written
   --license <key>     Pro license key or file (or VEXPROOF_LICENSE)
 
-More:
-  vexproof --help all         every option for writing VEX
-  vexproof <command> --help   review, dependabot, rules derive
-  https://vexproof.dev/docs/`,
+More: vexproof --help all (every option), vexproof <command> --help
+      (review, rules derive, dependabot, rollup, verify, keygen),
+      https://vexproof.dev/docs/`,
 
   all: `vexproof ${VERSION}
 
@@ -123,6 +126,17 @@ Output:
   SOURCE_DATE_EPOCH       env var: pin every timestamp written (seconds since
                           1970)
 
+CSAF (Pro; the document a supplier hands to customers and regulators):
+  --csaf <file>           also write CSAF 2.0 VEX (profile csaf_vex)
+  --csaf-namespace <url>  the publisher's namespace URL. Required with --csaf
+  --csaf-publisher <name> publisher name (default: the license holder)
+  --csaf-id <id>          tracking id (default <PRODUCT>-<VERSION>-VEX)
+  --csaf-status <s>       draft | interim | final (default final)
+  --csaf-tlp <label>      WHITE | GREEN | AMBER | RED (default WHITE)
+  --csaf-url <url>        canonical URL of the document (its "self" reference)
+  --csaf-previous <file>  the previous revision: carries its history forward
+                          and bumps the version
+
 Gates and reviews:
   --fail-on <mode>        in_triage | new: exit 1 when the gate trips ("new"
                           needs --baseline)
@@ -136,6 +150,11 @@ Pro:
   --rules <file>          extra module rules, e.g. from \`vexproof rules derive\`
   --accept-derived        let derived rules settle findings, not only suggest
   --report <file.html>    audit-ready evidence report
+  --sign <key.pem>        sign every file written (Ed25519 or ECDSA P-256 key,
+                          see vexproof keygen): JSF signature inside the
+                          CycloneDX VEX, <file>.sig beside OpenVEX and CSAF
+  --signer <name>         name recorded with the signature (default: the key's
+                          fingerprint)
   --quiet                 no Pro hints`,
 
   review: `vexproof review: record a human decision in a VEX file
@@ -176,6 +195,42 @@ Alerts dismissed by people are never changed. --vex, --lockfile and
 The rules list the files that changed between the installed version and the
 first fixed release, from the npm registry. With --modules, only packages that
 ship get rules. Default output: vexproof-rules.derived.json.`,
+
+  rollup: `vexproof rollup (Pro): one CycloneDX VEX for an organization
+
+  vexproof rollup --vex <file> [--vex <file>...] --product <purl>
+                  [--out <file>] [--sign <key.pem>] [--signer <name>]
+
+Combines the VEX files vexproof wrote for each application into one document
+about the product that contains them all. Every statement keeps its evidence
+and names its application (vexproof:application). Settled statements come
+first, then open ones; verdicts that differ between applications on the same
+package version are listed on standard error.
+
+  --vex <file>            an application's CycloneDX VEX. Repeat for each
+  --product <purl>        what the rollup speaks for, e.g. pkg:generic/acme@2026
+  --out <file>            default vex.rollup.cdx.json
+  --sign <key.pem>        sign the rollup (JSF signature inside the document)
+  --signer <name>         name recorded with the signature`,
+
+  verify: `vexproof verify: check a signature vexproof wrote. Needs no license.
+
+  vexproof verify <file> [--key <public.pem>]
+
+A CycloneDX VEX carries its signature inside (JSF, the schema's "signature");
+OpenVEX and CSAF have a detached <file>.sig beside them. Without --key the
+public key embedded in the signature is used and printed, so you can compare
+it with the one the publisher gave you; with --key the two must match.
+Exit 0 when the signature checks, 1 when it does not, 2 on unreadable input.`,
+
+  keygen: `vexproof keygen: make a signing key pair for --sign. Needs no license.
+
+  vexproof keygen [--out <prefix>] [--type ed25519|p256]
+
+Writes <prefix>.pem (the private key: keep it with your release secrets) and
+<prefix>.pub.pem (the public key: publish it where customers can find it).
+Default prefix vexproof-signing; nothing is overwritten. Any Ed25519 or ECDSA
+P-256 key in PEM form works too, for example from openssl.`,
 };
 
 if (args.help) {
@@ -199,6 +254,69 @@ if (args._[0] === 'review') {
     writeFileSync(file, JSON.stringify(vex, null, 2));
     console.log(`vexproof: ${v.id} → ${v.analysis.state} (reviewed by ${args.by}) in ${file}`);
     for (const o of also) console.log(`vexproof: ${o.id} → ${o.analysis.state} (same vulnerable files: ${o.properties.find((p) => p.name === 'vexproof:vulnerable-files').value})`);
+    process.exit(0);
+  } catch (e) { log(`vexproof: ${e.message}`); process.exit(2); }
+}
+
+// ---------- verify (no license needed: anyone can check a signature) ----------
+if (args._[0] === 'verify') {
+  const file = args._[1] ?? need('vex');
+  if (!proLib) { log('vexproof: this copy of vexproof has no Pro files (src/pro/), which hold the signature code'); process.exit(2); }
+  let publicKey = null;
+  try { if (args.key) publicKey = proLib.sign.loadPublicKey(args.key); } catch (e) { log(`vexproof: cannot read --key: ${e.message}`); process.exit(2); }
+  let bytes, doc = null;
+  try { bytes = readFileSync(file); } catch (e) { log(`vexproof: cannot read ${file}: ${e.message}`); process.exit(2); }
+  try { doc = JSON.parse(bytes.toString('utf8')); } catch { doc = null; }
+  let r;
+  if (doc?.bomFormat === 'CycloneDX' && doc.signature) r = proLib.sign.verifyCycloneDx(doc, { publicKey });
+  else {
+    let sig;
+    try { sig = JSON.parse(readFileSync(`${file}.sig`, 'utf8')); } catch { log(`vexproof: ${file} carries no signature and there is no ${file}.sig beside it`); process.exit(2); }
+    r = proLib.sign.verifyBytes(bytes, sig, { publicKey });
+  }
+  if (!r.ok) { log(`vexproof: signature on ${file} does not check: ${r.reason}`); process.exit(1); }
+  console.log(`vexproof: ${file} is signed (${r.algorithm}) by ${r.keyId ?? 'an unnamed key'}; the public key is:`);
+  console.log(r.publicKey.trim());
+  process.exit(0);
+}
+
+// ---------- keygen (no license needed) ----------
+if (args._[0] === 'keygen') {
+  if (!proLib) { log('vexproof: this copy of vexproof has no Pro files (src/pro/), which hold the signature code'); process.exit(2); }
+  const prefix = args.out ?? 'vexproof-signing';
+  const type = args.type ?? 'ed25519';
+  if (!['ed25519', 'p256'].includes(type)) { log('vexproof: --type must be ed25519 or p256'); process.exit(2); }
+  const priv = `${prefix}.pem`, pub = `${prefix}.pub.pem`;
+  if (existsSync(priv) || existsSync(pub)) { log(`vexproof: ${existsSync(priv) ? priv : pub} already exists; pass another --out`); process.exit(2); }
+  const k = proLib.sign.generateSigningKey(type);
+  writeFileSync(priv, k.privateKeyPem, { mode: 0o600 });
+  writeFileSync(pub, k.publicKeyPem);
+  console.log(`vexproof: wrote ${priv} (private: keep it with your release secrets) and ${pub} (public: publish it)`);
+  console.log(`vexproof: key fingerprint ${k.fingerprint}`);
+  process.exit(0);
+}
+
+// ---------- rollup (Pro) ----------
+if (args._[0] === 'rollup') {
+  const argv = process.argv.slice(2);
+  const every = (name) => argv.flatMap((a, i) => (a === `--${name}` && argv[i + 1] !== undefined ? String(argv[i + 1]).split(',').map((s) => s.trim()).filter(Boolean) : []));
+  const vexFiles = every('vex');
+  if (!vexFiles.length) { log('vexproof: rollup needs at least one --vex'); process.exit(2); }
+  const license = loadLicense();
+  if (!licensedFor(license, 'rollup')) { log('vexproof rollup is a Pro feature; nothing written'); process.exit(2); }
+  const out = args.out ?? 'vex.rollup.cdx.json';
+  try {
+    const apps = vexFiles.map((file) => proLib.rollup.readApplication({ file, vex: readJson(file), sha256: sha256(file) }));
+    let { vex, summary } = proLib.rollup.rollup({ apps, productPurl: args.product, licensee: license.org, version: VERSION, now });
+    let signedBy = null;
+    if (args.sign) {
+      if (!licensedFor(license, 'signing')) { log('vexproof: --sign is a Pro feature not covered by this license; the rollup is unsigned'); }
+      else { const key = proLib.sign.loadPrivateKey(args.sign); vex = proLib.sign.signCycloneDx(vex, key, { keyId: args.signer ?? null }); signedBy = vex.signature.keyId; }
+    }
+    writeFileSync(out, JSON.stringify(vex, null, 2));
+    for (const a of summary.applications) console.log(`  ${a.purl.padEnd(40)} ${a.statements} statement(s): ${a.not_affected} not_affected, ${a.in_triage} in_triage${a.reviewed ? `, ${a.reviewed} reviewed` : ''}`);
+    console.log(`vexproof: ${summary.applications.length} application(s), ${vex.vulnerabilities.length} statement(s) → ${out}${signedBy ? ` (signed by ${signedBy})` : ''}`);
+    for (const d of summary.disagreements) log(`vexproof: ${d.id} on ${d.package} differs between applications: ${d.applications.map((x) => `${x.purl} ${x.state}`).join(', ')}`);
     process.exit(0);
   } catch (e) { log(`vexproof: ${e.message}`); process.exit(2); }
 }
@@ -406,17 +524,51 @@ let vex;
 try {
   vex = toCycloneDxVex({ results, bundleSbom, lockfileSbom, productPurl, inputs, licensee: license.valid ? license.org : null, scope: args['browser-only'] ? 'browser-bundle' : null, specVersion: args['spec-version'] ?? '1.6', now });
 } catch (e) { log(`vexproof: ${e.message}`); process.exit(2); }
+
+// CSAF (Pro): built before anything is written, so a bad option stops the run with nothing half-done.
+let csafDoc = null;
+if (args.csaf) {
+  if (has('csaf')) {
+    try {
+      csafDoc = proLib.csaf.toCsaf({
+        results, productPurl, licensee: license.org, version: VERSION, now,
+        publisher: { name: args['csaf-publisher'], namespace: args['csaf-namespace'] },
+        trackingId: args['csaf-id'], status: args['csaf-status'] ?? 'final', tlp: args['csaf-tlp'] ?? 'WHITE', url: args['csaf-url'] ?? null,
+        previous: args['csaf-previous'] ? readJson(args['csaf-previous']) : null,
+      });
+    } catch (e) { log(`vexproof: ${e.message}`); process.exit(2); }
+  } else log('vexproof: --csaf is a Pro feature; skipped');
+}
+
+// Signing (Pro): the CycloneDX VEX carries its signature; the other files get a detached one beside them.
+let signingKey = null;
+if (args.sign) {
+  if (has('signing')) {
+    try { signingKey = proLib.sign.loadPrivateKey(args.sign); } catch (e) { log(`vexproof: cannot read --sign key: ${e.message}`); process.exit(2); }
+    try { vex = proLib.sign.signCycloneDx(vex, signingKey, { keyId: args.signer ?? null }); } catch (e) { log(`vexproof: ${e.message}`); process.exit(2); }
+  } else log('vexproof: --sign is a Pro feature; skipped');
+}
+const writeSigned = (file, text) => {
+  writeFileSync(file, text);
+  if (signingKey) writeFileSync(`${file}.sig`, JSON.stringify(proLib.sign.signBytes(Buffer.from(text), signingKey, { keyId: args.signer ?? null }), null, 2));
+};
 writeFileSync(out, JSON.stringify(vex, null, 2));
 if (args.openvex) {
   const ov = toOpenVex({ results, productPurl, author: license.valid ? license.org : 'vexproof', packageProducts: args['openvex-package-products'], now });
-  writeFileSync(args.openvex, JSON.stringify(ov, null, 2));
+  writeSigned(args.openvex, JSON.stringify(ov, null, 2));
 }
+if (csafDoc) writeSigned(args.csaf, JSON.stringify(csafDoc, null, 2));
 
 const s = summarize(results);
 const parts = [`${s.not_affected} not_affected${s.module ? ` (${s.module} at module level)` : ''}`];
 if (s.reviewed) parts.push(`${s.reviewed} reviewed`);
 parts.push(`${s.in_triage} in_triage`);
-console.log(`vexproof: ${results.length} finding(s) → ${parts.join(', ')} → ${out}${args.openvex ? ` + ${args.openvex}` : ''}`);
+console.log(`vexproof: ${results.length} finding(s) → ${parts.join(', ')} → ${out}${args.openvex ? ` + ${args.openvex}` : ''}${csafDoc ? ` + ${args.csaf}` : ''}${signingKey ? ` (signed by ${vex.signature.keyId})` : ''}`);
+if (csafDoc) {
+  const fileName = proLib.csaf.csafFileName(csafDoc.document.tracking.id);
+  log(`vexproof: CSAF tracking id ${csafDoc.document.tracking.id}, version ${csafDoc.document.tracking.version}; publish it as ${fileName}`);
+  if (args['csaf-url'] && !args['csaf-url'].endsWith(`/${fileName}`)) log(`vexproof: --csaf-url should end with ${fileName} (CSAF section 5.1); validators flag the document otherwise`);
+}
 for (const r of results) {
   const tag = r.origin === 'reviewed' ? `${r.state} (${r.carriedFrom ? 'carried' : 'reviewed'})` : r.state + (r.level === 'module' ? ' (module)' : '');
   const why = r.state === 'in_triage' && r.moduleReason && (moduleMap || r.reReview) ? `  ← ${r.moduleReason}` : '';

@@ -128,15 +128,15 @@ test('license: dependabot is a Pro feature', () => {
   assert.ok(PRO_FEATURES.includes('dependabot'));
   assert.deepEqual(verifyLicense(issue({ org: 'Acme', exp: '2027-01-01', features: ['dependabot'] }), { publicKeyPem: pubPem, now }).features, ['dependabot']);
 });
-test('license: a reserved feature unlocks nothing until it ships', () => {
-  assert.deepEqual(RESERVED_FEATURES, ['csaf', 'signing', 'rollup']);
-  assert.deepEqual(RESERVED_FEATURES.filter((f) => PRO_FEATURES.includes(f)), []);
-  const l = verifyLicense(issue({ org: 'Acme', exp: '2027-01-01', features: RESERVED_FEATURES }), { publicKeyPem: pubPem, now });
+test('license: csaf, signing and rollup are Pro features now; a name vexproof does not know unlocks nothing', () => {
+  assert.deepEqual(RESERVED_FEATURES, []);
+  for (const f of ['csaf', 'signing', 'rollup']) assert.ok(PRO_FEATURES.includes(f), f);
+  const l = verifyLicense(issue({ org: 'Acme', exp: '2027-01-01', features: ['future-thing'] }), { publicKeyPem: pubPem, now });
   assert.equal(l.valid, true);
   assert.equal(l.pro, false);
   assert.deepEqual(l.features, []);
 });
-test('issue-license: a default key carries the reserved features, and rejects unknown ones', () => {
+test('issue-license: a default key carries every Pro feature, and rejects unknown ones', () => {
   const dir = mkdtempSync(join(tmpdir(), 'vexproof-issue-'));
   const key = join(dir, 'private.pem');
   writeFileSync(key, generateKeyPairSync('ed25519').privateKey.export({ type: 'pkcs8', format: 'pem' }));

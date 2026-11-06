@@ -12,7 +12,7 @@ const help = (...a) => {
   assert.equal(r.status, 0, r.stderr);
   return r.stdout;
 };
-const PAGES = [[], ['all'], ['review'], ['dependabot'], ['rules', 'derive']];
+const PAGES = [[], ['all'], ['review'], ['dependabot'], ['rules', 'derive'], ['rollup'], ['verify'], ['keygen']];
 
 test('the overview fits on a 24-line screen and every page fits in 80 columns', () => {
   assert.ok(help().trimEnd().split('\n').length <= 24);
@@ -23,6 +23,9 @@ test('each command has its own page, and an unknown one gets the overview', () =
   assert.match(help('review'), /^vexproof review:/);
   assert.match(help('dependabot'), /^vexproof dependabot \(Pro\):/);
   assert.match(help('rules', 'derive'), /^vexproof rules derive:/);
+  assert.match(help('rollup'), /^vexproof rollup \(Pro\):/);
+  assert.match(help('verify'), /^vexproof verify:/);
+  assert.match(help('keygen'), /^vexproof keygen:/);
   assert.equal(help('nonsense'), help());
 });
 

@@ -13,8 +13,10 @@ file at the top of the repository. The Pro Files are source-available, not open 
 **Pro Features** are the things the Pro Files do that vexproof turns on only when it finds a valid
 License Key. Today they are: settling findings by checking which files of a package shipped
 (including with rules you supply through `--rules`), carrying reviews forward from a baseline
-(`--baseline`), the evidence report (`--report`), and applying VEX to Dependabot alerts
-(`vexproof dependabot`).
+(`--baseline`), the evidence report (`--report`), applying VEX to Dependabot alerts
+(`vexproof dependabot`), CSAF output (`--csaf`), signing (`--sign`) and the rollup across applications
+(`vexproof rollup`). Checking a signature (`vexproof verify`) and making a signing key (`vexproof keygen`)
+need no License Key.
 
 A **License Key** is a signed key we issue. A paid key names one Organization. An open-source key
 names one or more public repositories. Every key has an expiry date.

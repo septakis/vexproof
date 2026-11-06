@@ -51,6 +51,7 @@
   ],
   "devDependencies": {
     "@cyclonedx/cyclonedx-library": "^10.3.0",
+    "@secvisogram/csaf-validator-lib": "^3.0.2",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "ajv-formats-draft2019": "^1.6.1"

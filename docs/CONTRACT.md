@@ -16,6 +16,9 @@ and every exit code it uses must be listed here, and nothing listed here may be 
 | `vexproof review` | Records a human decision on one statement in a VEX file, in place. |
 | `vexproof rules derive` | Writes a module-rules file from each finding's fix, using the npm registry. |
 | `vexproof dependabot` | (Pro) Applies a VEX to the repository's Dependabot npm alerts. |
+| `vexproof rollup` | (Pro) Combines the VEX files of several applications into one document for the product that contains them. |
+| `vexproof verify` | Checks a signature vexproof wrote. Needs no license. |
+| `vexproof keygen` | Makes a signing key pair for `--sign`. Needs no license. |
 
 `--help` on its own prints a one-screen overview; `--help all` lists every option of the main command, and
 `<command> --help` the options of that command. `--version` prints the version and nothing else.
@@ -51,6 +54,19 @@ Output:
 | `--openvex-package-products` | Add package-as-product statements to the OpenVEX file. |
 | `--browser-only` | The VEX covers the browser bundle only; sets the `vexproof:scope` property. |
 
+CSAF (Pro):
+
+| Option | Meaning |
+|---|---|
+| `--csaf <file>` | Also write a CSAF 2.0 VEX document (profile `csaf_vex`). |
+| `--csaf-namespace <url>` | The publisher's namespace URL. Required with `--csaf`; the spec has no default. |
+| `--csaf-publisher <name>` | Publisher name. Default: the organization the license names. |
+| `--csaf-id <id>` | Tracking id. Default `<PRODUCT>-<VERSION>-VEX`, upper-cased from the product purl. |
+| `--csaf-status <s>` | `draft`, `interim` or `final` (default). A new draft is version 0. |
+| `--csaf-tlp <label>` | `WHITE` (default), `GREEN`, `AMBER` or `RED`. |
+| `--csaf-url <url>` | Canonical URL of the document, written as its `self` reference. |
+| `--csaf-previous <file>` | The previous revision of the same document: its history is carried forward and the version bumped. |
+
 Gates and reviews:
 
 | Option | Meaning |
@@ -67,6 +83,8 @@ Pro:
 | `--rules <file>` | Extra module rules, such as the output of `rules derive`. |
 | `--accept-derived` | Let derived rules settle findings instead of only suggesting. |
 | `--report <file>` | Write the HTML evidence report. |
+| `--sign <key.pem>` | Sign every file written: a JSF signature inside the CycloneDX VEX, a detached `<file>.sig` beside OpenVEX and CSAF. Ed25519 or ECDSA P-256, PEM. |
+| `--signer <name>` | Name recorded with the signature (`keyId`). Default: the key's SHA-256 fingerprint. |
 | `--quiet` | Hide the Pro hints. |
 
 ## Options of `vexproof review`
@@ -102,6 +120,33 @@ Pro:
 | `--link <url>` | What the dismissal comment links to. Default: the current Actions run. |
 | `--token <token>` | A token that can write Dependabot alerts. |
 | `--dry-run` | Print what would change and change nothing. |
+
+## Options of `vexproof rollup` (Pro)
+
+| Option | Meaning |
+|---|---|
+| `--vex <file>` | An application's CycloneDX VEX written by vexproof. Repeatable. Required. |
+| `--product <purl>` | The product the rollup speaks for. Required. |
+| `--out <file>` | Default `vex.rollup.cdx.json`. |
+| `--sign <key.pem>`, `--signer <name>` | As for the main command. |
+
+Without a license that covers it, `rollup` writes nothing and exits 2.
+
+## Options of `vexproof verify`
+
+| Option | Meaning |
+|---|---|
+| `<file>` | The signed file. A CycloneDX VEX carries its signature; other files have `<file>.sig` beside them. |
+| `--key <public.pem>` | The public key the signature must match. Without it, the key embedded in the signature is used and printed. |
+
+Exit 0 when the signature checks, 1 when it does not, 2 when the input cannot be read or carries no signature.
+
+## Options of `vexproof keygen`
+
+| Option | Meaning |
+|---|---|
+| `--out <prefix>` | Writes `<prefix>.pem` (private) and `<prefix>.pub.pem` (public). Default `vexproof-signing`. Never overwrites. |
+| `--type <t>` | `ed25519` (default) or `p256`. |
 
 ## Environment
 
@@ -167,6 +212,7 @@ Document properties (`metadata.properties`):
 | `vexproof:input:<role>:sha256` | SHA-256 of each input file, by role (`lockfile-sbom`, `bundle-sbom`, `module-map`, `findings-<format>`, `rules`, `baseline-vex`, …). |
 | `vexproof:licensee` | The organization a valid Pro license names. Absent without one. |
 | `vexproof:scope` | `browser-bundle` when `--browser-only` is set. Absent otherwise. |
+| `vexproof:rollup` | On a rollup: the number of applications combined. Their inputs are listed as `vexproof:input:rollup:<purl>:sha256`. |
 
 Each vulnerability has `id`, `source` (for GHSA, CVE and Snyk ids), `references` (aliases), `analysis`
 (`state`, `justification`, `response`, `detail`, `firstIssued`, `lastUpdated`), `affects` (BOM-Links into the
@@ -184,6 +230,28 @@ lockfile SBOM when it has a serial number, else the package's purl) and `propert
 | `vexproof:vulnerable-files`, `vexproof:importers`, `vexproof:evidence-files`, `vexproof:evidence-files-digest` | The evidence fingerprint a review is carried forward on. |
 | `vexproof:carried-from` | The purl and review time a carried-forward review came from. |
 | `vexproof:alias-of` | On an alias entry, the id of the primary entry. |
+| `vexproof:application` | On a rollup statement: the purl of the application it is about (also its `affects` reference). |
+
+### Signature
+
+With `--sign`, a CycloneDX document carries a top-level `signature` in JSON Signature Format: `algorithm` (`Ed25519`
+or `ES256`), `keyId`, `publicKey` (a JWK) and `value`, computed over the RFC 8785 canonical form of the document
+with `value` left out. OpenVEX and CSAF files get a detached `<file>.sig`: a JSON object with the same fields plus
+`sha256` of the file, the signature being over the file's bytes.
+
+### CSAF
+
+A CSAF 2.0 document with `document.category` `csaf_vex`, one `vulnerabilities[]` entry per advisory (entries that
+share a CVE merge), the release as the product and each package as a component of it through a
+`default_component_of` relationship. The mapping from CycloneDX states and justifications to CSAF statuses and
+flags is fixed for 1.x. Keys are sorted. Every document passes the CSAF 2.0 schema and all mandatory tests of BSI's
+validator.
+
+### Rollup
+
+A CycloneDX 1.6 document whose `metadata.component` is the product named by `--product`, whose `components` are
+the applications (one per input, `bom-ref` = purl), and whose statements are every input's statements with
+`affects` pointing at their application.
 
 ### OpenVEX
 

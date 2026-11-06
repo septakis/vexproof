@@ -41,6 +41,16 @@ inputs:
     required: false
   fail-on:
     description: "in_triage, new (needs baseline), or empty for no gate"
+  csaf:
+    description: "(Pro) CSAF 2.0 VEX output path. Needs csaf-namespace. Empty to skip."
+  csaf-namespace:
+    description: "(Pro) Your organization's namespace URL for CSAF, e.g. https://acme.example"
+  csaf-url:
+    description: "(Pro) Canonical URL the CSAF document will be published at"
+  signing-key:
+    description: "(Pro) PEM private key to sign every output with. Pass a secret, e.g. secrets.VEXPROOF_SIGNING_KEY. Ed25519 or ECDSA P-256; vexproof keygen makes one."
+  signer:
+    description: "(Pro) Name recorded with the signature"
     required: false
   license:
     description: License token. Pass a secret, e.g. secrets.VEXPROOF_LICENSE. Never fails the build if missing or expired.
@@ -65,6 +75,9 @@ outputs:
   openvex:
     description: Path of the OpenVEX document
     value: ${{ inputs.openvex }}
+  csaf:
+    description: Path of the CSAF document (Pro)
+    value: ${{ inputs.csaf }}
 
 runs:
   using: composite
@@ -86,6 +99,11 @@ runs:
         IN_REPORT: ${{ inputs.report }}
         IN_BASELINE: ${{ inputs.baseline }}
         IN_FAIL_ON: ${{ inputs.fail-on }}
+        IN_CSAF: ${{ inputs.csaf }}
+        IN_CSAF_NS: ${{ inputs.csaf-namespace }}
+        IN_CSAF_URL: ${{ inputs.csaf-url }}
+        IN_SIGNING_KEY: ${{ inputs.signing-key }}
+        IN_SIGNER: ${{ inputs.signer }}
         IN_VERSION: ${{ inputs.version }}
       run: |
         args=(--lockfile "$IN_LOCKFILE" --out "$IN_OUT")
@@ -99,6 +117,15 @@ runs:
         [ -n "$IN_REPORT" ]   && args+=(--report "$IN_REPORT")
         [ -n "$IN_BASELINE" ] && args+=(--baseline "$IN_BASELINE")
         [ -n "$IN_FAIL_ON" ]  && args+=(--fail-on "$IN_FAIL_ON")
+        [ -n "$IN_CSAF" ]     && args+=(--csaf "$IN_CSAF")
+        [ -n "$IN_CSAF_NS" ]  && args+=(--csaf-namespace "$IN_CSAF_NS")
+        [ -n "$IN_CSAF_URL" ] && args+=(--csaf-url "$IN_CSAF_URL")
+        if [ -n "$IN_SIGNING_KEY" ]; then
+          keyfile="$(mktemp)"; printf '%s
+' "$IN_SIGNING_KEY" > "$keyfile"; trap 'rm -f "$keyfile"' EXIT
+          args+=(--sign "$keyfile")
+          [ -n "$IN_SIGNER" ] && args+=(--signer "$IN_SIGNER")
+        fi
         status=0
         npx --yes "vexproof@${IN_VERSION}" "${args[@]}" || status=$?
         echo "status=${status}" >> "$GITHUB_OUTPUT"

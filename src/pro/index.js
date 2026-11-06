@@ -9,6 +9,9 @@ export { evaluateModuleRule, mergeRules } from './module-check.js';
 export { readBaseline, applyBaseline } from './baseline.js';
 export { renderReport } from './report.js';
 export * as dependabot from './dependabot.js';
+export * as csaf from './csaf.js';
+export * as sign from './sign.js';
+export * as rollup from './rollup.js';
 
 /** The hand-checked module rules that ship with vexproof. */
 export const loadRules = () => JSON.parse(readFileSync(new URL('./rules/module-rules.json', import.meta.url), 'utf8'));

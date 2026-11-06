@@ -26,10 +26,12 @@ Full guides and reference: [vexproof.dev/docs](https://vexproof.dev/docs/) (sour
 | **Audit report**: printable HTML with evidence, reviewer names, input hashes (`--report`) | | ✓ |
 | **Baselines**: reviewed decisions carry into the next release; `--fail-on new` only fails on new risk (`--baseline`) | | ✓ |
 | **Dependabot**: dismiss the GitHub alerts a VEX settles, and reopen them if it stops (`vexproof dependabot`) | | ✓ |
+| **CSAF 2.0 VEX** for customers, procurement and regulators (`--csaf`) | | ✓ |
+| **Signed VEX**: prove who produced a document; anyone can verify it (`--sign`, `vexproof verify`) | | ✓ |
+| **Rollup**: one VEX for the whole organization from each application's (`vexproof rollup`) | | ✓ |
 | Email support, with a response within a few business days (paid licenses) | | ✓ |
 
-Planned for Pro, with no dates yet: CSAF output, signed VEX that proves who produced it, and a
-rollup across repositories. Keys issued today already cover them.
+`vexproof verify` and `vexproof keygen` need no license: a customer verifies a signed VEX with the free tool.
 
 On a fresh Angular 20 app with `lodash-es` (one function used), `moment` and `dompurify`
 (installed, never imported), `npm audit` reports 26 advisories. Free settles 21. Pro settles the
@@ -421,7 +423,7 @@ npm package, so keep customer names out of notes.
 
 ## Tests
 
-`npm test` runs 141 tests, including schema validation of both output formats. Most fixtures are
+`npm test` runs 156 tests, including schema validation of both output formats. Most fixtures are
 real builds, slimmed down:
 
 - two Angular 20 apps, one using only `capitalize` and one also using `template` and `omit`,
