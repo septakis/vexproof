@@ -6,6 +6,21 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+### Added
+- **CSAF 2.0 VEX** (Pro): `--csaf <file>` writes the document a supplier hands to customers, procurement portals
+  and regulators, alongside the CycloneDX and OpenVEX files. One entry per advisory, the release as the product,
+  each package as a component of it. `--csaf-namespace` is required; `--csaf-publisher`, `--csaf-id`,
+  `--csaf-status`, `--csaf-tlp`, `--csaf-url` and `--csaf-previous` (revision history) are optional. Every document
+  passes the CSAF 2.0 schema and all mandatory tests of BSI's validator, which now runs in `npm test`.
+- **Signed VEX** (Pro): `--sign <key.pem>` signs every file written. The CycloneDX VEX carries a JSON Signature
+  Format signature (the schema's `signature`, over the RFC 8785 canonical form); OpenVEX and CSAF get a detached
+  `<file>.sig`. Ed25519 or ECDSA P-256 keys; `vexproof keygen` makes a pair. `vexproof verify <file> [--key]`
+  checks a signature and needs no license, so customers can verify what they receive.
+- **Rollup** (Pro): `vexproof rollup --vex a.cdx.json --vex b.cdx.json --product <purl>` writes one CycloneDX VEX
+  for an organization from each application's VEX. Statements keep their evidence and name their application;
+  verdicts that differ between applications on the same package version are listed.
+- Licenses issued before this release already carry `csaf`, `signing` and `rollup`, so every key unlocks them.
+
 ## [1.0.0-beta.2] - 2026-11-05
 
 ### Changed
