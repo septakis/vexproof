@@ -6,6 +6,8 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+## [1.0.0-beta.4] - 2026-11-06
+
 ### Fixed
 - The GitHub Action's `action.yml` did not parse: a shell string in the signing step held a line break. Any
   workflow with `uses: septakis/vexproof@v1.0.0-beta.3` failed at "Set up job". A test now checks the file.
@@ -71,7 +73,8 @@ module map; findings from npm, pnpm, yarn and bun audit, osv-scanner, Trivy, Gry
 directly; Vite, Rollup, webpack, Rspack, esbuild, bun and Angular inputs; `--deploy` for server-rendered apps;
 `vexproof review` and `vexproof rules derive`; Pro module-level analysis, baselines and the evidence report.
 
-[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.3...HEAD
+[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.4...HEAD
+[1.0.0-beta.4]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.4
 [1.0.0-beta.3]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.3
 [1.0.0-beta.2]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.2
 [1.0.0-beta.1]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.1
