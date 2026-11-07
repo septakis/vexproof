@@ -6,6 +6,13 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+## [1.0.0-beta.5] - 2026-11-06
+
+### Fixed
+- 1.0.0-beta.4 reported itself as 1.0.0-beta.3, in `--version` and in the `metadata.tools` entry of every file it
+  wrote, because the version was a constant that the release did not bump. The version now comes from
+  package.json, and a test checks `--version` and the VEX metadata against it.
+
 ## [1.0.0-beta.4] - 2026-11-06
 
 ### Fixed
@@ -73,7 +80,8 @@ module map; findings from npm, pnpm, yarn and bun audit, osv-scanner, Trivy, Gry
 directly; Vite, Rollup, webpack, Rspack, esbuild, bun and Angular inputs; `--deploy` for server-rendered apps;
 `vexproof review` and `vexproof rules derive`; Pro module-level analysis, baselines and the evidence report.
 
-[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.4...HEAD
+[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.5...HEAD
+[1.0.0-beta.5]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.5
 [1.0.0-beta.4]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.4
 [1.0.0-beta.3]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.3
 [1.0.0-beta.2]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.2

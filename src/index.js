@@ -159,7 +159,9 @@ export function applyRuleAliases(findings, rules) {
 
 // ---------- triage ----------
 
-export const VERSION = '1.0.0-beta.3';
+import { createRequire } from 'node:module';
+/** The package version, read from package.json so a release cannot ship with a stale constant. */
+export const VERSION = createRequire(import.meta.url)('../package.json').version;
 
 /**
  * `moduleCheck` decides whether a package that IS in the bundle still doesn't ship the vulnerable code. It is not
