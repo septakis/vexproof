@@ -70,3 +70,11 @@ test('VEX output is well-formed CycloneDX 1.6 with justification only on not_aff
     else assert.equal(v.analysis.justification, undefined);
   }
 });
+
+test('an unrecognised module map is refused by name, with the supported formats listed', async () => {
+  const { readModuleMap, detectModuleFormat } = await import('../src/modules.js');
+  for (const json of [{ chunks: [] }, { version: 1, files: {} }, [], 'text', null]) {
+    assert.throws(() => detectModuleFormat(json), /Unrecognised module map \(expected vexproof-modules\.json, an esbuild or bun build metafile, Angular stats\.json, or webpack stats JSON\)/);
+    assert.throws(() => readModuleMap(json), /Unrecognised module map/);
+  }
+});
