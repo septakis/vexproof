@@ -6,6 +6,10 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+### Fixed
+- The GitHub Action's `action.yml` did not parse: a shell string in the signing step held a line break. Any
+  workflow with `uses: septakis/vexproof@v1.0.0-beta.3` failed at "Set up job". A test now checks the file.
+
 ## [1.0.0-beta.3] - 2026-11-05
 
 ### Added
