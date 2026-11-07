@@ -1,0 +1,42 @@
+name: Open-source license request
+description: A free vexproof Pro key for a public repository under an OSI-approved license
+title: "Open-source license: <owner/repo>"
+labels: [license]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Pro is free for open-source projects. The key names your repositories and unlocks Pro only when vexproof runs in one of them (checked on the runner from `GITHUB_REPOSITORY`, GitLab's `CI_PROJECT_PATH`, Bitbucket's `BITBUCKET_REPO_FULL_NAME`, or the `origin` remote). It makes no network calls and expires after a year; open a new request to renew.
+
+        We reply in this issue with the key. It is safe in public: it only works in the repositories it names.
+  - type: textarea
+    id: repositories
+    attributes:
+      label: Repositories
+      description: One per line, as `github.com/owner/repo` (or the GitLab / Bitbucket equivalent). Each must be public.
+      placeholder: |
+        github.com/owner/repo
+        github.com/owner/other-repo
+    validations:
+      required: true
+  - type: input
+    id: license
+    attributes:
+      label: License
+      description: The SPDX identifier of the repository's license (MIT, Apache-2.0, GPL-3.0-only, …). It has to be [OSI-approved](https://opensource.org/licenses).
+      placeholder: Apache-2.0
+    validations:
+      required: true
+  - type: input
+    id: organization
+    attributes:
+      label: Name on the key
+      description: The project or organization name the key should carry; it appears in `vexproof --license` and in `metadata.properties` of every Pro VEX file.
+      placeholder: vitejs
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else
+      description: Where vexproof runs (GitHub Actions, GitLab CI, …), which Pro features you're after, or anything we should know.
