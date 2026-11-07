@@ -121,8 +121,7 @@ runs:
         [ -n "$IN_CSAF_NS" ]  && args+=(--csaf-namespace "$IN_CSAF_NS")
         [ -n "$IN_CSAF_URL" ] && args+=(--csaf-url "$IN_CSAF_URL")
         if [ -n "$IN_SIGNING_KEY" ]; then
-          keyfile="$(mktemp)"; printf '%s
-' "$IN_SIGNING_KEY" > "$keyfile"; trap 'rm -f "$keyfile"' EXIT
+          keyfile="$(mktemp)"; printf '%s\n' "$IN_SIGNING_KEY" > "$keyfile"; trap 'rm -f "$keyfile"' EXIT
           args+=(--sign "$keyfile")
           [ -n "$IN_SIGNER" ] && args+=(--signer "$IN_SIGNER")
         fi
