@@ -590,7 +590,7 @@ if (!quiet && proLib && !has('modules')) {
     for (const r of results) if (r.proWouldSettle) byPkg[r.key.replace(/^npm\//, '')] = (byPkg[r.key.replace(/^npm\//, '')] ?? 0) + 1;
     const list = Object.entries(byPkg).map(([k, n]) => `${k} ${n}`).join(', ');
     log(`\nvexproof Pro would settle ${s.proWouldSettle} of your ${s.in_triage} open finding(s) by checking which files of each package shipped (${list}),`);
-    log(`and write an audit-ready report with the evidence. $1,200/year per organization, free for open source: ${PRO_URL}`);
+    log(`and write an audit-ready report with the evidence. One yearly price per organization, free for open source: ${PRO_URL} (hide this with --quiet)`);
   } else if (!moduleMap && s.in_triage > 0) {
     log(`\nTip: add --modules <stats.json> to see how many of the ${s.in_triage} open finding(s) module-level analysis could settle.`);
   }

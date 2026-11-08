@@ -221,6 +221,8 @@ test('CLI free: shows a Pro hint, gate on in_triage exits 1, --quiet hides the h
   const r = spawnSync('node', [cli, ...runArgs, '--out', join(dir, 'v.json'), '--fail-on', 'in_triage'], { env, cwd: dir, encoding: 'utf8' });
   assert.equal(r.status, 1);
   assert.match(r.stderr, /Pro would settle 1 of your 5 open/);
+  assert.match(r.stderr, /hide this with --quiet/);
+  assert.doesNotMatch(r.stderr, /\$\d/, 'the hint names no price; the pricing page does');
   const q = spawnSync('node', [cli, ...runArgs, '--out', join(dir, 'v.json'), '--quiet'], { env, cwd: dir, encoding: 'utf8' });
   assert.equal(q.status, 0);
   assert.doesNotMatch(q.stderr, /Pro/);

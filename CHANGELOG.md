@@ -6,6 +6,10 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+### Changed
+- The two-line Pro hint printed for free runs no longer quotes a price (the pricing page does) and says how to
+  silence it (`--quiet` or `VEXPROOF_QUIET=1`).
+
 ## [1.0.0-beta.5] - 2026-11-06
 
 ### Fixed
