@@ -6,6 +6,8 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+## [1.0.0-beta.7] - 2026-11-11
+
 ### Fixed
 Four ways a run could report `not_affected` for code that ships, found by running vexproof on twelve
 open-source apps:
@@ -22,15 +24,6 @@ open-source apps:
   also runs under Node does behind a test (`if (IS_NODE) require("fs")`). Only loads that are not behind a
   test count now. A static SvelteKit site therefore needs `--browser-only`.
 
-### Changed
-- An output file the module map doesn't record no longer always stops the run. It is accounted for on its
-  own when it has a source map beside it, is an unmodified copy of an installed or project file, was copied
-  by webpack from a recorded origin, or holds no functions; a package it imports by name counts as shipped.
-  This lets apps with a PWA service worker, `?url` imports, or files copied from `public/` through.
-  Anything else is still refused, now with the reason for each file and a count of those not listed.
-- `uncoveredOutputs` is gone from `src/modules.js`; `strayOutputs` and `accountFor` in `src/coverage.js`
-  replace it.
-
 Three things that made `--deploy` refuse a Next.js 16 (Turbopack) app in a pnpm workspace, found on ZITADEL's
 login app:
 - Run from the app's own folder, vexproof found none of the packages: a workspace installs them beside the
@@ -41,6 +34,15 @@ login app:
 - Two kinds of source-map entry could not be traced to a package: the stand-in Next.js generates for a client
   component (`<file>/__nextjs-internal-proxy.cjs`), now counted as that file, and a file that a package's own
   source map names under a `node_modules` folder it never published (@formatjs), now traced to that package.
+
+### Changed
+- An output file the module map doesn't record no longer always stops the run. It is accounted for on its
+  own when it has a source map beside it, is an unmodified copy of an installed or project file, was copied
+  by webpack from a recorded origin, or holds no functions; a package it imports by name counts as shipped.
+  This lets apps with a PWA service worker, `?url` imports, or files copied from `public/` through.
+  Anything else is still refused, now with the reason for each file and a count of those not listed.
+- `uncoveredOutputs` is gone from `src/modules.js`; `strayOutputs` and `accountFor` in `src/coverage.js`
+  replace it.
 
 ## [1.0.0-beta.6] - 2026-11-11
 
@@ -126,7 +128,8 @@ module map; findings from npm, pnpm, yarn and bun audit, osv-scanner, Trivy, Gry
 directly; Vite, Rollup, webpack, Rspack, esbuild, bun and Angular inputs; `--deploy` for server-rendered apps;
 `vexproof review` and `vexproof rules derive`; Pro module-level analysis, baselines and the evidence report.
 
-[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.6...HEAD
+[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.7...HEAD
+[1.0.0-beta.7]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.7
 [1.0.0-beta.6]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.6
 [1.0.0-beta.5]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.5
 [1.0.0-beta.4]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.4

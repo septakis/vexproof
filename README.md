@@ -167,7 +167,7 @@ details, commented "CycloneDX VEX". Two things to know:
 ## GitHub Action
 
 ```yaml
-- uses: septakis/vexproof@v1.0.0-beta.6      # after your build and SBOM steps
+- uses: septakis/vexproof@v1.0.0-beta.7      # after your build and SBOM steps
   with:
     lockfile: bom.lockfile.json
     bundle: dist/bom.bundle.json
@@ -210,7 +210,7 @@ vexproof dependabot --vex vex.cdx.json --lockfile bom.lockfile.json --dry-run
 The Action does this after it writes the VEX, including when `fail-on` stops the job:
 
 ```yaml
-- uses: septakis/vexproof@v1.0.0-beta.6
+- uses: septakis/vexproof@v1.0.0-beta.7
   with:
     lockfile: bom.lockfile.json
     bundle: dist/bom.bundle.json
