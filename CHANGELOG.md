@@ -6,9 +6,15 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+## [1.0.0-beta.6] - 2026-11-11
+
 ### Changed
 - The two-line Pro hint printed for free runs no longer quotes a price (the pricing page does) and says how to
   silence it (`--quiet` or `VEXPROOF_QUIET=1`).
+
+### Fixed
+- The README's GitHub Action examples used `septakis/vexproof@v0`, a tag that does not exist. They now name this
+  release's tag.
 
 ## [1.0.0-beta.5] - 2026-11-06
 
@@ -84,7 +90,8 @@ module map; findings from npm, pnpm, yarn and bun audit, osv-scanner, Trivy, Gry
 directly; Vite, Rollup, webpack, Rspack, esbuild, bun and Angular inputs; `--deploy` for server-rendered apps;
 `vexproof review` and `vexproof rules derive`; Pro module-level analysis, baselines and the evidence report.
 
-[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.5...HEAD
+[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.6...HEAD
+[1.0.0-beta.6]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.6
 [1.0.0-beta.5]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.5
 [1.0.0-beta.4]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.4
 [1.0.0-beta.3]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.3
