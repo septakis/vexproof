@@ -7,6 +7,7 @@ import { join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
+import { built } from './lib/built.js';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const walk = (dir) => readdirSync(dir).flatMap((f) => { const p = join(dir, f); return statSync(p).isDirectory() ? walk(p) : [p]; });
@@ -54,7 +55,7 @@ test('with src/pro removed, the CLI still writes package-level VEX and offers no
   assert.doesNotMatch(pkgLevel.stderr, /Pro would settle/);
 
   // a module map and Pro flags are accepted, but nothing settles at module level and nothing crashes
-  const withMap = run('--modules', fx('recharts.metafile.json'), '--rules', fx('lodash.derived-rules.json'), '--report', join(dir, 'r.html'), '--license', 'vxp1.x.y');
+  const withMap = run('--modules', built(fx('recharts.metafile.json')), '--rules', fx('lodash.derived-rules.json'), '--report', join(dir, 'r.html'), '--license', 'vxp1.x.y');
   assert.equal(withMap.status, 0, withMap.stderr);
   assert.doesNotMatch(withMap.stdout, /\(module\)/);
   assert.match(withMap.stderr, /no Pro files/);

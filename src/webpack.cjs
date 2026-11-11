@@ -24,6 +24,13 @@ const STATS = {
   excludeModules: false,
   modulesSpace: Infinity,
   nestedModulesSpace: Infinity,
+  // Which files the build emitted, and for which chunks: vexproof checks that every .js file in the output
+  // folder is one of them. A file a plugin copied in belongs to no chunk, and is then accounted for on its own.
+  assets: true,
+  cachedAssets: true,
+  assetsSpace: Infinity,
+  // Child compilations (worker-loader, monaco's workers) ship code too; they take these same options.
+  children: true,
 };
 
 class VexproofPlugin {
@@ -34,8 +41,10 @@ class VexproofPlugin {
   apply(compiler) {
     compiler.hooks.done.tap('VexproofPlugin', (stats) => {
       const { writeFileSync } = require('node:fs');
-      const { resolve } = require('node:path');
+      const { resolve, relative } = require('node:path');
       const json = stats.toJson(STATS);
+      // relative to the project folder, like the module names, so the file means the same on another machine
+      json.vexproofOutDir = relative(compiler.context, compiler.outputPath).replace(/\\/g, '/') || '.';
       json.vexproofBundler = compiler.webpack?.rspackVersion ? `rspack ${compiler.webpack.rspackVersion}` : `webpack ${compiler.webpack?.version ?? '?'}`;
       writeFileSync(resolve(compiler.context, this.output), JSON.stringify(json));
     });

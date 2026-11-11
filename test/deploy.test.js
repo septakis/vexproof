@@ -8,7 +8,7 @@ import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readDeployment, mergeModuleMaps, loadedSpecifiers, runtimeImports, usesNodeBuiltins, isGlue } from '../src/deploy.js';
+import { readDeployment, mergeModuleMaps, loadedSpecifiers, runtimeImports, usesNodeBuiltins, isGlue, defaultMapDirs, installBases } from '../src/deploy.js';
 import { readModuleMap } from '../src/modules.js';
 import { triage } from '../src/index.js';
 import { evaluateModuleRule } from '../src/pro/module-check.js';
@@ -21,6 +21,7 @@ const map = (sources) => JSON.stringify({ version: 3, sources, mappings: '' });
 function app(extra = {}) {
   const root = mkdtempSync(join(tmpdir(), 'vxp-deploy-'));
   put(root, {
+    'package-lock.json': '{}', // a project of its own, whatever lies above the temp folder
     // installed packages
     'node_modules/lodash/package.json': '{"name":"lodash","version":"4.17.21"}',
     'node_modules/lodash/debounce.js': 'module.exports = function debounce() {};',
@@ -93,6 +94,68 @@ test('sources reached through a package\'s own source maps are traced back to it
   assert.ok(d.packages.has('fast-equals') && d.whole.has('fast-equals'));
   assert.ok(!d.packages.has('src'));
   assert.deepEqual(d.unattributed, ['node_modules/ghost/src/x.ts (in out/app.js)']);
+});
+
+// The next four were found on ZITADEL's login app: Next.js 16 with Turbopack, in a pnpm workspace.
+test('a Next.js client-reference proxy counts as the file it stands for', () => {
+  const root = app({
+    'out/server/chunks/ssr.js': 'function a(){}\n//# sourceMappingURL=ssr.js.map',
+    'out/server/chunks/ssr.js.map': map([
+      'turbopack:///[project]/node_modules/lodash/debounce.js/__nextjs-internal-proxy.cjs { server => "[project]/node_modules/lodash/debounce.js" }',
+      'turbopack:///[project]/node_modules/marked/lib/marked.cjs/__nextjs-internal-proxy.mjs',
+    ]),
+  });
+  const d = readDeployment(['out'], { root, lockNames: lock(['lodash', 'marked']) });
+  assert.deepEqual(d.unattributed, []);
+  assert.deepEqual([...d.packages.get('lodash').files], ['debounce.js']);
+  assert.ok(d.packages.get('marked').roots.has('node_modules/marked'));
+  assert.ok(!d.whole.has('lodash') && !d.whole.has('marked'));
+});
+
+test('a source that a package\'s own map names under an unpublished node_modules folder is traced back to it', () => {
+  const root = app({
+    'node_modules/@formatjs/icu-skeleton-parser/package.json': '{"name":"@formatjs/icu-skeleton-parser","version":"2.1.11"}',
+    'node_modules/@formatjs/icu-skeleton-parser/index.js': 'export function parse(){}\n//# sourceMappingURL=index.js.map',
+    // the package's build tool kept generated files here; the folder was never published
+    'node_modules/@formatjs/icu-skeleton-parser/index.js.map': map(['../../.aspect_rules_js/gen@0.0.0/node_modules/gen/regex.js']),
+    'out/app.js': 'function a(){}\n//# sourceMappingURL=app.js.map',
+    'out/app.js.map': map(['turbopack:///[project]/node_modules/.aspect_rules_js/gen@0.0.0/node_modules/gen/regex.js']),
+  });
+  const d = readDeployment(['out'], { root, lockNames: lock(['lodash', 'marked', '@formatjs/icu-skeleton-parser']) });
+  assert.deepEqual(d.unattributed, []);
+  assert.ok(d.whole.has('@formatjs/icu-skeleton-parser'));
+  assert.ok(!d.packages.has('gen'));
+});
+
+test('server source maps are looked for in the .next that each deployment folder sits in', () => {
+  const root = app({ 'apps/web/.next/standalone/server.js': '', 'apps/web/.next/static/a.js': '' });
+  assert.deepEqual(defaultMapDirs(['apps/web/.next/standalone', 'apps\\web\\.next\\static', 'out'], root), ['apps/web/.next']);
+  put(root, { '.next/BUILD_ID': 'x' });
+  assert.deepEqual(defaultMapDirs(['.next/standalone'], root), ['.next']);
+  assert.deepEqual(defaultMapDirs(['out'], app()), []);
+});
+
+test('an app inside a workspace finds its packages in the workspace\'s node_modules', () => {
+  const ws = mkdtempSync(join(tmpdir(), 'vxp-ws-'));
+  const next = 'node_modules/.pnpm/next@16.0.0/node_modules/next';
+  put(ws, {
+    'pnpm-lock.yaml': '',
+    [`${next}/package.json`]: '{"name":"next","version":"16.0.0"}',
+    [`${next}/dist/polyfill.js`]: 'function polyfill(){} function more(){}',
+    [`${next}/dist/server.js`]: 'function serve(){}',
+    'apps/web/package.json': '{"name":"web"}',
+    // Turbopack writes sources against the workspace root, where the app's own node_modules holds only links
+    'apps/web/out/chunks/page.js': 'function page(){}\n//# sourceMappingURL=page.js.map',
+    'apps/web/out/chunks/page.js.map': map([`turbopack:///[project]/${next}/dist/server.js`, `turbopack:///[project]/${next}/src/gone.ts`]),
+    'apps/web/out/chunks/polyfill.js': 'function polyfill(){} function more(){}', // no map: a copy of an installed file
+  });
+  const root = join(ws, 'apps/web');
+  assert.deepEqual(installBases(root), [root, join(ws, 'apps'), ws]);
+  assert.deepEqual(installBases(ws), [ws]); // the folder with the lockfile stands alone
+  const d = readDeployment(['out'], { root, lockNames: lock(['next']) });
+  assert.deepEqual([d.unmapped, d.unattributed], [[], []]);
+  assert.deepEqual([...d.packages.get('next').roots], [`../../${next}`]);
+  assert.deepEqual([...d.packages.get('next').files].sort(), ['dist/polyfill.js', 'dist/server.js', 'src/gone.ts']);
 });
 
 test('a whole package gets no file-level claims', () => {

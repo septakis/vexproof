@@ -6,10 +6,11 @@ import { createHash } from 'node:crypto';
 import { triage, toCycloneDxVex, summarize, VERSION, outputTime } from './index.js';
 import { fetchOsvFindings, readFindingsText, enrichAliases } from './sources.js';
 import { toOpenVex } from './openvex.js';
-import { readModuleMap, bundleSbomFromModules, uncoveredOutputs, attachVersions } from './modules.js';
+import { readModuleMap, bundleSbomFromModules, attachVersions, addToMap, splitNodeModulesPath } from './modules.js';
+import { strayOutputs, accountFor, addWorkspacePackages, CoverageError } from './coverage.js';
 import { recordReview, sameCause } from './review.js';
 import { attachFingerprints } from './evidence.js';
-import { readDeployment, mergeModuleMaps } from './deploy.js';
+import { readDeployment, mergeModuleMaps, defaultMapDirs } from './deploy.js';
 import { normalizeFindings, parsePurl, indexSbom } from './index.js';
 import { deriveRules } from './derive.js';
 
@@ -99,8 +100,9 @@ What ships (at least one):
   --deploy <dir>          deployment folder: its node_modules files and the
                           source maps of its bundled code. Repeatable (Next.js:
                           .next/standalone and .next/static; Nuxt: .output)
-  --maps <dir>            extra source map folder (default: .next if present)
-  --root <dir>            where node_modules lives, for versions (default: cwd)
+  --maps <dir>            extra source map folder (default: the build's .next)
+  --root <dir>            the folder the build ran in: node_modules and the
+                          build output are looked for there (default: cwd)
 
 Findings:
   --findings <file>       npm, pnpm, yarn or bun audit, osv-scanner, Trivy,
@@ -428,17 +430,41 @@ if (!args.findings || args['enrich-aliases']) {
 
 let moduleMap = null;
 const root = args.root ?? process.cwd();
+const lockNames = new Set([...indexSbom(lockfileSbom).keys()].filter((k) => k.startsWith('npm/')).map((k) => k.slice(4)));
 const maps = [];
 for (const file of args.modules ?? []) {
   const mmJson = readJson(file);
   let mm;
   try { mm = readModuleMap(mmJson); } catch (e) { log(`vexproof: ${file}: ${e.message}`); process.exit(2); }
-  const gaps = uncoveredOutputs(mmJson, root);
-  if (gaps.length) {
-    log(`vexproof: ${gaps.length} shipped JavaScript file(s) are not in the module map, so their packages could look absent:`);
-    for (const g of gaps.slice(0, 8)) log(`  ${g}`);
-    log('Add the vexproof plugin to the build that produces them (worker.plugins, or a nested build() call), then rebuild.');
+  // every JavaScript file in the build output must be a recorded chunk, or be accounted for on its own
+  let stray, copied, outDirs;
+  try { ({ stray, copied, dirs: outDirs } = strayOutputs(mmJson, { root, file })); } catch (e) {
+    if (!(e instanceof CoverageError)) throw e;
+    log(`vexproof: ${file}: ${e.message}`);
     process.exit(2);
+  }
+  // files the bundler says it copied from somewhere: that origin shipped
+  for (const c of copied) { if (splitNodeModulesPath(c.from)) addToMap(mm.packages, c.from); else mm.own.add(c.from); }
+  if (stray.length || copied.length) {
+    const { accounted, unknown } = accountFor(stray, { root, outDirs });
+    if (unknown.length) {
+      log(`vexproof: ${unknown.length} JavaScript file(s) in the build output are not accounted for, so their packages could look absent:`);
+      for (const u of unknown.slice(0, 8)) log(`  ${u.file}: ${u.why}`);
+      if (unknown.length > 8) log(`  … and ${unknown.length - 8} more`);
+      log('If a worker or a nested build() made them, add the vexproof plugin to that build (worker.plugins) and rebuild.');
+      log('A file that is copied in must be an unmodified copy of an installed or project file, or have a source map');
+      log('beside it. For an app that cannot meet that, use --deploy <output folder> with source maps on.');
+      process.exit(2);
+    }
+    mm.whole ??= new Set();
+    for (const a of accounted) {
+      for (const p of a.adds) { if (splitNodeModulesPath(p)) addToMap(mm.packages, p); else mm.own.add(p); }
+      for (const n of a.whole) mm.whole.add(n);
+      // loaded by name from a file that ships as it is: present, by a route vexproof can't follow to files
+      for (const n of a.loads) if (lockNames.has(n)) { addToMap(mm.packages, `node_modules/${n}/package.json`); mm.whole.add(n); }
+    }
+    const n = (k) => accounted.filter((a) => a.kind === k).length;
+    log(`vexproof: ${accounted.length + copied.length} output file(s) outside the module map accounted for: ${n('copy') + copied.length} copied from installed packages, ${n('mapped')} by their source maps, ${n('own')} the project's own, ${n('glue')} holding no package code`);
   }
   mm.serverBuildsSkipped = mmJson.serverBuildsSkipped ?? 0;
   maps.push(mm);
@@ -446,8 +472,7 @@ for (const file of args.modules ?? []) {
 }
 let deployment = null;
 if (args.deploy) {
-  const lockNames = new Set([...indexSbom(lockfileSbom).keys()].filter((k) => k.startsWith('npm/')).map((k) => k.slice(4)));
-  const mapDirs = args.maps ?? (existsSync(`${root}/.next`) ? ['.next'] : []);
+  const mapDirs = args.maps ?? defaultMapDirs(args.deploy, root);
   deployment = readDeployment(args.deploy, { root, mapDirs, lockNames });
   if (deployment.unmapped.length) {
     log(`vexproof: ${deployment.unmapped.length} bundled file(s) in the deployment have no source map (or could not be parsed), so what they contain is unknown:`);
@@ -473,7 +498,11 @@ if (args.deploy) {
   inputs.push({ role: 'deployment', path: args.deploy.join(','), sha256: '-' });
 }
 if (maps.length) {
-  moduleMap = attachVersions(mergeModuleMaps(maps), { cwd: root });
+  const merged = mergeModuleMaps(maps);
+  // a workspace package bundled from source is named by its real path, not under node_modules
+  const workspace = addWorkspacePackages(merged, root);
+  if (workspace.length) log(`vexproof: ${workspace.length} workspace package(s) bundled from source: ${workspace.slice(0, 6).join(', ')}${workspace.length > 6 ? ', …' : ''}`);
+  moduleMap = attachVersions(merged, { cwd: root });
   if (!bundleSbom) {
     bundleSbom = bundleSbomFromModules(moduleMap, { lockfileSbom, cwd: root });
     log(`vexproof: ${deployment ? 'deployed' : 'bundle'} contents taken from the ${deployment ? 'deployment' : 'module map'} (${bundleSbom.components.length} packages)`);

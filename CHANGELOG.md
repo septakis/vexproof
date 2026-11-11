@@ -6,6 +6,42 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+### Fixed
+Four ways a run could report `not_affected` for code that ships, found by running vexproof on twelve
+open-source apps:
+- The check that every `.js` file in the build output is recorded was skipped, silently, when the output
+  folder wasn't found: running from a repository root with `--modules apps/web/vexproof-modules.json` was
+  enough. A recorded output folder that isn't there now stops the run.
+- That check ran only for the Vite plugin's module map. It now runs for webpack and Rspack stats, esbuild and
+  Bun metafiles and Angular stats too, so a file copied into the output (copy-webpack-plugin, Angular
+  `assets`) or built by a second bundler is seen. The webpack plugin now records the output folder, the
+  emitted files and child compilations (workers); a map from an older plugin is refused, so rebuild.
+- A workspace package bundled from source (`../packages/ui/src/…`, not under `node_modules`) counted as
+  absent. Shipped files outside `node_modules` are now given to the nearest `package.json` above them.
+- A deployment passed as "includes the server" if any file mentioned a Node module, which browser code that
+  also runs under Node does behind a test (`if (IS_NODE) require("fs")`). Only loads that are not behind a
+  test count now. A static SvelteKit site therefore needs `--browser-only`.
+
+### Changed
+- An output file the module map doesn't record no longer always stops the run. It is accounted for on its
+  own when it has a source map beside it, is an unmodified copy of an installed or project file, was copied
+  by webpack from a recorded origin, or holds no functions; a package it imports by name counts as shipped.
+  This lets apps with a PWA service worker, `?url` imports, or files copied from `public/` through.
+  Anything else is still refused, now with the reason for each file and a count of those not listed.
+- `uncoveredOutputs` is gone from `src/modules.js`; `strayOutputs` and `accountFor` in `src/coverage.js`
+  replace it.
+
+Three things that made `--deploy` refuse a Next.js 16 (Turbopack) app in a pnpm workspace, found on ZITADEL's
+login app:
+- Run from the app's own folder, vexproof found none of the packages: a workspace installs them beside the
+  lockfile and links them into the app, and it did not look there. It now also reads `node_modules` in the
+  parent folders, up to the one with the lockfile. Packages found there are named with a `../` path.
+- Run from the workspace root, the server source maps were not found without `--maps`. The default is now
+  the `.next` folder that each `--deploy` folder sits in, not only `.next` under the root.
+- Two kinds of source-map entry could not be traced to a package: the stand-in Next.js generates for a client
+  component (`<file>/__nextjs-internal-proxy.cjs`), now counted as that file, and a file that a package's own
+  source map names under a `node_modules` folder it never published (@formatjs), now traced to that package.
+
 ## [1.0.0-beta.6] - 2026-11-11
 
 ### Changed

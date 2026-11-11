@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Which files of each npm package survived into the shipped output.
 import { readFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
-import { readdirSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 // Sources: esbuild metafile (esbuild, Bun, Angular 17+ `ng build --stats-json`)
 //          webpack or Rspack stats JSON (`webpack --json=stats.json`)
 //          vexproof-modules.json from the vexproof/vite plugin (Vite 7/8, Rollup)
@@ -35,7 +34,8 @@ export function detectModuleFormat(json) {
   throw new Error('Unrecognised module map (expected vexproof-modules.json, an esbuild or bun build metafile, Angular stats.json, or webpack stats JSON)');
 }
 
-function add(map, path) {
+/** Record one shipped file of an installed package in a module map's `packages`. Paths outside node_modules are skipped. */
+export function addToMap(map, path) {
   const s = splitNodeModulesPath(path);
   if (!s) return;
   if (!map.has(s.name)) map.set(s.name, { roots: new Set(), files: new Set(), byRoot: new Map() });
@@ -45,6 +45,10 @@ function add(map, path) {
   if (!e.byRoot.has(s.root)) e.byRoot.set(s.root, new Set());
   e.byRoot.get(s.root).add(s.file);
 }
+const add = addToMap;
+
+/** A shipped module that is not in node_modules: the app's own source, or a workspace package bundled from source. */
+const outsideNodeModules = (path) => !/(^|\/)node_modules\//.test(String(path).replace(/\\/g, '/'));
 
 /**
  * Package stores name each copy's folder or archive after its version:
@@ -99,14 +103,14 @@ function graphFrom(edges, shipped) {
 }
 
 function fromEsbuild(meta) {
-  const map = new Map(), shipped = new Set(), edges = [];
+  const map = new Map(), shipped = new Set(), edges = [], own = new Set();
   for (const out of Object.values(meta.outputs ?? {})) {
     for (const [path, info] of Object.entries(out.inputs ?? {})) {
-      if ((info?.bytesInOutput ?? 0) > 0) { add(map, path); shipped.add(path); }
+      if ((info?.bytesInOutput ?? 0) > 0) { add(map, path); shipped.add(path); if (outsideNodeModules(path)) own.add(moduleKey(path)); }
     }
   }
   for (const [path, info] of Object.entries(meta.inputs ?? {})) for (const i of info?.imports ?? []) if (!i.external) edges.push([path, i.path]);
-  return { map, graph: graphFrom(edges, shipped) };
+  return { map, graph: graphFrom(edges, shipped), own };
 }
 
 /**
@@ -146,7 +150,7 @@ function fromWebpack(stats) {
       `or set stats { modules, nestedModules, orphanModules: true, modulesSpace: Infinity, nestedModulesSpace: Infinity }.`
     );
   }
-  const map = new Map(), shipped = new Set(), edges = [];
+  const map = new Map(), shipped = new Set(), edges = [], own = new Set();
   const visit = (mods, parentIncluded) => {
     for (const m of mods ?? []) {
       const included = parentIncluded || (Array.isArray(m.chunks) && m.chunks.length > 0);
@@ -155,21 +159,22 @@ function fromWebpack(stats) {
       const name = String(m.name ?? m.identifier ?? '').replace(/ \+ \d+ modules?$/, '');
       add(map, name);
       shipped.add(name);
+      if (name && outsideNodeModules(name)) own.add(moduleKey(name));
       for (const r of m.reasons ?? []) if (r.moduleName) edges.push([r.moduleName, name]);
       visit(m.modules, true);
     }
   };
   if (Array.isArray(stats.modules)) visit(stats.modules, false);
   for (const c of stats.children ?? []) visit(c.modules, false);
-  return { map, graph: graphFrom(edges, shipped) };
+  return { map, graph: graphFrom(edges, shipped), own };
 }
 
 /** Map<packageName, { roots:Set<string>, files:Set<string> }> */
 export function readModuleMap(json) {
   const fmt = detectModuleFormat(json);
-  const { map, graph } = fmt === 'webpack-stats' ? fromWebpack(json) : fromEsbuild(json); // the Vite plugin writes the metafile shape
+  const { map, graph, own } = fmt === 'webpack-stats' ? fromWebpack(json) : fromEsbuild(json); // the Vite plugin writes the metafile shape
   const label = fmt === 'vite-modules' ? `vite-modules (${json.bundler ?? 'unknown bundler'})` : fmt === 'webpack-stats' && json.vexproofBundler ? `webpack-stats (${json.vexproofBundler})` : fmt;
-  return { format: label, packages: map, graph };
+  return { format: label, packages: map, graph, own };
 }
 
 /**
@@ -204,29 +209,4 @@ export function bundleSbomFromModules(moduleMap, { lockfileSbom = null, cwd = pr
 function flatten(list, out = []) {
   for (const c of list ?? []) { out.push(c); flatten(c.components, out); }
   return out;
-}
-
-
-/**
- * For module maps from the vexproof plugins: every .js/.mjs/.cjs file in the recorded output folders must be
- * one of the recorded chunks. A file that is not was produced by a build without the plugin (a web worker,
- * a nested build() call), and its packages would otherwise look absent.
- */
-export function uncoveredOutputs(json, root = process.cwd()) {
-  const dirs = json?.outDirs ?? [];
-  if (!dirs.length) return [];
-  const covered = new Set(Object.keys(json.outputs ?? {}));
-  const missing = [];
-  const walk = (abs, rel) => {
-    let entries = [];
-    try { entries = readdirSync(abs); } catch { return; }
-    for (const e of entries) {
-      const a = join(abs, e), r = rel === '.' ? e : `${rel}/${e}`;
-      let st; try { st = statSync(a); } catch { continue; }
-      if (st.isDirectory()) walk(a, r);
-      else if (/\.(m|c)?js$/.test(e) && !covered.has(r)) missing.push(r);
-    }
-  };
-  for (const d of dirs) walk(resolve(root, d), d);
-  return missing;
 }

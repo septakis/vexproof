@@ -73,9 +73,22 @@ module.exports = { plugins: [new VexproofPlugin()] };
 ```
 
 Every build that ships code needs the plugin, including web workers and nested `build()` calls. You
-don't have to get this right by inspection: the plugins record their output folders, and vexproof
-refuses to run if a `.js` file there wasn't recorded, naming the file. On Gitea that caught two
-bundles made by nested builds (`e2e-gitea/`).
+don't have to get this right by inspection. Whatever wrote the module map (a vexproof plugin, an
+esbuild metafile, Angular or webpack stats), vexproof finds the build's output folder and checks every
+`.js` file in it. On Gitea that caught two bundles made by nested builds (`e2e-gitea/`).
+
+A file the module map doesn't record is accounted for on its own, and counted as shipped where it
+holds a package's code:
+
+- it has a source map beside it (a service worker written by workbox): the map's sources shipped;
+- it is an unmodified copy of an installed file (a package file imported with `?url`, or copied by a
+  plugin), or webpack recorded where it was copied from: that file shipped;
+- it is an unmodified copy of one of your own files (from `public/`), or holds no functions at all.
+  A package such a file imports by name counts as shipped.
+
+Any other file stops the run, named with the reason. So does an output folder that can't be found:
+run vexproof from the folder the build ran in, or pass `--root`. In a monorepo that is the app's
+folder, not the repository root.
 
 vexproof also refuses a webpack or Rspack stats file that leaves modules out (a size limit, grouped or
 filtered children, or a concatenated module whose members aren't listed). `rspack build --json` does

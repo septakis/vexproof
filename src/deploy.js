@@ -41,8 +41,28 @@ function walk(dir, out = []) {
   return out;
 }
 
+const LOCKFILES = ['pnpm-lock.yaml', 'package-lock.json', 'npm-shrinkwrap.json', 'yarn.lock', 'bun.lock', 'bun.lockb'];
+
+/**
+ * Folders whose node_modules can hold this project's packages: the root and, when the root is an app inside a
+ * workspace, its parents up to the folder with the lockfile. Workspaces install packages there and link them
+ * into each app's own node_modules, and links to folders are not walked. Bundlers also write source paths
+ * against the workspace root. A root with its own lockfile, or with none above it, stands alone.
+ */
+export function installBases(root) {
+  const start = resolve(root);
+  const hasLock = (d) => LOCKFILES.some((f) => existsSync(join(d, f)));
+  if (hasLock(start)) return [start];
+  const up = [];
+  for (let d = dirname(start); d !== dirname(d); d = dirname(d)) {
+    up.push(d);
+    if (hasLock(d)) return [start, ...up];
+  }
+  return [start];
+}
+
 /** Source map for a bundled file: its sourceMappingURL (inline, next to it, or elsewhere by name), or file.map. */
-function findMap(file, code, mapIndex) {
+export function findMap(file, code, mapIndex) {
   const m = /\/[/*][#@]\s*sourceMappingURL=([^\s*]+)\s*(?:\*\/\s*)?$/.exec(code.slice(-4096));
   if (m && m[1].startsWith('data:')) {
     const b64 = /;base64,(.*)$/.exec(m[1]);
@@ -55,8 +75,11 @@ function findMap(file, code, mapIndex) {
   return null;
 }
 
-/** Every original file a source map names, as a path relative to the project root. */
-export function mapSources(map, mapFile, root) {
+/**
+ * Every original file a source map names, as a path relative to the project root. `bases` are the folders
+ * packages may be installed under (installBases); a package found under a parent gets a `../` path.
+ */
+export function mapSources(map, mapFile, root, bases = [root]) {
   const out = [];
   const visit = (m) => {
     for (const sec of m.sections ?? []) visit(sec.map);
@@ -64,21 +87,33 @@ export function mapSources(map, mapFile, root) {
       if (!s0) continue;
       let s = s0;
       try { s = decodeURIComponent(s0); } catch { /* keep as is */ }
+      // Next.js (Turbopack) names the generated stand-in for a client component after the file it stands for:
+      // `<file>/__nextjs-internal-proxy.cjs { server => "…" }`. Count it as that file. That only ever adds a
+      // file to what shipped, so it can't turn a finding into "not present".
+      s = s.replace(/\/__nextjs-internal-proxy\.[cm]?js(?: \{[^]*)?$/, '');
       s = s.split('?')[0].replace(/^webpack:\/\/[^/]*\//, '').replace(/^turbopack:\/\/\/?(\[project\]\/)?/, '').replace(/^file:\/\//, '').replace(/^\[project\]\//, '');
       if (/^[a-z]+:/i.test(s)) continue; // other virtual sources (e.g. vite's "\0" helpers already stripped above)
       let abs = s.startsWith('/') ? s : resolve(dirname(mapFile), m.sourceRoot ?? '', s);
+      const literal = posix(relative(root, abs)); // where the source points as written, before any search below
       // Some bundlers write sources against their own project root (Turbopack's "[project]" is the workspace
       // root, which may be a parent folder). If that doesn't land on a file, find the package under this root.
       const nm = s.indexOf('node_modules/');
       if (!existsSync(abs) && nm >= 0) {
         const parts = s.split('/');
-        for (let i = 0; i < parts.length; i++) {
-          const cand = resolve(root, parts.slice(i).join('/'));
-          if (parts.slice(i).join('/').includes('node_modules/') && existsSync(cand)) { abs = cand; break; }
+        search: for (let i = 0; i < parts.length; i++) {
+          const tail = parts.slice(i).join('/');
+          if (!tail.includes('node_modules/')) break;
+          for (const b of bases) { const cand = resolve(b, tail); if (existsSync(cand)) { abs = cand; break search; } }
         }
-        if (!existsSync(abs)) abs = resolve(root, s.slice(nm)); // not installed here: still counts as shipped
+        if (!existsSync(abs)) {
+          // not installed here: still counts as shipped. Place it under the base that holds its top folder
+          // (node_modules/.pnpm, or the package's own), so it reads the same as its installed neighbours.
+          const rel = s.slice(nm);
+          const top = rel.split('/').slice(0, 2).join('/');
+          abs = resolve(bases.find((b) => existsSync(resolve(b, top))) ?? root, rel);
+        }
       }
-      out.push({ path: posix(relative(root, abs)), exists: existsSync(abs) });
+      out.push({ path: posix(relative(root, abs)), exists: existsSync(abs), literal });
     }
   };
   visit(map);
@@ -90,16 +125,21 @@ export function mapSources(map, mapFile, root) {
  * (src/*.ts), which may not be installed, and sometimes lose the package's folder on the way
  * (fast-equals: node_modules/src/comparator.ts). Index what each installed package's maps point to, so such a
  * source can be traced back to the package that shipped it.
+ *
+ * A source is indexed twice: where vexproof would look for it, and where the package's map literally points.
+ * A bundler that chains through the package's map writes the literal path, and the two differ when that path
+ * runs through a node_modules folder that was never published (@formatjs's maps name files under its build
+ * tool's `node_modules/.aspect_rules_js/`).
  */
-function packageMapIndex(root) {
+function packageMapIndex(root, bases) {
   const index = new Map();
-  for (const f of walk(resolve(root, 'node_modules'))) {
+  for (const f of bases.flatMap((b) => walk(resolve(b, 'node_modules')))) {
     if (!f.endsWith('.map')) continue;
     const owner = splitNodeModulesPath(posix(relative(root, f)));
     if (!owner) continue;
     let m;
     try { m = JSON.parse(readFileSync(f, 'utf8')); } catch { continue; }
-    for (const src of mapSources(m, f, root)) if (!index.has(src.path)) index.set(src.path, owner);
+    for (const src of mapSources(m, f, root, bases)) for (const key of [src.path, src.literal]) if (!index.has(key)) index.set(key, owner);
   }
   return index;
 }
@@ -122,18 +162,27 @@ export function loadedSpecifiers(code) {
   if (!ast) return null;
   const specs = new Set();
   const lit = (n) => (n?.type === 'Literal' && typeof n.value === 'string' ? n.value : n?.type === 'TemplateLiteral' && n.expressions.length === 0 ? n.quasis[0].value.cooked : null);
-  const stack = [ast];
+  // Loads that run whenever the code around them runs, as opposed to ones behind a test (if, ?:, &&, ||, ??, try,
+  // case). Code meant for browsers that can also run under Node guards its Node loads that way
+  // (`if (ENVIRONMENT_IS_NODE) fs = require("fs")`); a server just loads what it needs.
+  specs.unguarded = new Set();
+  const guards = (n, k) => ((n.type === 'IfStatement' || n.type === 'ConditionalExpression') && k !== 'test')
+    || (n.type === 'LogicalExpression' && k === 'right') || (n.type === 'TryStatement' && k === 'block') || (n.type === 'SwitchCase' && k === 'consequent');
+  const stack = [[ast, false]];
   while (stack.length) {
-    const n = stack.pop();
+    const [n, guarded] = stack.pop();
     if (!n || typeof n.type !== 'string') continue;
-    if ((n.type === 'ImportDeclaration' || n.type === 'ExportAllDeclaration' || n.type === 'ExportNamedDeclaration') && n.source) specs.add(n.source.value);
-    else if (n.type === 'ImportExpression' && lit(n.source)) specs.add(lit(n.source));
-    else if (n.type === 'CallExpression' && n.callee.type === 'Identifier' && n.callee.name === 'require' && lit(n.arguments[0])) specs.add(lit(n.arguments[0]));
+    let spec = null;
+    if ((n.type === 'ImportDeclaration' || n.type === 'ExportAllDeclaration' || n.type === 'ExportNamedDeclaration') && n.source) spec = n.source.value;
+    else if (n.type === 'ImportExpression' && lit(n.source)) spec = lit(n.source);
+    else if (n.type === 'CallExpression' && n.callee.type === 'Identifier' && n.callee.name === 'require' && lit(n.arguments[0])) spec = lit(n.arguments[0]);
+    if (spec !== null) { specs.add(spec); if (!guarded) specs.unguarded.add(spec); }
     for (const k in n) {
       const v = n[k];
       if (k === 'type' || k === 'start' || k === 'end') continue;
-      if (Array.isArray(v)) for (const c of v) { if (c && typeof c.type === 'string') stack.push(c); }
-      else if (v && typeof v.type === 'string') stack.push(v);
+      const g = guarded || guards(n, k);
+      if (Array.isArray(v)) for (const c of v) { if (c && typeof c.type === 'string') stack.push([c, g]); }
+      else if (v && typeof v.type === 'string') stack.push([v, g]);
     }
   }
   return specs;
@@ -142,8 +191,11 @@ export function loadedSpecifiers(code) {
 const packageOf = (spec) => (spec.startsWith('@') ? spec.split('/').slice(0, 2).join('/') : spec.split('/')[0]);
 const isBare = (spec) => !/^[./]/.test(spec) && !/^[a-z]+:/i.test(spec);
 
-/** Code that loads Node's own modules runs on a server; browser bundles never do. */
-export const usesNodeBuiltins = (specs) => [...specs].some((s) => BUILTINS.has(s) || BUILTINS.has(packageOf(s)));
+/**
+ * Code that loads Node's own modules runs on a server. Only loads that aren't behind a test count: browser code
+ * that can also run under Node (emscripten glue, isomorphic libraries) mentions `require("fs")` too, guarded.
+ */
+export const usesNodeBuiltins = (specs) => [...(specs.unguarded ?? specs)].some((s) => BUILTINS.has(s) || BUILTINS.has(packageOf(s)));
 
 /** Bare package names loaded at runtime (Node's own modules excluded). */
 export function runtimeImports(specs) {
@@ -153,15 +205,33 @@ export function runtimeImports(specs) {
 }
 
 /**
+ * Where to look for source maps when --maps isn't given. Next.js keeps server maps in `.next`, outside the
+ * standalone folder it deploys; in a monorepo that `.next` is the app's (apps/web/.next), not the root's.
+ */
+export function defaultMapDirs(dirs, root = process.cwd()) {
+  const out = new Set();
+  if (existsSync(resolve(root, '.next'))) out.add('.next');
+  for (const d of dirs) {
+    const parts = String(d).split(/[\\/]/);
+    const i = parts.indexOf('.next');
+    if (i < 0) continue;
+    const dir = parts.slice(0, i + 1).join('/');
+    if (existsSync(resolve(root, dir))) out.add(dir);
+  }
+  return [...out];
+}
+
+/**
  * Read deployment folders. Returns a module map ({ format, packages, graph: null, whole }) plus what
  * couldn't be accounted for ({ unmapped: [files], missingRuntime: [{ name, from }] }).
  * `lockNames` (Set of npm package names in the lockfile SBOM) limits the runtime-import check to real dependencies.
  */
 export function readDeployment(dirs, { root = process.cwd(), mapDirs = [], lockNames = null } = {}) {
-  const packages = new Map(), whole = new Set();
+  const packages = new Map(), whole = new Set(), own = new Set();
+  const bases = installBases(root);
   const add = (rel) => {
     const s = splitNodeModulesPath(rel);
-    if (!s) return;
+    if (!s) { if (!/(^|\/)node_modules\//.test(rel)) own.add(rel); return; }
     if (!packages.has(s.name)) packages.set(s.name, { roots: new Set(), files: new Set(), byRoot: new Map() });
     const e = packages.get(s.name);
     e.roots.add(s.root); e.files.add(s.file);
@@ -203,7 +273,7 @@ export function readDeployment(dirs, { root = process.cwd(), mapDirs = [], lockN
   const installedCopy = (code) => {
     if (!byHash) {
       byHash = new Map();
-      for (const f of walk(resolve(root, 'node_modules'))) if (JS.test(f)) {
+      for (const f of bases.flatMap((b) => walk(resolve(b, 'node_modules')))) if (JS.test(f)) {
         try { byHash.set(createHash('sha256').update(readFileSync(f)).digest('hex'), posix(relative(root, f))); } catch { /* unreadable */ }
       }
     }
@@ -231,13 +301,13 @@ export function readDeployment(dirs, { root = process.cwd(), mapDirs = [], lockN
     const found = findMap(f, code, mapIndex);
     if (found) {
       mapped++;
-      for (const src of mapSources(found.map, found.at, root)) {
+      for (const src of mapSources(found.map, found.at, root, bases)) {
         if (src.exists) { add(src.path); continue; }
         // not a real file: a source reached through a package's own map, or a bundler's virtual module
         const s0 = splitNodeModulesPath(src.path);
         if (s0 && existsSync(resolve(root, s0.root))) { add(src.path); whole.add(s0.name); continue; }
-        pkgMaps ??= packageMapIndex(root);
-        const owner = pkgMaps.get(src.path);
+        pkgMaps ??= packageMapIndex(root, bases);
+        const owner = pkgMaps.get(src.path) ?? pkgMaps.get(src.literal);
         if (owner) { add(`${owner.root}/${owner.file}`); whole.add(owner.name); continue; }
         if (/(^|\/)node_modules\//.test(src.path)) unattributed.push(`${src.path} (in ${rel})`);
         // else: bundler runtime or virtual module (webpack/bootstrap, \0commonjsHelpers, [turbopack]/runtime…)
@@ -259,17 +329,18 @@ export function readDeployment(dirs, { root = process.cwd(), mapDirs = [], lockN
   }
   return {
     format: `deployment (${dirs.join(', ')}; ${copied} deployed package files, ${mapped} bundled files with source maps)`,
-    packages, graph: null, whole, unmapped: [...unmapped, ...unparsed], unattributed, missingRuntime,
-    hasServer: copied > 0 || serverCode > 0, // a server's own files, or code that loads Node's modules
+    packages, graph: null, whole, own, unmapped: [...unmapped, ...unparsed], unattributed, missingRuntime,
+    hasServer: copied > 0 || serverCode > 0, // a server's own files, or code that loads Node's modules unguarded
   };
 }
 
 /** One module map from several (browser + server, several deployments). The import graph survives only if all have one. */
 export function mergeModuleMaps(maps) {
   if (maps.length === 1) return maps[0];
-  const packages = new Map(), whole = new Set();
+  const packages = new Map(), whole = new Set(), own = new Set();
   for (const m of maps) {
     for (const n of m.whole ?? []) whole.add(n);
+    for (const p of m.own ?? []) own.add(p);
     for (const [name, e] of m.packages) {
       if (!packages.has(name)) packages.set(name, { roots: new Set(), files: new Set(), byRoot: new Map() });
       const t = packages.get(name);
@@ -286,5 +357,5 @@ export function mergeModuleMaps(maps) {
       for (const [k, v] of m.graph.importers) { if (!graph.importers.has(k)) graph.importers.set(k, new Set()); for (const x of v) graph.importers.get(k).add(x); }
     }
   }
-  return { format: maps.map((m) => m.format).join(' + '), packages, graph, whole };
+  return { format: maps.map((m) => m.format).join(' + '), packages, graph, whole, own };
 }

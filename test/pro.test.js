@@ -12,6 +12,7 @@ import { triage, toCycloneDxVex, summarize } from '../src/index.js';
 import { evaluateModuleRule } from '../src/pro/module-check.js';
 import { fromNpmAudit } from '../src/sources.js';
 import { verifyLicense, b64u, PRO_FEATURES, RESERVED_FEATURES } from '../src/pro/license.js';
+import { built } from './lib/built.js';
 import { readBaseline, applyBaseline } from '../src/pro/baseline.js';
 import { recordReview } from '../src/review.js';
 import { renderReport } from '../src/pro/report.js';
@@ -213,7 +214,7 @@ test('report shows input hashes, evidence and every statement', () => {
 
 const cli = fileURLToPath(new URL('../src/cli.js', import.meta.url));
 const f = (n) => fileURLToPath(new URL(`./fixtures/${n}`, import.meta.url));
-const runArgs = ['--lockfile', f('angular.bom.lockfile.json'), '--bundle', f('angular-template.bom.bundle.json'), '--findings', f('angular.audit.json'), '--modules', f('angular-template.metafile.json')];
+const runArgs = ['--lockfile', f('angular.bom.lockfile.json'), '--bundle', f('angular-template.bom.bundle.json'), '--findings', f('angular.audit.json'), '--modules', built(f('angular-template.metafile.json'))];
 
 test('CLI free: shows a Pro hint, gate on in_triage exits 1, --quiet hides the hint', () => {
   const dir = mkdtempSync(join(tmpdir(), 'bvx-'));

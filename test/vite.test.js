@@ -7,7 +7,8 @@ import { readFileSync, mkdtempSync, mkdirSync, writeFileSync, existsSync } from 
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import vexproof, { cleanModuleId } from '../src/vite.js';
-import { readModuleMap, uncoveredOutputs, webpackStatsGaps, bundleSbomFromModules } from '../src/modules.js';
+import { readModuleMap, webpackStatsGaps, bundleSbomFromModules } from '../src/modules.js';
+import { strayOutputs } from '../src/coverage.js';
 import { triage } from '../src/index.js';
 import { evaluateModuleRule } from '../src/pro/module-check.js';
 import { fromNpmAudit } from '../src/sources.js';
@@ -73,9 +74,9 @@ test('coverage check: a JS file in the output folder that no plugin recorded is 
   writeFileSync(join(root, 'dist/assets/index-abc.js'), '');
   writeFileSync(join(root, 'dist/assets/index-abc.css'), '');
   const mm = { vexproof: 1, outDirs: ['dist'], outputs: { 'dist/assets/index-abc.js': { inputs: {} } } };
-  assert.deepEqual(uncoveredOutputs(mm, root), []);
+  assert.deepEqual(strayOutputs(mm, { root }).stray, []);
   writeFileSync(join(root, 'dist/assets/worker-xyz.js'), '');
-  assert.deepEqual(uncoveredOutputs(mm, root), ['dist/assets/worker-xyz.js']);
+  assert.deepEqual(strayOutputs(mm, { root }).stray, [join(root, 'dist/assets/worker-xyz.js')]);
 });
 
 test('plugin: several builds in one process (main, worker, nested) merge into one file', () => {
