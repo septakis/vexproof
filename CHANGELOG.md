@@ -6,6 +6,31 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+### Fixed
+- A file in the build output counted as the project's own if any file in the project folder matched it byte
+  for byte, including another build's output: a prebuilt bundle copied into the output could pass with the
+  packages inside it unseen. Only files git tracks count now; outside a git checkout none do.
+- Angular's webpack-based builder (`@angular-devkit/build-angular:browser`) writes its module list per chunk,
+  and its stats file was refused as unrecognised. It is read now. A chunk with no modules, such as the
+  `scripts` bundle that builder joins from raw files, is not vouched for by the stats: turn on source maps for
+  it (`--source-map`) and vexproof reads the map.
+- Rspack 2.0 names some members of a concatenated module after the concatenation, and the plugin's output was
+  refused as incomplete. Those members are read by their real path. When a plugin-written file is refused
+  for leaving modules out, the message no longer says to use the plugin.
+- SvelteKit 3 on Vite 8: a web worker's chunk was recorded under Vite's default `dist` folder, where SvelteKit
+  never writes, so the output check failed. The plugin now moves the record to where the main build emits
+  the file.
+- `--deploy` refused any app that deploys one of its own files as it is (`public/sw.js`). A file git tracks
+  is now accepted; what it loads by name is checked like any other deployed file.
+- `--deploy` on Vite 8: Rolldown's runtime chunk and Vite's preload helper have no source map, because no
+  source file is behind them, and stopped the run. They are recognised by shape and content.
+
+### Changed
+- The webpack plugin also lists the bundler's runtime modules, so that a chunk holding only the runtime can be
+  told from one whose contents are unknown.
+- Finding copies of installed files no longer hashes all of `node_modules`: files are compared by size first.
+  `--deploy` runs that took one to two minutes for this reason take well under one.
+
 ## [1.0.0-beta.7] - 2026-11-11
 
 ### Fixed

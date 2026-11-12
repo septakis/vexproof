@@ -10,19 +10,18 @@
 //   glue      empty, or no functions and no package imports: nothing of a package can be in it
 //   mapped    it has a source map: the map's sources are what it contains
 //   copy      byte-identical to an installed package file: that file shipped
-//   own       byte-identical to a file of the project itself that imports no package by name
+//   own       byte-identical to a file git tracks in the project (public/sw.js): the project's own code
 //
 // Anything else is refused, with the reason for each file. Finding no output folder at all is refused too:
 // a check that can't run must not pass.
-import { readdirSync, readFileSync, statSync, existsSync } from 'node:fs';
+import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { join, resolve, relative, dirname, isAbsolute, sep } from 'node:path';
-import { createHash } from 'node:crypto';
 import { detectModuleFormat, splitNodeModulesPath } from './modules.js';
 import { mapSources, findMap, loadedSpecifiers, runtimeImports, isGlue, installBases } from './deploy.js';
+import { copyFinder } from './copies.js';
 
 const JS = /\.(m|c)?js$/;
 const posix = (p) => p.split(sep).join('/');
-const sha = (buf) => createHash('sha256').update(buf).digest('hex');
 
 /** The build output can't be located or isn't described: the caller refuses with this message. */
 export class CoverageError extends Error {}
@@ -123,19 +122,27 @@ export function recordedOutputs(json, { root = process.cwd(), file = null } = {}
   }
   if (!existsSync(out)) throw new CoverageError(`the module map records build output in ${posix(out)}, which does not exist. ${WHERE}`);
   const covered = new Set(), copiedFrom = new Map();
-  const take = (assets, dir) => {
-    for (const a of assets ?? []) {
+  const take = (s, dir) => {
+    // Chunks that have modules listed. One with none is raw files a plugin joined together (the `scripts` of
+    // Angular's webpack-based builder): the stats say nothing about what is in it. That can only be told apart
+    // from a chunk holding just the bundler's runtime when the stats list runtime modules too.
+    const full = new Set();
+    let listsRuntime = false;
+    const walk = (mods) => { for (const m of mods ?? []) { for (const c of m.chunks ?? []) full.add(String(c)); if (m.moduleType === 'runtime') listsRuntime = true; walk(m.modules); } };
+    walk(s.modules);
+    for (const c of s.chunks ?? []) { if (c.modules?.length) full.add(String(c.id)); walk(c.modules); }
+    for (const a of s.assets ?? []) {
       const abs = resolve(dir, String(a.name).split('?')[0]);
       // a file emitted for a chunk, or for a module of a chunk (asset modules), has its modules in the stats;
       // one that a plugin copied in belongs to no chunk
-      if ((a.chunks?.length ?? 0) > 0 || (a.auxiliaryChunks?.length ?? 0) > 0) covered.add(abs);
+      if ((a.chunks ?? []).some((c) => !listsRuntime || full.has(String(c))) || (a.auxiliaryChunks?.length ?? 0) > 0) covered.add(abs);
       // copy-webpack-plugin says where it took a file from. The copy is often minified on the way, so it would
       // not match the installed file byte for byte; the bundler's own record of its origin stands instead.
       else if (a.info?.copied && typeof a.info.sourceFilename === 'string') copiedFrom.set(abs, a.info.sourceFilename.replace(/\\/g, '/'));
     }
   };
-  take(json.assets, out);
-  for (const c of json.children ?? []) take(c.assets, typeof c.outputPath === 'string' && isAbsolute(c.outputPath) ? c.outputPath : out);
+  take(json, out);
+  for (const c of json.children ?? []) take(c, typeof c.outputPath === 'string' && isAbsolute(c.outputPath) ? c.outputPath : out);
   return { dirs: [{ abs: out, recurse: true }], isCovered: (abs) => covered.has(abs), copiedFrom };
 }
 
@@ -151,43 +158,6 @@ export function strayOutputs(json, opts = {}) {
     if (copiedFrom.has(f)) copied.push({ file: f, from: copiedFrom.get(f) }); else seen.add(f);
   }
   return { stray: [...seen].sort(), copied, dirs: dirs.map((d) => d.abs) };
-}
-
-/**
- * Finds byte-identical copies among installed package files and among the project's own files. Files are
- * indexed by size first, and hashed only when a size matches, so a few stray files don't cost a hash of
- * every installed file.
- */
-function copyFinder({ root, bases, outDirs }) {
-  const hashes = new Map();
-  const hashOf = (f) => { if (!hashes.has(f)) { try { hashes.set(f, sha(readFileSync(f))); } catch { hashes.set(f, null); } } return hashes.get(f); };
-  const index = (start, skip) => {
-    const bySize = new Map();
-    const walk = (dir) => {
-      let entries;
-      try { entries = readdirSync(dir, { withFileTypes: true }); } catch { return; }
-      for (const e of entries) {
-        const p = join(dir, e.name);
-        if (e.isDirectory()) { if (!skip(e.name, p)) walk(p); continue; }
-        if (!JS.test(e.name)) continue;
-        let size; try { size = statSync(p).size; } catch { continue; }
-        if (!bySize.has(size)) bySize.set(size, []);
-        bySize.get(size).push(p);
-      }
-    };
-    for (const s of start) walk(s);
-    return bySize;
-  };
-  const match = (bySize, buf) => { const h = sha(buf); return (bySize.get(buf.length) ?? []).find((f) => hashOf(f) === h); };
-  let installed = null, project = null;
-  const outs = new Set(outDirs.map((d) => resolve(d)));
-  // node_modules also holds tool folders (.cache, .vite, .bin): only the package stores among them hold packages
-  const notPackages = (name, p) => name.startsWith('.') && name !== '.pnpm' && name !== '.bun' && dirname(p).endsWith('node_modules');
-  return {
-    installed: (buf) => match(installed ??= index(bases.map((b) => join(b, 'node_modules')), notPackages), buf),
-    // the outermost base is the workspace root (or the project itself): its own files, minus what was installed or built
-    project: (buf) => match(project ??= index([bases.at(-1) ?? root], (name, p) => name === 'node_modules' || name === '.git' || outs.has(resolve(p))), buf),
-  };
 }
 
 /**

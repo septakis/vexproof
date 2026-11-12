@@ -90,6 +90,16 @@ export default function vexproof({ output = 'vexproof-modules.json', includeServ
           inputs[k] = { bytesInOutput: (inputs[k]?.bytesInOutput ?? 0) + bytes };
         }
       }
+      // A worker is bundled on its own and handed to this build as a finished file. The worker's build can't
+      // know where that file will land (SvelteKit writes elsewhere than build.outDir), so it was recorded
+      // under a guess. This build knows: move the record to where it puts the file.
+      for (const item of Object.values(bundle)) {
+        if (item.type !== 'asset' || !/\.(m|c)?js$/.test(item.fileName)) continue;
+        const key = dir ? toPosix(relative(root, join(dir, item.fileName))) : item.fileName;
+        if (rec.outputs[key]) continue;
+        const from = Object.keys(rec.outputs).find((k) => k === item.fileName || k.endsWith(`/${item.fileName}`));
+        if (from) { rec.outputs[key] = rec.outputs[from]; delete rec.outputs[from]; }
+      }
     },
     closeBundle() {
       const { file, rec } = record();

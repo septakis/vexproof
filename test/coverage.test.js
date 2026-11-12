@@ -21,6 +21,8 @@ const project = (files = {}) => {
   return root;
 };
 const rel = (root, files) => files.map((f) => relative(root, f).split(sep).join('/'));
+// a file counts as the project's own only when git tracks it
+const track = (root, ...paths) => { spawnSync('git', ['init', '-q'], { cwd: root }); assert.equal(spawnSync('git', ['add', ...paths], { cwd: root }).status, 0); };
 const map = (sources) => JSON.stringify({ version: 3, sources, mappings: '' });
 
 test('Vite plugin map: a recorded output folder that is not here is a refusal, not a pass', () => {
@@ -85,8 +87,11 @@ test('a file the module map does not record is accounted for on its own, or name
     'dist/sw.js': 'function s(){}\n//# sourceMappingURL=sw.js.map',
     'dist/sw.js.map': map(['../node_modules/workbox-core/core.js', '../node_modules/ghost/src/x.ts', '../src/sw.ts']),
     'dist/mystery.js': 'function who(){ return 3 }',
+    'lib-dist/prebuilt.js': 'function bundled(){ return 4 }', // another build's output: in the project folder, not tracked
+    'dist/prebuilt.js': 'function bundled(){ return 4 }',
   });
-  const stray = ['assets/pdf.worker-abc.mjs', 'migrate.js', 'uses.js', 'empty.js', 'manifest.js', 'sw.js', 'mystery.js'].map((f) => join(root, 'dist', f));
+  track(root, 'public', 'src');
+  const stray = ['assets/pdf.worker-abc.mjs', 'migrate.js', 'uses.js', 'empty.js', 'manifest.js', 'sw.js', 'mystery.js', 'prebuilt.js'].map((f) => join(root, 'dist', f));
   const { accounted, unknown } = accountFor(stray, { root, outDirs: [join(root, 'dist')] });
   const by = Object.fromEntries(accounted.map((a) => [a.file, a]));
   assert.deepEqual([by['dist/assets/pdf.worker-abc.mjs'].kind, by['dist/assets/pdf.worker-abc.mjs'].adds], ['copy', ['node_modules/pdfjs-dist/build/pdf.worker.mjs']]);
@@ -96,7 +101,7 @@ test('a file the module map does not record is accounted for on its own, or name
   assert.equal(by['dist/sw.js'].kind, 'mapped');
   assert.deepEqual(by['dist/sw.js'].adds, ['node_modules/workbox-core/core.js', 'node_modules/ghost/src/x.ts', 'src/sw.ts']);
   assert.deepEqual(by['dist/sw.js'].whole, ['ghost']); // named by the map, not installed: present, but no file of it can be checked
-  assert.deepEqual(unknown.map((u) => u.file), ['dist/mystery.js']);
+  assert.deepEqual(unknown.map((u) => u.file), ['dist/mystery.js', 'dist/prebuilt.js']); // a copy of an untracked file may be a bundle
   assert.match(unknown[0].why, /no bundler recorded it/);
 });
 
@@ -127,6 +132,14 @@ test('server check: a Node module loaded behind a test does not make a folder a 
   assert.equal(readDeployment(['out'], { root: client }).hasServer, false);
   const server = project({ 'out/server.mjs': 'import "node:http"; function s(){}\n//# sourceMappingURL=server.mjs.map', 'out/server.mjs.map': map([]) });
   assert.equal(readDeployment(['out'], { root: server }).hasServer, true);
+});
+
+test('--deploy: a file the project tracks may be deployed as it is; an untracked copy may not', () => {
+  const sw = 'self.addEventListener("install", function () { self.skipWaiting() })';
+  const root = project({ 'public/sw.js': sw, 'cache/sw.js': sw, 'out/public/sw.js': sw });
+  assert.deepEqual(readDeployment(['out'], { root }).unmapped, ['out/public/sw.js']); // not a git checkout: nothing is known to be the project's own
+  track(root, 'public');
+  assert.deepEqual(readDeployment(['out'], { root }).unmapped, []);
 });
 
 test('CLI: a copied package file counts as shipped; the same map read from another folder is refused', () => {

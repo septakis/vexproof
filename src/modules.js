@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Which files of each npm package survived into the shipped output.
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, posix } from 'node:path';
 // Sources: esbuild metafile (esbuild, Bun, Angular 17+ `ng build --stats-json`)
 //          webpack or Rspack stats JSON (`webpack --json=stats.json`)
 //          vexproof-modules.json from the vexproof/vite plugin (Vite 7/8, Rollup)
@@ -31,6 +31,7 @@ export function detectModuleFormat(json) {
   if (json && typeof json.outputs === 'object' && typeof json.inputs === 'object') return 'esbuild-metafile';
   if (json && Array.isArray(json.modules)) return 'webpack-stats';
   if (json && Array.isArray(json.children) && json.children.some((c) => Array.isArray(c.modules))) return 'webpack-stats';
+  if (json && Array.isArray(json.chunks) && json.chunks.some((c) => Array.isArray(c.modules))) return 'webpack-stats'; // Angular's webpack-based builder
   throw new Error('Unrecognised module map (expected vexproof-modules.json, an esbuild or bun build metafile, Angular stats.json, or webpack stats JSON)');
 }
 
@@ -113,6 +114,30 @@ function fromEsbuild(meta) {
   return { map, graph: graphFrom(edges, shipped), own };
 }
 
+const CONCATENATED = / \+ (\d+) modules?$/;
+
+/**
+ * Rspack 2.0 names some members of a concatenated module after the concatenation itself
+ * ("./a/index.js + 15 modules" for a/Trans.js): inside the root's member list, and again as orphan entries of
+ * their own. The member's real file is in nameForCondition. Such an entry has the label and no members, and is
+ * either inside a member list (concatenations don't nest) or an orphan in no chunk. A root whose members were
+ * left out is neither, so it is still caught.
+ */
+const mislabelled = (m, nested) => CONCATENATED.test(m.name ?? '') && !(m.modules?.length) && typeof m.nameForCondition === 'string'
+  && (nested || Boolean(m.orphan && !(m.chunks?.length)));
+
+/** Module lists of a stats file: its own, per chunk (Angular's webpack-based builder keeps them only there), and the same for child compilations. */
+function moduleLists(stats) {
+  const lists = [];
+  const take = (s, where) => {
+    if (Array.isArray(s.modules)) lists.push({ modules: s.modules, where });
+    for (const c of s.chunks ?? []) if (Array.isArray(c.modules)) lists.push({ modules: c.modules, where: `${where}, chunk ${c.names?.[0] ?? c.id}`, filtered: c.filteredModules });
+  };
+  take(stats, 'modules');
+  for (const c of stats.children ?? []) take(c, 'child');
+  return lists;
+}
+
 /**
  * Stats JSON can silently leave modules out: a size limit (filteredModules), grouped or filtered children
  * (filteredChildren), or a concatenated module ("./x.js + 190 modules") whose members are not listed. Any of
@@ -120,23 +145,23 @@ function fromEsbuild(meta) {
  */
 export function webpackStatsGaps(stats) {
   const gaps = [];
-  const check = (mods, where) => {
+  const check = (mods, where, nested) => {
     for (const m of mods ?? []) {
       // the bundler's own runtime (chunk loading, module registry) never comes from node_modules
       if ((m.filteredChildren ?? 0) > 0 && m.type !== 'runtime modules') gaps.push(`${where}: ${m.filteredChildren} modules filtered out of "${m.name ?? m.type}"`);
-      const n = /\+ (\d+) modules?$/.exec(m.name ?? '');
-      if (n) {
+      const n = CONCATENATED.exec(m.name ?? '');
+      if (n && !mislabelled(m, nested)) {
         const listed = (m.modules ?? []).filter((x) => x.name).length;
         if (listed < Number(n[1])) gaps.push(`"${m.name}" lists ${listed} of its ${n[1]} concatenated modules`);
       }
-      check(m.modules, where);
+      check(m.modules, where, true);
     }
   };
   if ((stats.filteredModules ?? 0) > 0) gaps.push(`${stats.filteredModules} modules filtered out (modulesSpace limit)`);
-  check(stats.modules, 'modules');
-  for (const c of stats.children ?? []) {
-    if ((c.filteredModules ?? 0) > 0) gaps.push(`${c.filteredModules} modules filtered out of a child compilation`);
-    check(c.modules, 'child');
+  for (const c of stats.children ?? []) if ((c.filteredModules ?? 0) > 0) gaps.push(`${c.filteredModules} modules filtered out of a child compilation`);
+  for (const l of moduleLists(stats)) {
+    if ((l.filtered ?? 0) > 0) gaps.push(`${l.filtered} modules filtered out of ${l.where}`);
+    check(l.modules, l.where, false);
   }
   return gaps;
 }
@@ -146,17 +171,40 @@ function fromWebpack(stats) {
   if (gaps.length) {
     throw new Error(
       `This stats file leaves modules out, so shipped code could look absent: ${gaps.slice(0, 3).join('; ')}. ` +
-      `Use the VexproofPlugin from 'vexproof/webpack' (required for Rspack, whose --json flag ignores stats options), ` +
-      `or set stats { modules, nestedModules, orphanModules: true, modulesSpace: Infinity, nestedModulesSpace: Infinity }.`
+      (stats.vexproofBundler
+        ? `It was written by the VexproofPlugin under ${stats.vexproofBundler}, so this is the bundler's doing: try a newer release of it.`
+        : `Use the VexproofPlugin from 'vexproof/webpack' (required for Rspack, whose --json flag ignores stats options), ` +
+          `or set stats { modules, nestedModules, orphanModules: true, modulesSpace: Infinity, nestedModulesSpace: Infinity }.`)
     );
   }
+  const lists = moduleLists(stats);
   const map = new Map(), shipped = new Set(), edges = [], own = new Set();
+
+  // The project folder as the bundler saw it: what a relative module name leaves off its absolute path.
+  let context;
+  const findContext = (mods) => {
+    for (const m of mods ?? []) {
+      const name = String(m.name ?? ''), abs = typeof m.nameForCondition === 'string' ? m.nameForCondition.replace(/\\/g, '/') : '';
+      if (name.startsWith('./') && !CONCATENATED.test(name) && abs.endsWith(name.slice(1))) return abs.slice(0, abs.length - name.length + 1);
+      const below = findContext(m.modules);
+      if (below) return below;
+    }
+    return null;
+  };
+  const realName = (m) => {
+    const abs = m.nameForCondition.replace(/\\/g, '/');
+    if (context === undefined) { context = null; for (const l of lists) { context = findContext(l.modules); if (context) break; } }
+    if (!context) return abs;
+    const rel = posix.relative(context, abs);
+    return rel.startsWith('.') ? rel : `./${rel}`;
+  };
+
   const visit = (mods, parentIncluded) => {
     for (const m of mods ?? []) {
       const included = parentIncluded || (Array.isArray(m.chunks) && m.chunks.length > 0);
       if (!included || m.orphan && !parentIncluded) { visit(m.modules, false); continue; }
       // concatenated roots are named "./x.js + 12 modules"; their members arrive via m.modules
-      const name = String(m.name ?? m.identifier ?? '').replace(/ \+ \d+ modules?$/, '');
+      const name = parentIncluded && mislabelled(m, true) ? realName(m) : String(m.name ?? m.identifier ?? '').replace(CONCATENATED, '');
       add(map, name);
       shipped.add(name);
       if (name && outsideNodeModules(name)) own.add(moduleKey(name));
@@ -164,8 +212,7 @@ function fromWebpack(stats) {
       visit(m.modules, true);
     }
   };
-  if (Array.isArray(stats.modules)) visit(stats.modules, false);
-  for (const c of stats.children ?? []) visit(c.modules, false);
+  for (const l of lists) visit(l.modules, false);
   return { map, graph: graphFrom(edges, shipped), own };
 }
 

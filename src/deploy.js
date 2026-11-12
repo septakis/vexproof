@@ -18,10 +18,10 @@
 // the package's original sources, so file-level claims can't be checked against the files that shipped.
 import { readdirSync, readFileSync, statSync, existsSync, realpathSync } from 'node:fs';
 import { join, dirname, resolve, relative, basename, sep } from 'node:path';
-import { createHash } from 'node:crypto';
 import { builtinModules } from 'node:module';
 import { parse } from 'acorn';
 import { splitNodeModulesPath } from './modules.js';
+import { copyFinder } from './copies.js';
 
 const JS = /\.(m|c)?js$/;
 const posix = (p) => p.split(sep).join('/');
@@ -149,6 +149,32 @@ function packageMapIndex(root, bases) {
 // inline callbacks. Their runtime imports are still checked.
 export const isGlue = (code) => !/\bfunction\b/.test(code) && (code.match(/=>/g) ?? []).length <= 2;
 
+const RUNTIME_ALIASES = ['Object.create', 'Object.defineProperty', 'Object.getOwnPropertyDescriptor', 'Object.getOwnPropertyNames', 'Object.getPrototypeOf', 'Object.prototype.hasOwnProperty'];
+
+/**
+ * Chunks a bundler writes for itself. They get no source map, because no source file is behind them:
+ *   - Rolldown's runtime, the helpers that define modules and convert between module formats, which Vite 8
+ *     splits into a chunk of its own: one `var` statement of Object.* aliases and functions, then an export list;
+ *   - Vite's preload helper, which loads a lazy chunk's CSS and dependencies ahead of it.
+ * Recognised narrowly, by shape and content, because a file taken for one of these is taken to hold no package
+ * code. Anything that doesn't fit stays an unmapped file, and is refused.
+ */
+export function isBundlerRuntime(code, specs) {
+  if (code.length > 4096 || !specs || specs.size) return false; // small, and loads nothing
+  if (code.includes('modulepreload') && code.includes('Unable to preload CSS for')) return true;
+  let ast;
+  try { ast = parse(code, { ecmaVersion: 'latest', sourceType: 'module' }); } catch { return false; }
+  const [decl, exp] = ast.body;
+  if (ast.body.length !== 2 || decl.type !== 'VariableDeclaration' || exp.type !== 'ExportNamedDeclaration' || exp.source || exp.declaration) return false;
+  const aliases = new Set();
+  for (const d of decl.declarations) {
+    const init = d.init;
+    if (init?.type === 'MemberExpression') aliases.add(code.slice(init.start, init.end));
+    else if (init?.type !== 'ArrowFunctionExpression' && init?.type !== 'FunctionExpression') return false;
+  }
+  return aliases.size === RUNTIME_ALIASES.length && RUNTIME_ALIASES.every((a) => aliases.has(a));
+}
+
 /**
  * Module specifiers a bundled file loads at runtime: static and dynamic imports, re-exports, and require()
  * calls with a string argument. Parsed, not pattern-matched, so examples in comments and strings don't count.
@@ -268,17 +294,8 @@ export function readDeployment(dirs, { root = process.cwd(), mapDirs = [], lockN
   } };
   for (const d of dirs) findNodeModules(resolve(root, d));
 
-  // installed files by content, to recognise unmapped copies of package files (polyfills, runtimes)
-  let byHash = null;
-  const installedCopy = (code) => {
-    if (!byHash) {
-      byHash = new Map();
-      for (const f of bases.flatMap((b) => walk(resolve(b, 'node_modules')))) if (JS.test(f)) {
-        try { byHash.set(createHash('sha256').update(readFileSync(f)).digest('hex'), posix(relative(root, f))); } catch { /* unreadable */ }
-      }
-    }
-    return byHash.get(createHash('sha256').update(code).digest('hex'));
-  };
+  // byte-identical copies of installed package files (polyfills, runtimes), and of files the project tracks
+  const copies = copyFinder({ root, bases, outDirs: absDirs });
 
   const unmapped = [], missingRuntime = [], unparsed = [], unattributed = [];
   let pkgMaps = null;
@@ -288,7 +305,8 @@ export function readDeployment(dirs, { root = process.cwd(), mapDirs = [], lockN
     const rel = posix(relative(root, f));
     if (/(^|\/)node_modules\//.test(rel)) { if (!f.endsWith('.map')) { add(rel); copied++; } continue; }
     if (!JS.test(f)) continue;
-    const code = readFileSync(f, 'utf8');
+    const buf = readFileSync(f);
+    const code = buf.toString('utf8');
     const specs = loadedSpecifiers(code);
     if (!specs) { unparsed.push(rel); continue; }
     if (usesNodeBuiltins(specs)) serverCode++;
@@ -314,9 +332,11 @@ export function readDeployment(dirs, { root = process.cwd(), mapDirs = [], lockN
       }
       continue;
     }
-    const copy = installedCopy(code);
-    if (copy) { add(copy); continue; }
-    if (isGlue(code)) continue;
+    const copy = copies.installed(buf);
+    if (copy) { add(posix(relative(root, copy))); continue; }
+    if (isGlue(code) || isBundlerRuntime(code, specs)) continue;
+    // a file of the project's own, deployed as it is (public/sw.js): what it loads by name was checked above
+    if (copies.project(buf)) continue;
     unmapped.push(rel);
   }
 

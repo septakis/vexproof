@@ -13,7 +13,7 @@ const STATS = {
   modules: true,
   nestedModules: true,
   orphanModules: true,
-  runtimeModules: false,
+  runtimeModules: true, // so a chunk that holds only the runtime is not mistaken for one whose contents are unknown
   ids: true,
   reasons: true, // who imports each module: lets a reviewed decision tell when new code starts using a vulnerable file
   chunks: false,

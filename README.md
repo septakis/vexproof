@@ -51,7 +51,7 @@ findings        npm audit --json · pnpm audit --json · yarn audit --json · ya
 module map      Vite 7/8, Rollup:  plugins: [vexproof()]  from 'vexproof/vite'  → vexproof-modules.json
                 server-rendered:   --deploy <deployment folder> (with source maps on)
                 webpack, Rspack:   plugins: [new VexproofPlugin()]  from 'vexproof/webpack'
-                Angular 17+:       ng build --stats-json        → dist/<app>/stats.json
+                Angular 17+:       ng build --stats-json        → stats.json or browser-stats.json in the output folder
                 esbuild:           metafile: true               → meta.json
                 bun build:         --metafile=meta.json
 bundle SBOM     optional: with --modules, vexproof lists the bundle's packages from the module map
@@ -83,7 +83,8 @@ holds a package's code:
 - it has a source map beside it (a service worker written by workbox): the map's sources shipped;
 - it is an unmodified copy of an installed file (a package file imported with `?url`, or copied by a
   plugin), or webpack recorded where it was copied from: that file shipped;
-- it is an unmodified copy of one of your own files (from `public/`), or holds no functions at all.
+- it is an unmodified copy of a file git tracks in your project (from `public/`), or holds no
+  functions at all. An untracked file doesn't count: it may be another build's output.
   A package such a file imports by name counts as shipped.
 
 Any other file stops the run, named with the reason. So does an output folder that can't be found:
