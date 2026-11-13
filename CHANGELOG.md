@@ -7,6 +7,16 @@ public API, so a breaking change to either is a major release.
 ## [Unreleased]
 
 ### Fixed
+Two more ways a run could report `not_affected` for code that ships. Both come from a package store that keeps
+packages in a dot folder of `node_modules`, where vexproof took the dot folder for the package:
+- Yarn with `nodeLinker: pnpm` installs to `node_modules/.store/<name>-npm-<version>-<hash>/package/`, and
+  bundlers name modules by that path. Every package in such a build counted as absent. They are read now, by
+  the name in their `package.json`; a store folder whose package can't be named stops the run.
+- Nitro (Nuxt) deploys a package the server needs in two versions under
+  `.output/server/node_modules/.nitro/<name>@<version>/` and links one of them from the top level. `--deploy`
+  does not follow links, so such a package counted as absent unless a source map also named it. Each folder
+  is now read as that package at that version.
+
 - A file in the build output counted as the project's own if any file in the project folder matched it byte
   for byte, including another build's output: a prebuilt bundle copied into the output could pass with the
   packages inside it unseen. Only files git tracks count now; outside a git checkout none do.
@@ -30,6 +40,11 @@ public API, so a breaking change to either is a major release.
   told from one whose contents are unknown.
 - Finding copies of installed files no longer hashes all of `node_modules`: files are compared by size first.
   `--deploy` runs that took one to two minutes for this reason take well under one.
+- The package count in "contents taken from …" counts each package version once. It used to count a version
+  once per place it was found, so a deployment could show a third more packages than it has. The
+  `vexproof:bundleComponentCount` property in the VEX changes with it.
+- Shipped code under any other dot folder of `node_modules` (`.cache`, `.prisma`) is no longer listed as a
+  package of that name, and a line says that it counts for none.
 
 ## [1.0.0-beta.7] - 2026-11-11
 

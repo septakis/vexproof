@@ -6,13 +6,65 @@ import { join, posix } from 'node:path';
 //          webpack or Rspack stats JSON (`webpack --json=stats.json`)
 //          vexproof-modules.json from the vexproof/vite plugin (Vite 7/8, Rollup)
 
-/** "./node_modules/a/node_modules/@s/pkg/lib/x.js" -> { name:"@s/pkg", root:"node_modules/a/node_modules/@s/pkg", file:"lib/x.js" } */
+const UNNAMED = '.store/';
+const storeNames = new Map(); // Yarn store folder -> the package in it, once attachVersions has read its package.json
+
+/** Packages in Yarn's store whose name could not be read: nothing can be said about them, so a run must stop. */
+export const unnamedStorePackages = (moduleMap) => [...moduleMap.packages].filter(([n]) => n.startsWith(UNNAMED)).flatMap(([, e]) => [...e.roots]);
+
+/**
+ * "@a-b-c-npm-1.0.0-<hash>" is @a/b-c or @a-b/c, so the name comes from the package.json inside; the folder
+ * name is used only when that can't be read and leaves no doubt.
+ */
+function nameFromYarnStore(folder) {
+  const m = /^(.+)-npm-\d[^/]*-[0-9a-f]{10}$/.exec(folder);
+  if (!m) return undefined;
+  if (!m[1].startsWith('@')) return m[1];
+  const parts = m[1].split('-');
+  return parts.length === 2 ? parts.join('/') : undefined;
+}
+
+function nameStorePackages(moduleMap, cwd, read) {
+  for (const [key, entry] of [...moduleMap.packages]) {
+    if (!key.startsWith(UNNAMED)) continue;
+    const folder = key.slice(UNNAMED.length);
+    let name;
+    for (const root of entry.roots) { try { name = read(join(cwd, root, 'package.json')).name; } catch { /* not installed here */ } if (name) break; }
+    name ??= nameFromYarnStore(folder);
+    if (typeof name !== 'string' || !name || name.startsWith('.')) continue;
+    storeNames.set(folder, name);
+    moduleMap.packages.delete(key);
+    if (!moduleMap.packages.has(name)) moduleMap.packages.set(name, { roots: new Set(), files: new Set(), byRoot: new Map() });
+    const to = moduleMap.packages.get(name);
+    for (const r of entry.roots) to.roots.add(r);
+    for (const f of entry.files) to.files.add(f);
+    for (const [r, fs] of entry.byRoot ?? []) { if (!to.byRoot.has(r)) to.byRoot.set(r, new Set()); for (const f of fs) to.byRoot.get(r).add(f); }
+    if (moduleMap.whole?.delete(key)) moduleMap.whole.add(name);
+  }
+}
+
+/** "./node_modules/a/node_modules/@s/pkg/lib/x.js" ->{ name:"@s/pkg", root:"node_modules/a/node_modules/@s/pkg", file:"lib/x.js" } */
 export function splitNodeModulesPath(p) {
   // drop webpack loader prefixes ("babel-loader!./x") and query strings first, then the leading "./"
   const path = String(p).replace(/\\/g, '/').replace(/^.*!/, '').replace(/\?.*$/, '').replace(/^\.\//, '');
   const idx = path.lastIndexOf('node_modules/');
   if (idx < 0) return null;
   const rest = path.slice(idx + 'node_modules/'.length).split('/');
+  // Two stores keep packages in a dot folder, where the folder after node_modules is not the package:
+  //   Nitro  .nitro/<name>@<version>/<file>                              each version a server needs (Nuxt)
+  //   Yarn   .store/<name>-<protocol>-<version>-<hash>/package/<file>    nodeLinker: pnpm
+  const before = path.slice(0, idx) + 'node_modules/';
+  if (rest[0] === '.nitro') {
+    const n = rest[1]?.startsWith('@') ? 2 : 1;
+    const at = (rest[n] ?? '').lastIndexOf('@');
+    const file = rest.slice(n + 1).join('/');
+    if (at > 0 && file) return { name: [...rest.slice(1, n), rest[n].slice(0, at)].join('/'), root: before + rest.slice(0, n + 1).join('/'), file };
+  }
+  if (rest[0] === '.store' && rest[1] && rest[2] === 'package') {
+    // the folder doesn't spell the name unambiguously; until attachVersions reads it, the folder stands in for it
+    const file = rest.slice(3).join('/');
+    return file ? { name: storeNames.get(rest[1]) ?? `${UNNAMED}${rest[1]}`, root: before + rest.slice(0, 3).join('/'), file } : null;
+  }
   const nameParts = rest[0]?.startsWith('@') ? rest.slice(0, 2) : rest.slice(0, 1);
   if (!nameParts.length || nameParts.some((s) => !s)) return null;
   const name = nameParts.join('/');
@@ -56,12 +108,18 @@ const outsideNodeModules = (path) => !/(^|\/)node_modules\//.test(String(path).r
  *   pnpm  node_modules/.pnpm/<name>@<version>[_peers|(peers)]/node_modules/<name>   (scope "/" → "+")
  *   Bun   node_modules/.bun/<name>@<version>[+hash]/node_modules/<name>              (scope "/" → "+")
  *   Yarn  yarn-cache/<name>-npm-<version>-<hash>-<key>.zip/node_modules/<name>       (scope "/" → "-")
+ *   Yarn  node_modules/.store/<name>-npm-<version>-<hash>/package                    (nodeLinker: pnpm)
+ *   Nitro node_modules/.nitro/<name>@<version>
  * The version is returned only when the name in the path matches the package.
  */
 export function versionFromStorePath(root, name) {
   let m = /(?:^|\/)\.(?:pnpm|bun)\/((?:@[^/@]+\+)?[^/@]+)@([^/_(+]+)/.exec(root);
   if (m && m[1].replace('+', '/') === name) return m[2];
   m = /(?:^|\/)([^/]+)-npm-(.+?)-[0-9a-f]{10}-[0-9a-z]{1,8}\.zip\//.exec(root);
+  if (m && m[1] === name.replace('/', '-')) return m[2];
+  m = /(?:^|\/)\.nitro\/((?:@[^/@]+\/)?[^/@]+)@([^/]+)$/.exec(root);
+  if (m && m[1] === name) return m[2];
+  m = /(?:^|\/)\.store\/([^/]+)-npm-(\d[^/]*)-[0-9a-f]{10}\/package$/.exec(root);
   if (m && m[1] === name.replace('/', '-')) return m[2];
   return undefined;
 }
@@ -73,6 +131,7 @@ export const versionFromPnpmPath = versionFromStorePath; // v0.6 name
  */
 export function attachVersions(moduleMap, { cwd = process.cwd(), readJson } = {}) {
   const read = readJson ?? ((p) => JSON.parse(readFileSync(p, 'utf8')));
+  nameStorePackages(moduleMap, cwd, read);
   for (const [name, entry] of moduleMap.packages) {
     entry.versionByRoot = new Map();
     for (const root of entry.roots) {
@@ -239,15 +298,22 @@ export function bundleSbomFromModules(moduleMap, { lockfileSbom = null, cwd = pr
     if (!lockVersions.has(name)) lockVersions.set(name, new Set());
     lockVersions.get(name).add(m[2]);
   }
-  const components = [];
+  const unnamed = unnamedStorePackages(moduleMap);
+  if (unnamed.length) throw new Error(`Can't tell which package is in ${unnamed[0]}${unnamed.length > 1 ? ` (and ${unnamed.length - 1} more)` : ''}: its package.json could not be read`);
+  const components = [], seen = new Set();
   for (const [name, entry] of moduleMap.packages) {
+    // a dot folder in node_modules that is not a package store (.cache, .prisma): no npm package is named like that
+    if (name.startsWith('.')) continue;
     for (const root of entry.roots) {
       let version = entry.versionByRoot?.get(root);
       if (!version) try { version = read(join(cwd, root, 'package.json')).version; } catch { /* not installed here */ }
       version ??= versionFromStorePath(root, name);
       if (!version && lockVersions.get(name)?.size === 1) version = [...lockVersions.get(name)][0];
       const enc = name.startsWith('@') ? `%40${name.slice(1)}` : name;
-      components.push({ type: 'library', name, ...(version ? { version } : {}), purl: `pkg:npm/${enc}${version ? '@' + version : ''}` });
+      const purl = `pkg:npm/${enc}${version ? '@' + version : ''}`;
+      if (seen.has(purl)) continue; // one copy linked from two places, or two copies of one version
+      seen.add(purl);
+      components.push({ type: 'library', name, ...(version ? { version } : {}), purl });
     }
   }
   return { bomFormat: 'CycloneDX', specVersion: '1.6', version: 1, metadata: { tools: { components: [{ type: 'application', name: 'vexproof', description: `derived from ${moduleMap.format}` }] } }, components };

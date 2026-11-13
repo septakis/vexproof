@@ -240,7 +240,7 @@ lodash advisories safe; vexproof settles one and keeps the two whose code ships 
 
 When a package ships more than once (pnpm stores and npm nested installs both do this), vexproof reads
 each copy's version from its installed `package.json`, or from the store path (pnpm `.pnpm/`, Bun
-`.bun/`, the Yarn cache zip under Plug'n'Play), and checks a finding
+`.bun/`, Yarn's cache zip under Plug'n'Play or its `.store/` folder, Nitro's `.nitro/`), and checks a finding
 only against the files of the copy at the vulnerable version. A vulnerable file shipping from a fixed
 copy doesn't block the verdict; one shipping from the vulnerable copy always does. The VEX statement and
 the report name the copy that was checked.
@@ -460,11 +460,13 @@ real builds, slimmed down:
 | npm | hoisted, nested | `npm audit --json` | `package.json` |
 | pnpm | isolated store | `pnpm audit --json` | `package.json`, `.pnpm/` path |
 | Yarn 1 | hoisted | `yarn audit --json` | `package.json` |
-| Yarn 4 | node-modules, Plug'n'Play | `yarn npm audit --json --recursive` | `package.json`, cache zip name |
+| Yarn 4 | node-modules, Plug'n'Play, pnpm | `yarn npm audit --json --recursive` | `package.json`, cache zip name, `.store/` path |
 | Bun | hoisted, isolated | `bun audit --json` | `package.json`, `.bun/` path |
 
 Under Plug'n'Play, Vite sees packages inside Yarn's zip cache and through `__virtual__` paths; vexproof
-folds both onto one copy per package version. `bun audit` gives no installed version, so vexproof
+folds both onto one copy per package version. With `nodeLinker: pnpm`, packages sit in
+`node_modules/.store/<name>-npm-<version>-<hash>/package/`; the folder name doesn't always spell the package
+name, so vexproof takes it from the `package.json` inside and stops if it can't. `bun audit` gives no installed version, so vexproof
 takes every version of the package in the lockfile SBOM and keeps the ones inside the advisory's range.
 
 `e2e-gitea/` is a full run on Gitea's Vite 8 frontend.

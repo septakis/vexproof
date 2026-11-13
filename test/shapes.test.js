@@ -6,8 +6,11 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname, relative, sep } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import vexproof from '../src/vite.js';
-import { readModuleMap, webpackStatsGaps } from '../src/modules.js';
+import { readModuleMap, webpackStatsGaps, attachVersions, bundleSbomFromModules, unnamedStorePackages, splitNodeModulesPath } from '../src/modules.js';
+import { triage } from '../src/index.js';
 import { strayOutputs } from '../src/coverage.js';
 import { isBundlerRuntime, loadedSpecifiers, readDeployment } from '../src/deploy.js';
 
@@ -101,4 +104,83 @@ test('Vite plugin: a worker chunk recorded under a guessed folder moves to where
   const out = JSON.parse(readFileSync(join(root, 'mm.json'), 'utf8'));
   assert.deepEqual(Object.keys(out.outputs).sort(), ['.svelte-kit/output/client/entry.js', '.svelte-kit/output/client/workers/hash-abc.js']);
   assert.deepEqual(files(readModuleMap(out), 'noble'), ['sha.js']);
+});
+
+// Two stores keep packages in a dot folder of node_modules, where the folder after node_modules is not the package.
+
+test('Nitro: each version under node_modules/.nitro/<name>@<version> is that package, at that version', () => {
+  const pkg = (name, version) => JSON.stringify({ name, version });
+  const root = project({
+    '.output/server/index.mjs': 'import "node:http";',
+    '.output/server/node_modules/devalue/package.json': pkg('devalue', '5.8.1'), // Nitro links one version at the top
+    '.output/server/node_modules/devalue/index.js': 'export const a = () => 1;',
+    '.output/server/node_modules/.nitro/devalue@5.8.1/package.json': pkg('devalue', '5.8.1'),
+    '.output/server/node_modules/.nitro/devalue@5.8.1/index.js': 'export const a = () => 1;',
+    '.output/server/node_modules/.nitro/devalue@5.6.4/package.json': pkg('devalue', '5.6.4'),
+    '.output/server/node_modules/.nitro/devalue@5.6.4/src/parse.js': 'export const b = () => 2;',
+    '.output/server/node_modules/.nitro/@vue/shared@3.5.30/package.json': pkg('@vue/shared', '3.5.30'),
+    '.output/server/node_modules/.nitro/@vue/shared@3.5.30/dist/shared.cjs.js': 'exports.c = () => 3;',
+    '.output/server/node_modules/.cache/tool/x.js': 'export const d = () => 4;', // a tool folder, not a package
+  });
+  const mm = attachVersions(readDeployment(['.output'], { root }), { cwd: root });
+  assert.ok(!mm.packages.has('.nitro'));
+  const devalue = mm.packages.get('devalue');
+  assert.deepEqual([...new Set(devalue.versionByRoot.values())].sort(), ['5.6.4', '5.8.1']);
+  assert.deepEqual([...devalue.byRoot.get('.output/server/node_modules/.nitro/devalue@5.6.4')].sort(), ['package.json', 'src/parse.js']);
+  assert.equal(mm.packages.get('@vue/shared').versionByRoot.get('.output/server/node_modules/.nitro/@vue/shared@3.5.30'), '3.5.30');
+  // each version once, and no component for a dot folder
+  const sbom = bundleSbomFromModules(mm, { cwd: root });
+  assert.deepEqual(sbom.components.map((c) => c.purl).sort(), ['pkg:npm/%40vue/shared@3.5.30', 'pkg:npm/devalue@5.6.4', 'pkg:npm/devalue@5.8.1']);
+  // the version is also read from the folder name, when the package.json isn't there
+  assert.deepEqual(splitNodeModulesPath('out/node_modules/.nitro/@vue/shared@3.5.30/dist/x.js'), { name: '@vue/shared', root: 'out/node_modules/.nitro/@vue/shared@3.5.30', file: 'dist/x.js' });
+  const bare = attachVersions(readModuleMap({ inputs: {}, outputs: { 'o.js': { inputs: { 'out/node_modules/.nitro/devalue@5.6.4/index.js': { bytesInOutput: 9 } } } } }), { cwd: root });
+  assert.equal(bare.packages.get('devalue').versionByRoot.get('out/node_modules/.nitro/devalue@5.6.4'), '5.6.4');
+  // a finding for the second version names it
+  const lock = { components: [{ purl: 'pkg:npm/devalue@5.6.4' }, { purl: 'pkg:npm/devalue@5.8.1' }] };
+  const [r] = triage({ lockfileSbom: lock, bundleSbom: sbom, findings: [{ purl: 'pkg:npm/devalue@5.6.4', id: 'GHSA-xxxx-xxxx-xxxx' }], moduleMap: mm });
+  assert.equal(r.state, 'in_triage');
+  assert.match(r.detail, /5\.6\.4/);
+});
+
+test("Yarn's pnpm linker: node_modules/.store/<folder>/package is the package its package.json names", () => {
+  const meta = (...folders) => ({ inputs: {}, outputs: { 'dist/app.js': { inputs: Object.fromEntries(folders.map((f) => [`node_modules/.store/${f}/package/index.js`, { bytesInOutput: 9 }])) } } });
+  const notInstalled = () => { throw new Error('ENOENT'); };
+
+  // not installed where vexproof runs: an unscoped folder name leaves no doubt, a scoped one with more dashes does
+  const mm = attachVersions(readModuleMap(meta('ms-npm-2.1.3-81ff3cfac1', '@a-b-npm-1.0.0-0000000001', '@a-b-c-npm-1.0.0-0000000002')), { readJson: notInstalled });
+  assert.equal(mm.packages.get('ms').versionByRoot.get('node_modules/.store/ms-npm-2.1.3-81ff3cfac1/package'), '2.1.3');
+  assert.deepEqual(files(mm, '@a/b'), ['index.js']);
+  assert.deepEqual(unnamedStorePackages(mm), ['node_modules/.store/@a-b-c-npm-1.0.0-0000000002/package']);
+  assert.throws(() => bundleSbomFromModules(mm, { readJson: notInstalled }), /Can't tell which package/);
+
+  // installed: the package.json decides, also where the folder name says nothing
+  const installed = { '@a-b-c-npm-1.0.0-0000000003': { name: '@a-b/c', version: '1.0.0' }, 'x-patch-1a2b3c4d5e-0000000004': { name: 'x', version: '3.1.0' } };
+  const readJson = (p) => { const hit = Object.entries(installed).find(([f]) => p.split(sep).join('/').includes(`/.store/${f}/package/`)); if (!hit) throw new Error('ENOENT'); return hit[1]; };
+  const named = attachVersions(readModuleMap(meta(...Object.keys(installed))), { readJson });
+  assert.deepEqual(unnamedStorePackages(named), []);
+  assert.deepEqual(bundleSbomFromModules(named, { readJson }).components.map((c) => c.purl).sort(), ['pkg:npm/%40a-b/c@1.0.0', 'pkg:npm/x@3.1.0']);
+  // once named, the same folder reads as that package everywhere
+  assert.equal(splitNodeModulesPath('node_modules/.store/@a-b-c-npm-1.0.0-0000000003/package/lib/y.js').name, '@a-b/c');
+});
+
+test("Yarn's pnpm linker, through the CLI: a bundled package is found, and one that can't be named stops the run", () => {
+  const CLI = fileURLToPath(new URL('../src/cli.js', import.meta.url));
+  const folder = '@my-org-pkg-npm-1.0.0-0000000005';
+  const root = project({
+    'dist/app.js': 'console.log(1);',
+    'meta.json': JSON.stringify({ inputs: {}, outputs: { 'dist/app.js': { inputs: { [`node_modules/.store/${folder}/package/index.js`]: { bytesInOutput: 9 }, 'app.js': { bytesInOutput: 5 } } } } }),
+    'bom.json': JSON.stringify({ bomFormat: 'CycloneDX', specVersion: '1.6', version: 1, components: [{ type: 'library', name: 'pkg', group: '@my-org', version: '1.0.0', purl: 'pkg:npm/%40my-org/pkg@1.0.0' }, { type: 'library', name: 'other', version: '2.0.0', purl: 'pkg:npm/other@2.0.0' }] }),
+    'findings.json': JSON.stringify([{ purl: 'pkg:npm/%40my-org/pkg@1.0.0', id: 'GHSA-xxxx-xxxx-xxxx' }]),
+  });
+  const run = () => spawnSync('node', [CLI, '--lockfile', 'bom.json', '--findings', 'findings.json', '--modules', 'meta.json', '--out', 'vex.json'], { cwd: root, encoding: 'utf8', env: { ...process.env, VEXPROOF_LICENSE: '' } });
+  const refused = run();
+  assert.equal(refused.status, 2);
+  assert.match(refused.stderr + refused.stdout, /can't be named/);
+  assert.ok((refused.stderr + refused.stdout).includes(`node_modules/.store/${folder}/package`));
+  mkdirSync(join(root, `node_modules/.store/${folder}/package`), { recursive: true });
+  writeFileSync(join(root, `node_modules/.store/${folder}/package/package.json`), JSON.stringify({ name: '@my-org/pkg', version: '1.0.0' }));
+  const ok = run();
+  assert.equal(ok.status, 0, ok.stderr);
+  const [v] = JSON.parse(readFileSync(join(root, 'vex.json'), 'utf8')).vulnerabilities;
+  assert.equal(v.analysis.state, 'in_triage');
 });

@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import { triage, toCycloneDxVex, summarize, VERSION, outputTime } from './index.js';
 import { fetchOsvFindings, readFindingsText, enrichAliases } from './sources.js';
 import { toOpenVex } from './openvex.js';
-import { readModuleMap, bundleSbomFromModules, attachVersions, addToMap, splitNodeModulesPath } from './modules.js';
+import { readModuleMap, bundleSbomFromModules, attachVersions, addToMap, splitNodeModulesPath, unnamedStorePackages } from './modules.js';
 import { strayOutputs, accountFor, addWorkspacePackages, CoverageError } from './coverage.js';
 import { recordReview, sameCause } from './review.js';
 import { attachFingerprints } from './evidence.js';
@@ -503,10 +503,21 @@ if (maps.length) {
   const workspace = addWorkspacePackages(merged, root);
   if (workspace.length) log(`vexproof: ${workspace.length} workspace package(s) bundled from source: ${workspace.slice(0, 6).join(', ')}${workspace.length > 6 ? ', …' : ''}`);
   moduleMap = attachVersions(merged, { cwd: root });
+  const unnamed = unnamedStorePackages(moduleMap);
+  if (unnamed.length) {
+    log(`vexproof: ${unnamed.length} shipped package folder(s) in Yarn's node_modules/.store can't be named, so their packages could look absent:`);
+    for (const r of unnamed.slice(0, 8)) log(`  ${r}`);
+    if (unnamed.length > 8) log(`  … and ${unnamed.length - 8} more`);
+    log('Run vexproof from the folder the build ran in, with node_modules installed, or pass --root.');
+    process.exit(2);
+  }
   if (!bundleSbom) {
     bundleSbom = bundleSbomFromModules(moduleMap, { lockfileSbom, cwd: root });
     log(`vexproof: ${deployment ? 'deployed' : 'bundle'} contents taken from the ${deployment ? 'deployment' : 'module map'} (${bundleSbom.components.length} packages)`);
   }
+  // .cache, .prisma and the like: said out loud, in case one of them is a package store vexproof doesn't know
+  const dotFolders = [...moduleMap.packages].filter(([n]) => n.startsWith('.')).flatMap(([, e]) => [...e.roots]);
+  if (dotFolders.length) log(`vexproof: shipped code under ${dotFolders.slice(0, 4).join(', ')}${dotFolders.length > 4 ? ', …' : ''} is counted for no package: a dot folder in node_modules is not one`);
 }
 let rules = proLib ? proLib.loadRules() : null;
 if (args.rules) {

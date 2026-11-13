@@ -34,7 +34,7 @@ export function copyFinder({ root, bases, outDirs = [] }) {
   const match = (bySize, buf) => { const h = sha(buf); return (bySize.get(buf.length) ?? []).find((f) => hashOf(f) === h); };
 
   // node_modules also holds tool folders (.cache, .vite, .bin): only the package stores among them hold packages
-  const notPackages = (name, p) => name.startsWith('.') && name !== '.pnpm' && name !== '.bun' && dirname(p).endsWith('node_modules');
+  const notPackages = (name, p) => name.startsWith('.') && !['.pnpm', '.bun', '.store'].includes(name) && dirname(p).endsWith('node_modules');
   const installedFiles = () => {
     const out = [];
     const walk = (dir) => {
