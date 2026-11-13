@@ -6,20 +6,24 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+## [1.0.0-beta.8] - 2026-11-12
+
 ### Fixed
-Two more ways a run could report `not_affected` for code that ships. Both come from a package store that keeps
-packages in a dot folder of `node_modules`, where vexproof took the dot folder for the package:
+Three ways a run could report `not_affected` for code that ships. Upgrade from any earlier version.
 - Yarn with `nodeLinker: pnpm` installs to `node_modules/.store/<name>-npm-<version>-<hash>/package/`, and
-  bundlers name modules by that path. Every package in such a build counted as absent. They are read now, by
-  the name in their `package.json`; a store folder whose package can't be named stops the run.
+  bundlers name modules by that path. vexproof took `.store` for the package, so every package in such a
+  build counted as absent. They are read now, by the name in their `package.json`; a store folder whose
+  package can't be named stops the run.
 - Nitro (Nuxt) deploys a package the server needs in two versions under
   `.output/server/node_modules/.nitro/<name>@<version>/` and links one of them from the top level. `--deploy`
   does not follow links, so such a package counted as absent unless a source map also named it. Each folder
   is now read as that package at that version.
-
 - A file in the build output counted as the project's own if any file in the project folder matched it byte
   for byte, including another build's output: a prebuilt bundle copied into the output could pass with the
-  packages inside it unseen. Only files git tracks count now; outside a git checkout none do.
+  packages inside it unseen. Only files git tracks count now; outside a git checkout none do. This one came
+  in with 1.0.0-beta.7.
+
+Builds that 1.0.0-beta.7 refused, found on four open-source apps:
 - Angular's webpack-based builder (`@angular-devkit/build-angular:browser`) writes its module list per chunk,
   and its stats file was refused as unrecognised. It is read now. A chunk with no modules, such as the
   `scripts` bundle that builder joins from raw files, is not vouched for by the stats: turn on source maps for
@@ -168,7 +172,8 @@ module map; findings from npm, pnpm, yarn and bun audit, osv-scanner, Trivy, Gry
 directly; Vite, Rollup, webpack, Rspack, esbuild, bun and Angular inputs; `--deploy` for server-rendered apps;
 `vexproof review` and `vexproof rules derive`; Pro module-level analysis, baselines and the evidence report.
 
-[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.7...HEAD
+[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.8...HEAD
+[1.0.0-beta.8]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.8
 [1.0.0-beta.7]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.7
 [1.0.0-beta.6]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.6
 [1.0.0-beta.5]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.5
