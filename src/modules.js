@@ -292,8 +292,9 @@ export function ungroupStats(stats) {
     if (Array.isArray(s.modules)) s.modules = flat(s.modules);
     for (const c of s.chunks ?? []) if (c && Array.isArray(c.modules)) c.modules = flat(c.modules);
   };
-  take(stats);
-  for (const c of stats?.children ?? []) take(c);
+  // child compilations, and the configurations of a multi-compiler run with child compilations of their own
+  const all = (s) => { take(s); for (const c of s?.children ?? []) if (c && typeof c === 'object' && c.type === undefined) all(c); };
+  all(stats);
   return stats;
 }
 
@@ -304,7 +305,8 @@ function moduleLists(stats) {
     for (const c of s.chunks ?? []) if (Array.isArray(c.modules)) lists.push({ modules: c.modules, where: `${where}, chunk ${c.names?.[0] ?? c.id}`, filtered: c.filteredModules });
   };
   take(stats, 'modules');
-  for (const c of stats.children ?? []) take(c, 'child');
+  const below = (s) => { for (const c of s.children ?? []) if (c && typeof c === 'object') { take(c, 'child'); below(c); } };
+  below(stats);
   return lists;
 }
 
@@ -328,7 +330,8 @@ export function webpackStatsGaps(stats) {
     }
   };
   if ((stats.filteredModules ?? 0) > 0) gaps.push(`${stats.filteredModules} modules filtered out (modulesSpace limit)`);
-  for (const c of stats.children ?? []) if ((c.filteredModules ?? 0) > 0) gaps.push(`${c.filteredModules} modules filtered out of a child compilation`);
+  const below = (s) => { for (const c of s.children ?? []) if (c && typeof c === 'object') { if ((c.filteredModules ?? 0) > 0) gaps.push(`${c.filteredModules} modules filtered out of a child compilation`); below(c); } };
+  below(stats);
   for (const l of moduleLists(stats)) {
     if ((l.filtered ?? 0) > 0) gaps.push(`${l.filtered} modules filtered out of ${l.where}`);
     check(l.modules, l.where, false);

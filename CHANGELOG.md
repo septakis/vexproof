@@ -10,7 +10,28 @@ A soundness audit of 1.0.0-beta.8 (two independent reviews of the code, and runs
 layouts) found 29 ways to get `not_affected` for code that ships. This release closes most of them and adds a
 check that does not depend on finding each one first. Upgrade from any earlier version.
 
+A review of the published 1.0.0-beta.8 package found one more, and a gate that could switch itself off;
+both are closed here too.
+
+### Changed
+- **An option vexproof does not have stops the run** (exit 2) and names the one that was probably meant.
+  Until now it was skipped in silence, so `--failon in_triage`, or `--fail-on=in_triage`, left a build with
+  no gate. `--name=value` is now read like `--name value`; an option without its value, a value on a flag
+  that takes none, and a word that is not a command stop the run as well. `-h` and `-v` work.
+- **`--fail-on` is checked before any work.** A mistyped mode, or `--fail-on new` without `--baseline`, stops
+  the run (exit 2) with nothing written; it used to write the VEX first, or exit 0. When no license covers
+  `--baseline` (an expired key, for one), the gate still does not run and the build still passes, as the Pro
+  terms promise, but the one line that said so is now a warning at the start and the end of the output and an
+  annotation on the GitHub Actions run.
+- **The GitHub Action runs the release its tag names**, not npm's `latest`: pinning the Action now pins the
+  code that runs. `version:` still overrides it.
+- `vexproof verify` without `--key` says on standard error that the signer was not checked.
+- `vexproof rules derive` checks every package it downloads against the checksum the registry lists for it.
+- On Node.js older than 22 the CLI says so and stops, instead of failing somewhere else.
+
 ### Added
+- TypeScript types for `vexproof`, `vexproof/vite`, `vexproof/rollup`, `vexproof/webpack` and
+  `vexproof/rspack`; `vexproof/package.json` can be imported.
 - **Content check.** Before a package is called absent, vexproof looks for the package's own string literals
   in the JavaScript and HTML that ship. A minifier keeps what a string says. If some are there, and no file
   the build's records name holds them too, the finding stays open and a line says which string was found
@@ -28,6 +49,13 @@ Package names:
   from a JavaScript build. It is left open.
 
 Module maps (`--modules`):
+- A webpack or Rspack config that exports an array runs one compiler per configuration, and each one's
+  `VexproofPlugin` wrote the same `vexproof-modules.json`: the last replaced the rest, and a package only an
+  earlier configuration shipped was called not affected. The plugin now writes every configuration of the run
+  into the one file, each with its output folder, and vexproof checks them all. Child compilations inside a
+  configuration of such a run (and of `webpack --json` for an array) are read as well.
+- The Vite plugin kept the records of chunks from earlier rebuilds of a `--watch` run. Records of files that
+  are gone are dropped.
 - A package the output loads by name when it runs (esbuild `--external`, a webpack external, a library or SSR
   build) counted as absent. The recorded output files are now read for such loads, and the package counts
   as shipped.

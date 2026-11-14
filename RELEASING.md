@@ -14,3 +14,30 @@ GitHub Pages on push. This file covers the npm package.
 One-time setup: on npmjs.com, under the package's **Settings → Trusted publisher**, allow repository
 `septakis/vexproof` and workflow `release.yml`; and in this repository's **Settings → Environments**, create
 `release` (optionally with a required reviewer, which holds every publish for approval).
+
+## Issuing licenses
+
+```
+npm run keygen                      # once: .keys/license-private.pem + src/pro/license-key.js
+npm run issue-license -- --org "Acme GmbH" --exp 2027-09-30
+npm run issue-license -- --plan oss --org vitejs --repos github.com/vitejs/vite --exp 2027-09-30
+```
+
+Keep `.keys/` offline and backed up. Re-keying invalidates every license already issued. The
+key in this repo was generated for testing; run `npm run keygen -- --force` before your first
+real release.
+
+## Revoking a license
+
+```
+npm run revoke-license -- --token <token|file>    # takes the id from the license itself
+npm run revoke-license -- --id <license id> [--note "text"]
+npm run revoke-license -- --list
+```
+
+This adds the license id to `src/pro/revoked.json`. It takes effect in the next version you
+publish: runs on that version or later treat the license as invalid and use free features. The
+GitHub Action runs the release its tag names, so a workflow picks up a revocation when it moves to a newer
+tag, and a project that installs vexproof as a dependency when it updates; a copy pinned to an older
+version keeps accepting the license until it expires. The list, notes included, is public in the
+npm package, so keep customer names out of notes.

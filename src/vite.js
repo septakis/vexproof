@@ -11,7 +11,7 @@
 // Every build that ships code needs the plugin: the main build, web workers (worker.plugins) and any
 // nested build() calls. Instances in one process write one merged file, and vexproof checks that every
 // .js file in the recorded output folders is covered, so a build without the plugin is caught, not missed.
-import { writeFileSync, rmSync } from 'node:fs';
+import { writeFileSync, rmSync, existsSync } from 'node:fs';
 import { relative, resolve, isAbsolute, join } from 'node:path';
 
 const REGISTRY = Symbol.for('vexproof.vite.registry');
@@ -36,6 +36,9 @@ export default function vexproof({ output = 'vexproof-modules.json', includeServ
   let outDir = null;
   let bundler = 'rollup';
   let ssrBuild = false;
+  let watching = false;
+  let mine = new Set(); // output files this instance recorded in the build that is running
+  let stale = new Set(); // ones it recorded in an earlier build of this watch and has not written again
 
   const record = () => {
     const file = resolve(root, output);
@@ -58,6 +61,9 @@ export default function vexproof({ output = 'vexproof-modules.json', includeServ
     },
     buildStart() {
       const m = this.meta ?? {};
+      watching = Boolean(m.watchMode);
+      stale = new Set([...stale, ...mine]);
+      mine = new Set();
       bundler = m.viteVersion ? `vite ${m.viteVersion} (${m.rolldownVersion ? `rolldown ${m.rolldownVersion}` : `rollup ${m.rollupVersion}`})` : m.rolldownVersion ? `rolldown ${m.rolldownVersion}` : `rollup ${m.rollupVersion ?? '?'}`;
     },
     generateBundle(options, bundle) {
@@ -103,6 +109,7 @@ export default function vexproof({ output = 'vexproof-modules.json', includeServ
         if (chunk.type !== 'chunk') continue;
         const key = dir ? toPosix(relative(root, join(dir, chunk.fileName))) : chunk.fileName;
         const inputs = (rec.outputs[key] ??= { inputs: {} }).inputs;
+        mine.add(key); stale.delete(key);
         for (const [id, info] of Object.entries(chunk.modules ?? {})) {
           const bytes = info?.renderedLength ?? 0;
           if (bytes <= 0) continue;
@@ -118,11 +125,15 @@ export default function vexproof({ output = 'vexproof-modules.json', includeServ
         const key = dir ? toPosix(relative(root, join(dir, item.fileName))) : item.fileName;
         if (rec.outputs[key]) continue;
         const from = Object.keys(rec.outputs).find((k) => k === item.fileName || k.endsWith(`/${item.fileName}`));
-        if (from) { rec.outputs[key] = rec.outputs[from]; delete rec.outputs[from]; }
+        if (from) { rec.outputs[key] = rec.outputs[from]; delete rec.outputs[from]; mine.add(key); stale.delete(key); }
       }
     },
     closeBundle() {
       const { file, rec } = record();
+      // A rebuild in watch mode writes chunks under new hashed names and removes the old files (emptyOutDir),
+      // but this process still holds their records. Drop the ones this instance wrote in an earlier build, did
+      // not write again, and whose file is gone, so the map describes what is on disk.
+      if (watching) for (const k of stale) if (!existsSync(resolve(root, k))) { delete rec.outputs[k]; stale.delete(k); }
       if (Object.keys(rec.outputs).length === 0) return; // e.g. only a server pass so far
       writeFileSync(file, JSON.stringify(rec, null, 1)); // rewritten by each build; the last write has everything
     },

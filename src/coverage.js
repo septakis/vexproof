@@ -201,7 +201,9 @@ export function recordedOutputs(json, { root = process.cwd(), file = null } = {}
     }
   };
   if (multi) {
-    for (const c of kids) take(c, outOf(c));
+    // each configuration, and the child compilations it ran (worker-loader), which write into its folder
+    const below = (s, dir) => { for (const c of s.children ?? []) if (c && typeof c === 'object') { const d = typeof c.outputPath === 'string' && isAbsolute(c.outputPath) ? c.outputPath : dir; take(c, d); below(c, d); } };
+    for (const c of kids) { take(c, outOf(c)); below(c, outOf(c)); }
     checkSizes();
     return { dirs: [...new Set(kids.map(outOf))].map((abs) => ({ abs, recurse: true })), isCovered: (abs) => covered.has(abs), copiedFrom, hints };
   }

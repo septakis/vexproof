@@ -65,8 +65,8 @@ inputs:
     description: Manifest files or folders whose alerts to change, comma-separated (default the repository root)
     required: false
   version:
-    description: vexproof version to run
-    default: latest
+    description: vexproof version to run. Default is the version of the action itself, so the tag or commit you pin is the code that runs.
+    required: false
 
 outputs:
   vex:
@@ -105,7 +105,10 @@ runs:
         IN_SIGNING_KEY: ${{ inputs.signing-key }}
         IN_SIGNER: ${{ inputs.signer }}
         IN_VERSION: ${{ inputs.version }}
+        ACTION_PATH: ${{ github.action_path }}
       run: |
+        # The version this copy of the action was released as, unless the workflow names another.
+        if [ -z "$IN_VERSION" ]; then IN_VERSION="$(node -p "require(process.argv[1]).version" "$ACTION_PATH/package.json")"; fi
         args=(--lockfile "$IN_LOCKFILE" --out "$IN_OUT")
         [ -n "$IN_BUNDLE" ]   && args+=(--bundle "$IN_BUNDLE")
         [ -n "$IN_FINDINGS" ] && args+=(--findings "$IN_FINDINGS")
@@ -141,6 +144,7 @@ runs:
         IN_OUT: ${{ inputs.out }}
         IN_MANIFEST: ${{ inputs.dependabot-manifest }}
         IN_VERSION: ${{ inputs.version }}
+        ACTION_PATH: ${{ github.action_path }}
       run: |
         # Exit 1 is also what npx gives when it cannot fetch vexproof; then there is no VEX and nothing to apply.
         if [ ! -f "$IN_OUT" ]; then
@@ -149,6 +153,7 @@ runs:
         fi
         # No token check here: a key that does not cover this feature must not fail the job, and vexproof says
         # so and exits 0. With a covering key and no token, vexproof exits 2 and names the token it needs.
+        if [ -z "$IN_VERSION" ]; then IN_VERSION="$(node -p "require(process.argv[1]).version" "$ACTION_PATH/package.json")"; fi
         args=(dependabot --vex "$IN_OUT" --lockfile "$IN_LOCKFILE")
         [ -n "$IN_MANIFEST" ] && args+=(--manifest "$IN_MANIFEST")
         npx --yes "vexproof@${IN_VERSION}" "${args[@]}"

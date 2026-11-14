@@ -16,6 +16,10 @@ import { contentCheck } from './content-check.js';
 import { normalizeFindings, parsePurl, indexSbom } from './index.js';
 import { deriveRules } from './derive.js';
 
+// engines in package.json only makes npm warn, and npx not even that: say it here, before a newer API fails
+// with a message that names something else.
+if (Number(process.versions.node.split('.')[0]) < 22) { console.error(`vexproof: needs Node.js 22 or later; this is ${process.version}`); process.exit(2); }
+
 // Frameworks whose apps also run code on a server. Their packages can be missing from the browser bundle and
 // still run in production, so a browser module map cannot stand for the whole product.
 const SERVERS = ['express', 'fastify', 'koa', '@hapi/hapi', '@nestjs/core', 'hono', 'restify', 'polka', 'h3', 'electron', 'socket.io', '@apollo/server', '@trpc/server'];
@@ -30,15 +34,65 @@ const BOOLEAN = new Set(['dry-run', 'quiet', 'help', 'version', 'enrich-aliases'
 
 const MULTI = new Set(['modules', 'deploy', 'maps']); // may be given more than once, or comma-separated
 
+// Every option that takes a value. An option that is in none of these lists stops the run: a misspelt
+// --fail-on that was skipped in silence would leave a build with no gate and nothing to show for it.
+const VALUE = new Set(['lockfile', 'bundle', 'findings', 'root', 'product', 'out', 'spec-version', 'openvex', 'fail-on', 'baseline',
+  'review-max-age', 'license', 'rules', 'report', 'sign', 'signer', 'csaf', 'csaf-namespace', 'csaf-publisher', 'csaf-id', 'csaf-status',
+  'csaf-tlp', 'csaf-url', 'csaf-previous', 'vex', 'id', 'state', 'detail', 'by', 'justification', 'package', 'key', 'type', 'repo',
+  'manifest', 'link', 'token']);
+const COMMANDS = ['review', 'verify', 'keygen', 'rollup', 'rules', 'dependabot'];
+
+class UsageError extends Error {}
+
+/** The known option closest to a misspelt one, when it is close enough to be what was meant. */
+function nearest(k, known) {
+  const dist = (a, b) => {
+    const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+    for (let j = 1; j <= b.length; j++) d[0][j] = j;
+    for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    return d[a.length][b.length];
+  };
+  const flat = (x) => x.toLowerCase().replace(/[-_]/g, '');
+  const best = [...known].map((n) => [dist(flat(k), flat(n)), n]).sort((x, y) => x[0] - y[0])[0];
+  return best && best[0] <= 2 ? best[1] : null;
+}
+
+/**
+ * --name value and --name=value; -h and -v. `given` keeps every value of an option that was given more than
+ * once. Throws UsageError on an option vexproof doesn't have or a value that is missing.
+ */
+const given = {}; // option → every value it was given, in order
 function parseArgs(argv) {
   const out = { _: [] };
+  const all = given;
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
-    if (!a.startsWith('--')) { out._.push(a); continue; }
-    const k = a.slice(2);
-    if (BOOLEAN.has(k)) out[k] = true;
-    else if (MULTI.has(k)) out[k] = [...(out[k] ?? []), ...String(argv[++i]).split(',').filter(Boolean)];
-    else out[k] = argv[++i];
+    if (a === '-h') { out.help = true; continue; }
+    if (a === '-v') { out.version = true; continue; }
+    if (!a.startsWith('-') || a === '-') { out._.push(a); continue; }
+    if (!a.startsWith('--')) throw new UsageError(`unknown option ${a} (options start with two dashes; see vexproof --help)`);
+    const eq = a.indexOf('=');
+    const k = eq < 0 ? a.slice(2) : a.slice(2, eq);
+    const inline = eq < 0 ? undefined : a.slice(eq + 1);
+    if (BOOLEAN.has(k)) {
+      if (inline !== undefined) throw new UsageError(`--${k} takes no value`);
+      out[k] = true;
+      continue;
+    }
+    if (!MULTI.has(k) && !VALUE.has(k)) {
+      const meant = nearest(k, [...BOOLEAN, ...MULTI, ...VALUE]);
+      throw new UsageError(`unknown option --${k}${meant ? ` (did you mean --${meant}?)` : ''}; see vexproof --help all`);
+    }
+    let v = inline;
+    if (v === undefined) {
+      v = argv[i + 1];
+      if (v === undefined || (v.startsWith('--') && v.length > 2)) throw new UsageError(`--${k} needs a value`);
+      i++;
+    }
+    if (v === '') throw new UsageError(`--${k} needs a value`);
+    (all[k] ??= []).push(v);
+    if (MULTI.has(k)) out[k] = [...(out[k] ?? []), ...String(v).split(',').filter(Boolean)];
+    else out[k] = v;
   }
   return out;
 }
@@ -49,7 +103,10 @@ const fatal = (e) => { console.error(`vexproof: ${e?.message ?? e}`); process.ex
 process.on('uncaughtException', fatal);
 process.on('unhandledRejection', fatal);
 
-const args = parseArgs(process.argv.slice(2));
+let args;
+try { args = parseArgs(process.argv.slice(2)); } catch (e) { if (!(e instanceof UsageError)) throw e; fatal(e); }
+// every value of an option that repeats (--vex a --vex b, --vex=a,b)
+const every = (name) => (given[name] ?? []).flatMap((v) => String(v).split(',').map((x) => x.trim()).filter(Boolean));
 const log = (...m) => console.error(...m);
 const readJson = (p) => JSON.parse(readFileSync(p, 'utf8'));
 const sha256 = (p) => createHash('sha256').update(readFileSync(p)).digest('hex');
@@ -245,6 +302,16 @@ if (args.help) {
 }
 if (args.version) { console.log(VERSION); process.exit(0); }
 
+// A word that is not a command is a mistake (an option's value that lost its option, a misspelt command), and
+// running the main command without it would do something other than what was asked.
+if (args._.length) {
+  const [cmd, ...rest] = args._;
+  if (!COMMANDS.includes(cmd)) fatal(new UsageError(`unknown command "${cmd}" (commands: ${COMMANDS.map((c) => (c === 'rules' ? 'rules derive' : c)).join(', ')}; see vexproof --help)`));
+  if (cmd === 'rules' && rest[0] !== 'derive') fatal(new UsageError('the rules command is "vexproof rules derive"; see vexproof rules --help'));
+  const allowed = cmd === 'verify' || cmd === 'rules' ? 1 : 0;
+  if (rest.length > allowed) fatal(new UsageError(`unexpected argument "${rest[allowed]}"; see vexproof ${cmd} --help`));
+}
+
 // Every timestamp vexproof writes. SOURCE_DATE_EPOCH pins it, so the same inputs write the same files.
 const now = outputTime();
 
@@ -280,6 +347,8 @@ if (args._[0] === 'verify') {
     r = proLib.sign.verifyBytes(bytes, sig, { publicKey });
   }
   if (!r.ok) { log(`vexproof: signature on ${file} does not check: ${r.reason}`); process.exit(1); }
+  // Without --key the signature was checked against the key that came with it, which anyone can make.
+  if (!publicKey) log('vexproof: no --key given, so this shows the file is unchanged since it was signed, not who signed it. Compare the key below with the one the publisher gave you, or pass it with --key.');
   console.log(`vexproof: ${file} is signed (${r.algorithm}) by ${r.keyId ?? 'an unnamed key'}; the public key is:`);
   console.log(r.publicKey.trim());
   process.exit(0);
@@ -303,8 +372,6 @@ if (args._[0] === 'keygen') {
 
 // ---------- rollup (Pro) ----------
 if (args._[0] === 'rollup') {
-  const argv = process.argv.slice(2);
-  const every = (name) => argv.flatMap((a, i) => (a === `--${name}` && argv[i + 1] !== undefined ? String(argv[i + 1]).split(',').map((s) => s.trim()).filter(Boolean) : []));
   const vexFiles = every('vex');
   if (!vexFiles.length) { log('vexproof: rollup needs at least one --vex'); process.exit(2); }
   const license = loadLicense();
@@ -353,8 +420,6 @@ if (args._[0] === 'dependabot') {
   const named = args.repo ? { repo: `${host(process.env.GITHUB_SERVER_URL)}/${args.repo}` } : undefined;
   if (!licensedFor(loadLicense(named), 'dependabot')) { log('vexproof dependabot is a Pro feature; no alerts changed'); process.exit(0); }
   const { readDocuments, github, syncDependabot, explain, summaryLine, markdownSummary, verb, scopeLabel } = proLib.dependabot;
-  const argv = process.argv.slice(2);
-  const every = (name) => argv.flatMap((a, i) => (a === `--${name}` && argv[i + 1] !== undefined ? String(argv[i + 1]).split(',').map((s) => s.trim()).filter(Boolean) : []));
   const env = process.env;
   const git = (...a) => { try { return execFileSync('git', a, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { return null; } };
   const vexFiles = every('vex');
@@ -403,6 +468,11 @@ if (args._[0] === 'dependabot') {
 // ---------- run ----------
 const quiet = args.quiet || process.env.VEXPROOF_QUIET === '1';
 const lockPath = need('lockfile');
+// The gate is checked before any work: a mode that can't run must not leave a VEX behind and a build that passed.
+const failOn = args['fail-on'] ?? null;
+let gateSkipped = null;
+if (failOn && !['in_triage', 'new'].includes(failOn)) fatal(new UsageError(`unknown --fail-on mode "${failOn}" (in_triage or new)`));
+if (failOn === 'new' && !args.baseline) fatal(new UsageError("--fail-on new needs --baseline <the previous release's VEX>: without one, nothing is new"));
 if (!args.bundle && !args.modules && !args.deploy) { log('vexproof: need --bundle, --modules or --deploy to know what ships'); process.exit(2); }
 const bundlePath = args.bundle ?? null;
 const lockfileSbom = readJson(lockPath);
@@ -655,14 +725,20 @@ if (shippedDirs.length) {
 
 attachFingerprints(results, { moduleMap, rules, cwd: args.root ?? process.cwd() });
 
-let baselineApplied = false;
 if (args.baseline) {
   if (has('baseline')) {
     const maxAgeDays = args['review-max-age'] === undefined ? 365 : Number(args['review-max-age']);
     proLib.applyBaseline(results, proLib.readBaseline(readJson(args.baseline)), { maxAgeDays: Number.isFinite(maxAgeDays) && maxAgeDays > 0 ? maxAgeDays : null });
     inputs.push({ role: 'baseline-vex', path: args.baseline, sha256: sha256(args.baseline) });
-    baselineApplied = true;
-  } else log('vexproof: --baseline is a Pro feature; ignoring it');
+  } else {
+    log('vexproof: --baseline is a Pro feature; ignoring it');
+    if (failOn === 'new') {
+      // The Pro terms promise that a missing or expired key never fails a build (src/pro/LICENSE.md, section 6),
+      // so the run goes on. A gate that was asked for and did not run must at least be impossible to miss.
+      gateSkipped = '--fail-on new did not run: it compares against --baseline, a Pro feature no license here covers. This build was not gated. Use --fail-on in_triage for a gate that needs no license.';
+      log(`vexproof: WARNING: ${gateSkipped}`);
+    }
+  }
 }
 
 const out = args.out ?? 'vex.cdx.json';
@@ -727,7 +803,7 @@ for (const r of results) {
 
 if (args.report) {
   if (has('report')) {
-    const command = `vexproof ${process.argv.slice(2).filter((a, i, arr) => a !== '--license' && arr[i - 1] !== '--license').join(' ')}`;
+    const command = `vexproof ${process.argv.slice(2).filter((a, i, arr) => a !== '--license' && arr[i - 1] !== '--license' && !a.startsWith('--license=')).join(' ')}`;
     writeFileSync(args.report, proLib.renderReport({ results, summary: s, inputs, productPurl, license, command, version: VERSION, now }));
     console.log(`vexproof: report → ${args.report}`);
   } else log('vexproof: --report is a Pro feature; skipped');
@@ -747,16 +823,14 @@ if (!quiet && proLib && !has('modules')) {
 }
 
 // ---------- gate ----------
-if (args['fail-on']) {
-  const mode = args['fail-on'];
-  let tripped = [];
-  if (mode === 'in_triage') tripped = results.filter((r) => r.state === 'in_triage');
-  else if (mode === 'new') {
-    if (baselineApplied) tripped = results.filter((r) => r.isNew);
-    else log('vexproof: --fail-on new needs a Pro --baseline; gate not applied');
-  } else { log(`vexproof: unknown --fail-on mode "${mode}"`); process.exit(2); }
+if (gateSkipped) {
+  // said again at the end, where a log is read, and as an annotation on the workflow run
+  log(`vexproof: WARNING: ${gateSkipped}`);
+  if (process.env.GITHUB_ACTIONS === 'true') console.log(`::warning title=vexproof gate did not run::${gateSkipped}`);
+} else if (failOn) {
+  const tripped = failOn === 'new' ? results.filter((r) => r.isNew) : results.filter((r) => r.state === 'in_triage');
   if (tripped.length) {
-    log(`vexproof: gate failed — ${tripped.length} ${mode === 'new' ? 'new ' : ''}open finding(s): ${[...new Set(tripped.map((r) => r.id))].join(', ')}`);
+    log(`vexproof: gate failed — ${tripped.length} ${failOn === 'new' ? 'new ' : ''}open finding(s): ${[...new Set(tripped.map((r) => r.id))].join(', ')}`);
     process.exit(1);
   }
 }

@@ -21,7 +21,12 @@ and every exit code it uses must be listed here, and nothing listed here may be 
 | `vexproof keygen` | Makes a signing key pair for `--sign`. Needs no license. |
 
 `--help` on its own prints a one-screen overview; `--help all` lists every option of the main command, and
-`<command> --help` the options of that command. `--version` prints the version and nothing else.
+`<command> --help` the options of that command. `--version` prints the version and nothing else. `-h` and
+`-v` are short for the two.
+
+An option's value follows it (`--out vex.json`) or is joined to it with `=` (`--out=vex.json`). An option
+vexproof does not have, an option without its value, and a word that is not a command each stop the run with
+exit 2.
 
 ## Options of `vexproof`
 
@@ -71,7 +76,7 @@ Gates and reviews:
 
 | Option | Meaning |
 |---|---|
-| `--fail-on <mode>` | `in_triage` or `new`. Exit 1 when the gate trips; the VEX is still written. `new` needs `--baseline`. |
+| `--fail-on <mode>` | `in_triage` or `new`. Exit 1 when the gate trips; the VEX is still written. `new` needs `--baseline`; without it the run stops with exit 2 before anything is written. When no license covers `--baseline`, the gate does not run and the exit code is 0: a warning on standard error says so, and in GitHub Actions an annotation on the run. |
 | `--baseline <file>` | (Pro) The previous release's CycloneDX VEX. Reviews carry forward while their evidence is unchanged. |
 | `--review-max-age <days>` | Reviews older than this need re-confirming. Default 365; `0` turns it off. |
 
@@ -137,7 +142,7 @@ Without a license that covers it, `rollup` writes nothing and exits 2.
 | Option | Meaning |
 |---|---|
 | `<file>` | The signed file. A CycloneDX VEX carries its signature; other files have `<file>.sig` beside them. |
-| `--key <public.pem>` | The public key the signature must match. Without it, the key embedded in the signature is used and printed. |
+| `--key <public.pem>` | The public key the signature must match. Without it, the key embedded in the signature is used and printed, and a line on standard error says the signer was not checked: exit 0 then means only that the file is unchanged since it was signed. |
 
 Exit 0 when the signature checks, 1 when it does not, 2 when the input cannot be read or carries no signature.
 

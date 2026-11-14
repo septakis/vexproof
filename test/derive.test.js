@@ -3,6 +3,7 @@
 // vulnerable code, they only suggest until accepted, and hand-checked rules always win.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { readFileSync, mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
@@ -66,7 +67,7 @@ test('deriveRules against a registry: picks the range for this release line, ref
       { url: 'https://github.com/advisories/GHSA-aaaa-bbbb-cccc', title: 'parse bug', vulnerable_versions: '>=2.0.0 <2.1.0' },
       { url: 'https://github.com/advisories/GHSA-aaaa-bbbb-cccc', title: 'parse bug', vulnerable_versions: '<1.0.1' },
     ] });
-    if (url.endsWith('/demo')) return ok({ versions: Object.fromEntries(Object.keys(tarballs).map((v) => [v, {}])) });
+    if (url.endsWith('/demo')) return ok({ versions: Object.fromEntries(Object.entries(tarballs).map(([v, t]) => [v, { dist: { integrity: `sha512-${createHash('sha512').update(t).digest('base64')}` } }])) });
     const v = /demo-(.+)\.tgz$/.exec(url)?.[1];
     return v ? ok(tarballs[v]) : { ok: false, status: 404 };
   };

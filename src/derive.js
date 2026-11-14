@@ -12,6 +12,7 @@
 // entry file) while the vulnerable code sits in a file it didn't touch. So derived rules only SUGGEST a
 // verdict unless the run passes --accept-derived, and every refusal below errs toward no rule at all.
 import { gunzipSync } from 'node:zlib';
+import { createHash } from 'node:crypto';
 import { inAdvisoryRange, fetchRetrying } from './sources.js';
 
 const REGISTRY = 'https://registry.npmjs.org';
@@ -98,13 +99,34 @@ async function json(url, fetchImpl, init) {
   if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`);
   return r.json();
 }
-async function tarball(name, version, fetchImpl, cache) {
+/**
+ * Throws unless the bytes are the ones the registry's own record of the version describes (`dist.integrity`,
+ * or `dist.shasum` for releases from before npm recorded one). A rule says which files a fix changed; one made
+ * from a download that was cut short or altered on the way would say it about the wrong files.
+ */
+export function checkTarball(bytes, dist, key) {
+  const sri = String(dist?.integrity ?? '').split(/\s+/).map((x) => /^(sha512|sha384|sha256)-(.+)$/.exec(x)).filter(Boolean)
+    .sort((a, b) => b[1].localeCompare(a[1]))[0]; // the strongest listed
+  if (sri) {
+    if (createHash(sri[1]).update(bytes).digest('base64') !== sri[2]) throw new Error(`tarball ${key} does not match the registry's checksum (${sri[1]})`);
+    return;
+  }
+  if (typeof dist?.shasum === 'string' && dist.shasum) {
+    if (createHash('sha1').update(bytes).digest('hex') !== dist.shasum.toLowerCase()) throw new Error(`tarball ${key} does not match the registry's checksum (sha1)`);
+    return;
+  }
+  throw new Error(`the registry lists no checksum for ${key}, so its tarball can't be checked`);
+}
+
+async function tarball(name, version, fetchImpl, cache, dist) {
   const key = `${name}@${version}`;
   if (!cache.has(key)) {
     const base = name.startsWith('@') ? name.split('/')[1] : name;
     const r = await fetchRetrying(`${REGISTRY}/${name.replace('/', '%2f')}/-/${base}-${version}.tgz`, {}, { fetchImpl });
     if (!r.ok) throw new Error(`tarball ${key}: HTTP ${r.status}`);
-    cache.set(key, untar(Buffer.from(await r.arrayBuffer())));
+    const bytes = Buffer.from(await r.arrayBuffer());
+    checkTarball(bytes, dist, key);
+    cache.set(key, untar(bytes));
   }
   return cache.get(key);
 }
@@ -138,7 +160,8 @@ export async function deriveRules(findings, { fetchImpl = globalThis.fetch, now 
       if (!packuments.has(f.name)) packuments.set(f.name, await json(`${REGISTRY}/${f.name.replace('/', '%2f')}`, fetchImpl));
       const b = fixBoundary(Object.keys(packuments.get(f.name).versions ?? {}), f.version, adv.vulnerable_versions);
       if (b.reason) { row.reason = b.reason; continue; }
-      const [installedFiles, fixedFiles] = await Promise.all([f.version, b.fixed].map((v) => tarball(f.name, v, fetchImpl, cache)));
+      const versions = packuments.get(f.name).versions ?? {};
+      const [installedFiles, fixedFiles] = await Promise.all([f.version, b.fixed].map((v) => tarball(f.name, v, fetchImpl, cache, versions[v]?.dist)));
       const d = diffForRule({ installedFiles, fixedFiles });
       if (d.reason) { row.reason = d.reason; continue; }
       const ghsa = adv.url.match(/GHSA-[a-z0-9-]+/i)?.[0] ?? f.id;

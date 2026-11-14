@@ -33,6 +33,12 @@ const STATS = {
   children: true,
 };
 
+// Every compiler in this process that writes to one file, by that file. A configuration array (webpack's
+// multi-compiler) runs one compiler per configuration, each with its own plugin instance and often its own
+// output folder. Written one after another, the last would replace the rest, and the packages only an earlier
+// configuration shipped would look absent. Kept per compiler, so a rebuild in watch mode replaces its own record.
+const written = new Map(); // output file → Map<compiler, stats>
+
 class VexproofPlugin {
   constructor({ output = 'vexproof-modules.json' } = {}) {
     this.output = output;
@@ -46,7 +52,16 @@ class VexproofPlugin {
       // relative to the project folder, like the module names, so the file means the same on another machine
       json.vexproofOutDir = relative(compiler.context, compiler.outputPath).replace(/\\/g, '/') || '.';
       json.vexproofBundler = compiler.webpack?.rspackVersion ? `rspack ${compiler.webpack.rspackVersion}` : `webpack ${compiler.webpack?.version ?? '?'}`;
-      writeFileSync(resolve(compiler.context, this.output), JSON.stringify(json));
+      const file = resolve(compiler.context, this.output);
+      if (!written.has(file)) written.set(file, new Map());
+      const mine = written.get(file);
+      mine.set(compiler, json);
+      // One configuration: its stats, as before. Several: the shape `webpack --json` gives a configuration
+      // array, one child per configuration, each with its own output folder.
+      const all = [...mine.values()];
+      const doc = all.length === 1 ? json
+        : { vexproofBundler: json.vexproofBundler, vexproofConfigurations: all.length, children: all.map((j) => ({ ...j, outputPath: j.vexproofOutDir })) };
+      writeFileSync(file, JSON.stringify(doc));
     });
   }
 }

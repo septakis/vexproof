@@ -72,6 +72,14 @@ const { VexproofPlugin } = require('vexproof/webpack');
 module.exports = { plugins: [new VexproofPlugin()] };
 ```
 
+When the config exports an array, add the plugin to every configuration that ships code. They write one
+`vexproof-modules.json` between them. Builds run as separate commands each need their own file
+(`new VexproofPlugin({ output: 'vexproof-modules.admin.json' })`), all passed to `--modules`: a second run
+writing the same file replaces the first.
+
+The plugins come with TypeScript types. The folders this README names (`demo/`, `e2e-*/`, `interop/`) are in
+the [repository](https://github.com/septakis/vexproof), not in the npm package.
+
 Every build that ships code needs the plugin, including web workers and nested `build()` calls. You
 don't have to get this right by inspection. Whatever wrote the module map (a vexproof plugin, an
 esbuild metafile, Angular or webpack stats), vexproof finds the build's output folder and checks every
@@ -196,6 +204,9 @@ details, commented "CycloneDX VEX". Two things to know:
     fail-on: in_triage
     license: ${{ secrets.VEXPROOF_LICENSE }}
 ```
+
+The Action runs the vexproof release its tag names, so pinning the Action (to a tag or a commit) pins the
+code that runs. Set `version:` to run another release. It needs Node.js 22 or later on the runner.
 
 ## Dependabot (Pro)
 
@@ -417,7 +428,9 @@ A license key is a signed token, verified locally. Provide it with `--license <t
 
 - License checks make no network calls.
 - A missing, invalid, expired or revoked license never fails a build; vexproof drops to free
-  features and says so once.
+  features and says so once. That includes `--fail-on new`, which compares against `--baseline`:
+  without a license that covers it the gate does not run and the build passes, with a warning on
+  standard error and an annotation on the GitHub Actions run. `--fail-on in_triage` needs no license.
 - 14-day grace period after expiry.
 - A license can be revoked before it expires. Each release carries a list of revoked license ids
   (`src/pro/revoked.json`), so a revocation applies once a user is on a version that includes it.
@@ -435,36 +448,9 @@ vexproof runs in one of them. The repository comes from `GITHUB_REPOSITORY`, Git
 nearest `.git/config`. Elsewhere the license runs free features and says which repositories it
 covers. Still no network calls. Help for open-source licenses is through GitHub issues.
 
-### Issuing licenses (maintainer)
-
-```
-npm run keygen                      # once: .keys/license-private.pem + src/pro/license-key.js
-npm run issue-license -- --org "Acme GmbH" --exp 2027-09-30
-npm run issue-license -- --plan oss --org vitejs --repos github.com/vitejs/vite --exp 2027-09-30
-```
-
-Keep `.keys/` offline and backed up. Re-keying invalidates every license already issued. The
-key in this repo was generated for testing; run `npm run keygen -- --force` before your first
-real release.
-
-### Revoking a license (maintainer)
-
-```
-npm run revoke-license -- --token <token|file>    # takes the id from the license itself
-npm run revoke-license -- --id <license id> [--note "text"]
-npm run revoke-license -- --list
-```
-
-This adds the license id to `src/pro/revoked.json`. It takes effect in the next version you
-publish: runs on that version or later treat the license as invalid and use free features. The
-GitHub Action runs the latest version by default, so it picks up a revocation on the next run. A
-project that installs vexproof as a dependency gets it when it updates; a copy pinned to an older
-version keeps accepting the license until it expires. The list, notes included, is public in the
-npm package, so keep customer names out of notes.
-
 ## Tests
 
-`npm test` runs 156 tests, including schema validation of both output formats. Most fixtures are
+`npm test` runs 227 tests, including schema validation of both output formats. Most fixtures are
 real builds, slimmed down:
 
 - two Angular 20 apps, one using only `capitalize` and one also using `template` and `omit`,
