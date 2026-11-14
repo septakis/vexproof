@@ -6,6 +6,8 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+## [1.0.0-beta.10] - 2026-11-14
+
 A code audit of 1.0.0-beta.9 (five independent reviews, each finding reproduced) found about twenty more ways to
 get `not_affected` for code that ships, and a test suite that missed most of the CLI's decisions about what
 shipped. This release closes them, and adds a test for each route and each refusal. Upgrade from any earlier
@@ -472,7 +474,8 @@ module map; findings from npm, pnpm, yarn and bun audit, osv-scanner, Trivy, Gry
 directly; Vite, Rollup, webpack, Rspack, esbuild, bun and Angular inputs; `--deploy` for server-rendered apps;
 `vexproof review` and `vexproof rules derive`; Pro module-level analysis, baselines and the evidence report.
 
-[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.9...HEAD
+[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.10...HEAD
+[1.0.0-beta.10]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.10
 [1.0.0-beta.9]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.9
 [1.0.0-beta.8]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.8
 [1.0.0-beta.7]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.7
