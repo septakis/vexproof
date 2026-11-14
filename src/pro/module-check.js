@@ -66,9 +66,13 @@ export function evaluateModuleRule({ key, parsed, id, aliases = [], bundleVersio
   }
   const copyFiles = new Set(roots.flatMap((r) => [...(entry.byRoot?.get(r) ?? entry.files)]));
   const files = [...copyFiles].sort();
-  const monolith = files.find((f) => (pkgRules.monoliths ?? []).includes(f) || (pkgRules.monolithDirs ?? []).some((d) => f.startsWith(d)));
+  // File names are compared without regard to case: Windows and macOS load `Template.js` for 'template.js',
+  // and a bundler records the spelling the import used. Matching too much can only keep a finding open.
+  const lower = (f) => String(f).toLowerCase();
+  const shippedLower = new Set(files.map(lower));
+  const monolith = files.find((f) => (pkgRules.monoliths ?? []).some((m) => lower(m) === lower(f)) || (pkgRules.monolithDirs ?? []).some((d) => lower(f).startsWith(lower(d))));
   if (monolith) return { ok: false, reason: `the full build (${monolith}) is bundled` };
-  const hit = rule.files.filter((f) => copyFiles.has(f));
+  const hit = rule.files.filter((f) => shippedLower.has(lower(f)));
   const list = (a) => (a.length > 5 ? `${a.slice(0, 5).join(', ')} and ${a.length - 5} more` : a.join(', '));
   if (hit.length) return { ok: false, derived, reason: derived ? `files the fix changed (${parsed.version} → ${rule.derivedFrom?.fixed}) are bundled: ${list(hit)}` : `vulnerable file(s) bundled: ${hit.join(', ')}` };
   const others = entry.roots.size - roots.length;

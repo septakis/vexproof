@@ -3,19 +3,22 @@
 import { readFileSync, writeFileSync, appendFileSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { resolve, dirname } from 'node:path';
 import { triage, toCycloneDxVex, summarize, VERSION, outputTime } from './index.js';
 import { fetchOsvFindings, readFindingsText, enrichAliases } from './sources.js';
 import { toOpenVex } from './openvex.js';
 import { readModuleMap, bundleSbomFromModules, attachVersions, addToMap, splitNodeModulesPath, unnamedStorePackages } from './modules.js';
-import { strayOutputs, accountFor, addWorkspacePackages, CoverageError } from './coverage.js';
+import { strayOutputs, accountFor, addWorkspacePackages, runtimeLoads, binaryCopies, CoverageError } from './coverage.js';
 import { recordReview, sameCause } from './review.js';
 import { attachFingerprints } from './evidence.js';
-import { readDeployment, mergeModuleMaps, defaultMapDirs } from './deploy.js';
+import { readDeployment, mergeModuleMaps, defaultMapDirs, installBases, inlineMapPackages, deploymentDigest } from './deploy.js';
+import { contentCheck } from './content-check.js';
 import { normalizeFindings, parsePurl, indexSbom } from './index.js';
 import { deriveRules } from './derive.js';
 
 // Frameworks whose apps also run code on a server. Their packages can be missing from the browser bundle and
 // still run in production, so a browser module map cannot stand for the whole product.
+const SERVERS = ['express', 'fastify', 'koa', '@hapi/hapi', '@nestjs/core', 'hono', 'restify', 'polka', 'h3', 'electron', 'socket.io', '@apollo/server', '@trpc/server'];
 const SERVER_FRAMEWORKS = ['next', 'nuxt', '@sveltejs/kit', '@remix-run/server-runtime', '@react-router/node', '@angular/ssr', 'vike', '@solidjs/start', '@tanstack/react-start', '@astrojs/node', '@analogjs/platform'];
 
 const PRO_URL = 'https://vexproof.dev/#pricing';
@@ -432,13 +435,14 @@ let moduleMap = null;
 const root = args.root ?? process.cwd();
 const lockNames = new Set([...indexSbom(lockfileSbom).keys()].filter((k) => k.startsWith('npm/')).map((k) => k.slice(4)));
 const maps = [];
+const shippedDirs = []; // every folder of files that ship, for the content check
 for (const file of args.modules ?? []) {
   const mmJson = readJson(file);
   let mm;
   try { mm = readModuleMap(mmJson); } catch (e) { log(`vexproof: ${file}: ${e.message}`); process.exit(2); }
   // every JavaScript file in the build output must be a recorded chunk, or be accounted for on its own
-  let stray, copied, outDirs;
-  try { ({ stray, copied, dirs: outDirs } = strayOutputs(mmJson, { root, file })); } catch (e) {
+  let stray, copied, outDirs, recorded, hints;
+  try { ({ stray, copied, dirs: outDirs, recorded, hints } = strayOutputs(mmJson, { root, file })); } catch (e) {
     if (!(e instanceof CoverageError)) throw e;
     log(`vexproof: ${file}: ${e.message}`);
     process.exit(2);
@@ -446,7 +450,7 @@ for (const file of args.modules ?? []) {
   // files the bundler says it copied from somewhere: that origin shipped
   for (const c of copied) { if (splitNodeModulesPath(c.from)) addToMap(mm.packages, c.from); else mm.own.add(c.from); }
   if (stray.length || copied.length) {
-    const { accounted, unknown } = accountFor(stray, { root, outDirs });
+    const { accounted, unknown } = accountFor(stray, { root, outDirs, hints });
     if (unknown.length) {
       log(`vexproof: ${unknown.length} JavaScript file(s) in the build output are not accounted for, so their packages could look absent:`);
       for (const u of unknown.slice(0, 8)) log(`  ${u.file}: ${u.why}`);
@@ -464,7 +468,24 @@ for (const file of args.modules ?? []) {
       for (const n of a.loads) if (lockNames.has(n)) { addToMap(mm.packages, `node_modules/${n}/package.json`); mm.whole.add(n); }
     }
     const n = (k) => accounted.filter((a) => a.kind === k).length;
-    log(`vexproof: ${accounted.length + copied.length} output file(s) outside the module map accounted for: ${n('copy') + copied.length} copied from installed packages, ${n('mapped')} by their source maps, ${n('own')} the project's own, ${n('glue')} holding no package code`);
+    log(`vexproof: ${accounted.length + copied.length} output file(s) outside the module map accounted for: ${n('copy') + copied.length} copied from installed packages, ${n('mapped')} by their source maps, ${n('own')} the project's own, ${n('glue')} holding no package code${n('generated') ? `, ${n('generated')} written by a build tool` : ''}`);
+  }
+  // a package the recorded output loads by name when it runs is used by the product, wherever it is loaded from
+  const external = [...runtimeLoads(recorded)].filter((n) => lockNames.has(n));
+  if (external.length) {
+    mm.whole ??= new Set();
+    for (const n of external) { addToMap(mm.packages, `node_modules/${n}/package.json`); mm.whole.add(n); }
+    log(`vexproof: the build output loads ${external.length} package(s) by name when it runs, so they count as shipped: ${external.slice(0, 6).join(', ')}${external.length > 6 ? ', …' : ''}`);
+  }
+  shippedDirs.push(...outDirs);
+  // compiled code in the output (a .wasm or .node file a bundler copied): whose it is, where it is an exact copy
+  for (const p of binaryCopies(outDirs, { root })) addToMap(mm.packages, p);
+  // An esbuild metafile doesn't say where the build's output folder is; the folder its outputs share is
+  // checked. JavaScript beside that folder (dist/vendor next to dist/js) is in no record, so the content
+  // check at least searches it.
+  if (mm.format === 'esbuild-metafile' && outDirs.length === 1) {
+    const at = resolve(outDirs[0]), up = dirname(at), here = resolve(root);
+    if (up !== here && up.startsWith(here) && dirname(resolve(file)) !== at) shippedDirs.push(up);
   }
   mm.serverBuildsSkipped = mmJson.serverBuildsSkipped ?? 0;
   maps.push(mm);
@@ -474,6 +495,25 @@ let deployment = null;
 if (args.deploy) {
   const mapDirs = args.maps ?? defaultMapDirs(args.deploy, root);
   deployment = readDeployment(args.deploy, { root, mapDirs, lockNames });
+  if (deployment.missingDirs.length) {
+    log(`vexproof: --deploy ${deployment.missingDirs.join(', ')}: no such folder under ${root}. A folder that is not read can't be vouched for.`);
+    process.exit(2);
+  }
+  if (deployment.missingHalves.length) {
+    log(`vexproof: --deploy has the server half of this build but not the browser half: ${deployment.missingHalves.join(', ')}.`);
+    log('What the browser gets ships too, and holds packages the server half does not. Add it as another --deploy folder.');
+    process.exit(2);
+  }
+  if (deployment.loadedFromOutside.length) {
+    const l = deployment.loadedFromOutside;
+    log(`vexproof: ${l.length} package(s) are loaded by deployed packages but are not in the deployment (e.g. ${l[0].name}, by ${l[0].from}).`);
+    log(`They run only where Node can find them further up, and count as shipped: ${l.slice(0, 6).map((x) => x.name).join(', ')}${l.length > 6 ? ', …' : ''}`);
+  }
+  if (deployment.unplaced.length) {
+    const eg = deployment.unplaced[0];
+    log(`vexproof: ${deployment.unplaced.length} source(s) named in the deployment's source maps are no file and no installed package's own map names them`);
+    log(`(e.g. ${eg.source.length > 90 ? `${eg.source.slice(0, 90)}…` : eg.source} in ${eg.file}); taken as modules the bundler made up`);
+  }
   if (deployment.unmapped.length) {
     log(`vexproof: ${deployment.unmapped.length} bundled file(s) in the deployment have no source map (or could not be parsed), so what they contain is unknown:`);
     for (const f of deployment.unmapped.slice(0, 8)) log(`  ${f}`);
@@ -487,7 +527,15 @@ if (args.deploy) {
     log('Their code shipped, but vexproof can\'t tell whose it is. Run vexproof where the build ran, with node_modules installed.');
     process.exit(2);
   }
-  if (deployment.missingRuntime.length) {
+  if (deployment.missingRuntime.length && args['browser-only']) {
+    // Files for a browser can't load a package from node_modules: there is none where they run. Code written
+    // for browsers and Node keeps such loads for its Node side (pdf.js asks for @napi-rs/canvas). Whether a
+    // loader could still supply the package is not for vexproof to say, so it counts as shipped.
+    const names = [...new Set(deployment.missingRuntime.map((m) => m.name))];
+    for (const n of names) { addToMap(deployment.packages, `node_modules/${n}/package.json`); deployment.whole.add(n); }
+    log(`vexproof: code in the deployment loads ${names.length} package(s) by name that the deployment does not hold; in a browser nothing supplies them,`);
+    log(`but they count as shipped: ${names.slice(0, 6).join(', ')}${names.length > 6 ? ', …' : ''}`);
+  } else if (deployment.missingRuntime.length) {
     const names = [...new Set(deployment.missingRuntime.map((m) => m.name))];
     log(`vexproof: code in the deployment loads ${names.slice(0, 8).join(', ')} at runtime, but ${names.length > 1 ? 'they are' : 'it is'} not in the deployment folders (e.g. ${deployment.missingRuntime[0].from}).`);
     log('Point --deploy at the self-contained output (Next.js output: \'standalone\', Nuxt .output), or add the node_modules');
@@ -495,7 +543,8 @@ if (args.deploy) {
     process.exit(2);
   }
   maps.push(deployment);
-  inputs.push({ role: 'deployment', path: args.deploy.join(','), sha256: '-' });
+  for (const d of args.deploy) shippedDirs.push(resolve(root, d));
+  inputs.push({ role: 'deployment', path: args.deploy.join(','), sha256: deploymentDigest(args.deploy, root) });
 }
 if (maps.length) {
   const merged = mergeModuleMaps(maps);
@@ -511,12 +560,46 @@ if (maps.length) {
     log('Run vexproof from the folder the build ran in, with node_modules installed, or pass --root.');
     process.exit(2);
   }
+  // read through source maps, a package with a map inlined in its files is taken whole, like one that publishes .map files
+  if (deployment) {
+    moduleMap.whole ??= new Set();
+    const asked = new Set(normalizeFindings(findings).map((f) => parsePurl(f.purl)?.name).filter(Boolean));
+    for (const n of inlineMapPackages(moduleMap, asked, root)) moduleMap.whole.add(n);
+  }
+  // a folder that can't be read is known by its folder name only; if the lockfile has no package of that name,
+  // it may be another package installed under an alias, and nothing could then be said about that package
+  const unverified = (moduleMap.unverified ?? []).filter((u) => !lockNames.has(u.name));
+  if (unverified.length) {
+    log(`vexproof: ${unverified.length} shipped package folder(s) can't be read here and the lockfile SBOM has no package of that name, so each may be`);
+    log('another package installed under an alias:');
+    for (const u of unverified.slice(0, 8)) log(`  ${u.root}`);
+    if (unverified.length > 8) log(`  … and ${unverified.length - 8} more`);
+    log('Run vexproof from the folder the build ran in, with node_modules installed, or pass --root.');
+    process.exit(2);
+  }
   if (!bundleSbom) {
     bundleSbom = bundleSbomFromModules(moduleMap, { lockfileSbom, cwd: root });
     log(`vexproof: ${deployment ? 'deployed' : 'bundle'} contents taken from the ${deployment ? 'deployment' : 'module map'} (${bundleSbom.components.length} packages)`);
   }
+  else {
+    // --bundle with --modules or --deploy: the bundle SBOM is one account of what ships, the module map or the
+    // deployment another (a server's packages are in no browser bundle SBOM). A package either one names ships.
+    const have = new Set(bundleSbom.components?.map((c) => c.purl) ?? []);
+    const extra = bundleSbomFromModules(moduleMap, { lockfileSbom, cwd: root }).components.filter((c) => !have.has(c.purl));
+    if (extra.length) {
+      bundleSbom = { ...bundleSbom, components: [...(bundleSbom.components ?? []), ...extra] };
+      log(`vexproof: ${extra.length} package(s) are in the ${deployment ? 'deployment' : 'module map'} and not in the bundle SBOM; they count as shipped too`);
+    }
+  }
   // .cache, .prisma and the like: said out loud, in case one of them is a package store vexproof doesn't know
   const dotFolders = [...moduleMap.packages].filter(([n]) => n.startsWith('.')).flatMap(([, e]) => [...e.roots]);
+  // node_modules/.vite holds dependencies Vite bundled ahead of time: package code, under no package's name
+  const prebundled = dotFolders.filter((r) => r === 'node_modules/.vite' || r.endsWith('/node_modules/.vite'));
+  if (prebundled.length) {
+    log(`vexproof: the build ships code from ${prebundled[0]}, where Vite keeps dependencies it bundled ahead of time. Which packages those are`);
+    log('is not recorded, so they could look absent. Build without the dependency optimizer (optimizeDeps.noDiscovery with no include), or use --deploy.');
+    process.exit(2);
+  }
   if (dotFolders.length) log(`vexproof: shipped code under ${dotFolders.slice(0, 4).join(', ')}${dotFolders.length > 4 ? ', …' : ''} is counted for no package: a dot folder in node_modules is not one`);
 }
 let rules = proLib ? proLib.loadRules() : null;
@@ -532,6 +615,19 @@ const serverSide = [];
 if (maps.some((m) => m.serverBuildsSkipped)) serverSide.push('the build includes a server (SSR) build');
 const lockIndex = indexSbom(lockfileSbom);
 for (const n of SERVER_FRAMEWORKS) if (lockIndex.has(`npm/${n}`)) serverSide.push(`${n} is a dependency`);
+// A server of the project's own beside the front end (an Express API, an Electron main process). These are in
+// many lockfiles as someone's dependency, so only the project's own package.json counts.
+const direct = new Set();
+try { for (const n of Object.keys(JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8')).dependencies ?? {})) direct.add(n); } catch { /* no package.json here */ }
+{
+  // the lockfile SBOM says the same when it carries the dependency graph: what the application itself depends on
+  const names = new Map();
+  const walk = (cs) => { for (const c of cs ?? []) { const p = parsePurl(c.purl ?? ''); if (p?.type === 'npm' && c['bom-ref']) names.set(c['bom-ref'], p.name); walk(c.components); } };
+  walk(lockfileSbom?.components);
+  const app = lockfileSbom?.metadata?.component?.['bom-ref'];
+  for (const ref of (lockfileSbom?.dependencies ?? []).find((d) => d.ref === app)?.dependsOn ?? []) if (names.has(ref)) direct.add(names.get(ref));
+}
+for (const n of SERVERS) if (direct.has(n) && !serverSide.some((s) => s.startsWith(`${n} `))) serverSide.push(`${n} is a dependency of this package`);
 const serverCovered = Boolean(deployment?.hasServer); // the deployment includes what the server runs
 if (serverSide.length && !serverCovered && !args['browser-only']) {
   log(`vexproof: this app also runs JavaScript on a server (${serverSide.join('; ')}).`);
@@ -542,6 +638,20 @@ if (serverSide.length && !serverCovered && !args['browser-only']) {
 }
 
 const results = triage({ lockfileSbom, bundleSbom, findings, moduleMap, rules, moduleCheck: proLib?.evaluateModuleRule ?? null, pro: has('modules'), acceptDerived: Boolean(args['accept-derived']) && has('modules') });
+
+// Independent of the maps: a package about to be called absent must not have its own strings in what ships.
+if (shippedDirs.length) {
+  // what the records name as shipped: every recorded file of every package, and the project's own files
+  const recorded = () => {
+    const files = [];
+    for (const e of moduleMap?.packages.values() ?? []) for (const [r, fs] of e.byRoot ?? []) for (const f of fs) files.push(resolve(root, r, f));
+    for (const p of moduleMap?.own ?? []) files.push(resolve(root, p));
+    return files;
+  };
+  const c = contentCheck(results, { root, bases: installBases(root), shippedDirs, recorded });
+  for (const k of c.kept) log(`vexproof: ${k.name} is not in the build's records, but ${k.hits.length} string(s) from its own files are in the shipped output (e.g. "${k.hits[0].text}" in ${k.hits[0].file}): its findings stay open`);
+  if (c.checked || c.uncheckable.length) log(`vexproof: content check: looked for ${c.checked} absent package(s) in the shipped files${c.kept.length ? `, found ${c.kept.length}` : ''}${c.uncheckable.length ? `; ${c.uncheckable.length} are not installed here and were not looked for` : ''}`);
+}
 
 attachFingerprints(results, { moduleMap, rules, cwd: args.root ?? process.cwd() });
 

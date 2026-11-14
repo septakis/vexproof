@@ -11,7 +11,7 @@
 // Every build that ships code needs the plugin: the main build, web workers (worker.plugins) and any
 // nested build() calls. Instances in one process write one merged file, and vexproof checks that every
 // .js file in the recorded output folders is covered, so a build without the plugin is caught, not missed.
-import { writeFileSync } from 'node:fs';
+import { writeFileSync, rmSync } from 'node:fs';
 import { relative, resolve, isAbsolute, join } from 'node:path';
 
 const REGISTRY = Symbol.for('vexproof.vite.registry');
@@ -39,7 +39,12 @@ export default function vexproof({ output = 'vexproof-modules.json', includeServ
 
   const record = () => {
     const file = resolve(root, output);
-    if (!registry.has(file)) registry.set(file, { vexproof: 1, bundler, inputs: {}, outputs: {}, outDirs: [] });
+    if (!registry.has(file)) {
+      registry.set(file, { vexproof: 1, bundler, inputs: {}, outputs: {}, outDirs: [] });
+      // A map left by an earlier build describes that build. If this one records nothing (the plugin is on
+      // a pass that ships no code), the old file must not stand in for it.
+      try { rmSync(file, { force: true }); } catch { /* not ours to remove, or already gone */ }
+    }
     return { file, rec: registry.get(file) };
   };
 
@@ -79,6 +84,21 @@ export default function vexproof({ output = 'vexproof-modules.json', includeServ
         const imports = [...(info.importedIds ?? []), ...(info.dynamicallyImportedIds ?? [])].map((i) => ({ path: cleanModuleId(i, root) })).filter((i) => i.path !== k);
         if (imports.length) rec.inputs[k] = { imports: [...new Map([...(rec.inputs[k]?.imports ?? []), ...imports].map((i) => [i.path, i])).values()] };
       }
+      // A worker imported with ?worker or ?sharedworker is bundled by a build of its own, and that build runs
+      // this plugin only if it is in worker.plugins. Each build notes its entry files; a worker whose file no
+      // build entered was bundled unseen. Inlined (?worker&inline) it is not even a file of its own, so the
+      // check for unrecorded output files can't catch it. The CLI stops on what is listed here.
+      rec.entries ??= [];
+      for (const chunk of Object.values(bundle)) {
+        if (chunk.type === 'chunk' && chunk.isEntry && chunk.facadeModuleId) { const e = cleanModuleId(chunk.facadeModuleId, root); if (!rec.entries.includes(e)) rec.entries.push(e); }
+      }
+      const unseen = new Set(rec.unrecordedWorkers ?? []);
+      for (const id of this.getModuleIds?.() ?? []) {
+        if (!/[?&](worker|sharedworker)(&|=|$)/.test(String(id))) continue;
+        const entry = cleanModuleId(id, root);
+        if (!rec.entries.includes(entry)) unseen.add(entry);
+      }
+      rec.unrecordedWorkers = [...unseen].filter((e) => !rec.entries.includes(e));
       for (const chunk of Object.values(bundle)) {
         if (chunk.type !== 'chunk') continue;
         const key = dir ? toPosix(relative(root, join(dir, chunk.fileName))) : chunk.fileName;

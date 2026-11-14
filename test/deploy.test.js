@@ -50,12 +50,13 @@ test('deployed files and source-mapped bundles make the module map', () => {
 });
 
 test('a bundled file with no source map is refused unless it is glue or an exact copy of an installed file', () => {
-  const root = app({ 'out/server/chunks/vendor.js': 'function a(){} function b(){}', 'out/server/chunks/polyfill.js': 'module.exports = function template() {};' });
+  const root = app({ 'out/server/chunks/vendor.js': 'function a(){ return 1 } function b(){ return 2 }', 'out/server/chunks/polyfill.js': 'module.exports = function template() {};' });
   const d = readDeployment(['out'], { root, lockNames: lock(['lodash', 'marked']) });
   assert.deepEqual(d.unmapped, ['out/server/chunks/vendor.js']); // manifest.js is glue; polyfill.js is lodash/template.js
   assert.ok(d.packages.get('lodash').files.has('template.js'));
   assert.ok(isGlue("const p = require('path'); startServer({ dir }).catch((err) => { process.exit(1) })"));
-  assert.ok(!isGlue('function x(){}'));
+  assert.ok(!isGlue('function x(){ return 1 }'));
+  assert.ok(isGlue('function x(){}')); // a function with nothing in it does nothing
 });
 
 test('runtime loads of lockfile packages must be satisfied inside the deployment; comments and strings do not count', () => {

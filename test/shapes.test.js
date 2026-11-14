@@ -38,7 +38,7 @@ test("Angular's webpack-based builder: the stats list modules per chunk, not at 
   assert.throws(() => readModuleMap({ chunks: [{ id: 1, modules: [{ name: './node_modules/b/x.js + 3 modules', chunks: [1], modules: [] }] }] }), /lists 0 of its 3/);
 });
 
-test('webpack stats: a chunk with no modules is not vouched for, once the stats list runtime modules', () => {
+test('webpack stats: a chunk with no modules listed is not vouched for', () => {
   const root = project({ 'dist/main.js': '', 'dist/runtime.js': '', 'dist/scripts.js': '' });
   const stats = (runtimeListed) => ({
     outputPath: join(root, 'dist'),
@@ -50,8 +50,9 @@ test('webpack stats: a chunk with no modules is not vouched for, once the stats 
     ],
   });
   assert.deepEqual(rel(root, strayOutputs(stats(true), { root }).stray), ['dist/scripts.js']);
-  // without runtime modules in the stats, an empty chunk can't be told from one that holds only the runtime
-  assert.deepEqual(strayOutputs(stats(false), { root }).stray, []);
+  // without runtime modules in the stats, an empty chunk can't be told from one that holds only the runtime:
+  // neither is vouched for, and each is looked at like any other unrecorded file
+  assert.deepEqual(rel(root, strayOutputs(stats(false), { root }).stray), ['dist/runtime.js', 'dist/scripts.js']);
 });
 
 test('Rspack 2.0: a member named after its concatenation is read by its real path', () => {
@@ -76,7 +77,7 @@ test('Rspack 2.0: a member named after its concatenation is read by its real pat
 
 test("Vite 8: the bundler's own helper chunks have no source map and hold no package code", () => {
   const runtime = 'var e=Object.create,t=Object.defineProperty,n=Object.getOwnPropertyDescriptor,r=Object.getOwnPropertyNames,i=Object.getPrototypeOf,a=Object.prototype.hasOwnProperty,o=(e,t)=>()=>(t||e((t={exports:{}}).exports,t),t.exports);export{o as t};';
-  const preload = 'var i=function(e){let n=document.createElement(`link`);n.rel=`modulepreload`;n.onerror=()=>{throw Error(`Unable to preload CSS for ${e}`)};return n};export{i as t};';
+  const preload = 'var i=function(e){let n=document.createElement(`link`);n.rel=`modulepreload`;n.onerror=()=>{window.dispatchEvent(new Event(`vite:preloadError`));throw Error(`Unable to preload CSS for ${e}`)};return n};export{i as t};';
   const is = (code) => isBundlerRuntime(code, loadedSpecifiers(code));
   assert.ok(is(runtime) && is(preload));
   assert.ok(!is(runtime.replace('export{', 'function leftPad(){}export{'))); // anything besides the helpers
@@ -168,6 +169,7 @@ test("Yarn's pnpm linker, through the CLI: a bundled package is found, and one t
   const folder = '@my-org-pkg-npm-1.0.0-0000000005';
   const root = project({
     'dist/app.js': 'console.log(1);',
+    'app.js': 'console.log(1);',
     'meta.json': JSON.stringify({ inputs: {}, outputs: { 'dist/app.js': { inputs: { [`node_modules/.store/${folder}/package/index.js`]: { bytesInOutput: 9 }, 'app.js': { bytesInOutput: 5 } } } } }),
     'bom.json': JSON.stringify({ bomFormat: 'CycloneDX', specVersion: '1.6', version: 1, components: [{ type: 'library', name: 'pkg', group: '@my-org', version: '1.0.0', purl: 'pkg:npm/%40my-org/pkg@1.0.0' }, { type: 'library', name: 'other', version: '2.0.0', purl: 'pkg:npm/other@2.0.0' }] }),
     'findings.json': JSON.stringify([{ purl: 'pkg:npm/%40my-org/pkg@1.0.0', id: 'GHSA-xxxx-xxxx-xxxx' }]),

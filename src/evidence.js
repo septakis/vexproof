@@ -12,7 +12,7 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { splitNodeModulesPath } from './modules.js';
+import { splitNodeModulesPath, splitShipped } from './modules.js';
 import { parsePurl } from './index.js';
 
 const sha = (b) => createHash('sha256').update(b).digest('hex');
@@ -68,7 +68,7 @@ export function attachFingerprints(results, { moduleMap, rules, cwd = process.cw
     const g = moduleMap.graph;
     if (g) {
       const out = new Set(), seen = new Set();
-      const inPackage = (k) => { const s = splitNodeModulesPath(k); return s && s.name === p.name && roots.includes(s.root); };
+      const inPackage = (k) => { const s = splitShipped(moduleMap, k); return s && s.name === p.name && roots.includes(s.root); };
       const stack = vulnerable.map((x) => keyIndex.get(`${x.root}\0${x.file}`)).filter(Boolean);
       while (stack.length) {
         const k = stack.pop();
@@ -77,7 +77,7 @@ export function attachFingerprints(results, { moduleMap, rules, cwd = process.cw
         for (const imp of g.importers.get(k) ?? []) {
           if (inPackage(imp)) { stack.push(imp); continue; }
           if (!g.shipped.has(imp)) continue; // code that didn't ship can't call anything
-          const s = splitNodeModulesPath(imp);
+          const s = splitShipped(moduleMap, imp);
           out.add(s ? `${s.name}@${moduleMap.packages.get(s.name)?.versionByRoot?.get(s.root) ?? '?'}/${s.file}` : imp);
         }
       }

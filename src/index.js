@@ -186,6 +186,9 @@ export function triage({ lockfileSbom, bundleSbom, findings, moduleMap = null, r
       detail = `Could not parse purl "${f.purl}".`;
     } else if (!bundleUsable) {
       detail = 'Bundle SBOM contains no components; refusing to infer absence from it.';
+    } else if (parsed?.type !== 'npm') {
+      // a JavaScript build's records say what npm packages are in it, and nothing about a Python or Go package
+      detail = `${key} is not an npm package; a JavaScript build says nothing about it, so no claim is made.`;
     } else if (!lock.has(key)) {
       // finding refers to a package we don't even claim to depend on; don't guess
       detail = `${key} is not listed in the lockfile SBOM; no claim made.`;

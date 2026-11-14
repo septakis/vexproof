@@ -75,19 +75,37 @@ module.exports = { plugins: [new VexproofPlugin()] };
 Every build that ships code needs the plugin, including web workers and nested `build()` calls. You
 don't have to get this right by inspection. Whatever wrote the module map (a vexproof plugin, an
 esbuild metafile, Angular or webpack stats), vexproof finds the build's output folder and checks every
-`.js` file in it. On Gitea that caught two bundles made by nested builds (`e2e-gitea/`).
+`.js` file in it. On Gitea that caught two bundles made by nested builds (`e2e-gitea/`). A Vite worker
+imported with `?worker&inline` is no file of its own; the plugin names it instead, and the run stops.
 
 A file the module map doesn't record is accounted for on its own, and counted as shipped where it
 holds a package's code:
 
-- it has a source map beside it (a service worker written by workbox): the map's sources shipped;
-- it is an unmodified copy of an installed file (a package file imported with `?url`, or copied by a
-  plugin), or webpack recorded where it was copied from: that file shipped;
-- it is an unmodified copy of a file git tracks in your project (from `public/`), or holds no
-  functions at all. An untracked file doesn't count: it may be another build's output.
+- it is an unmodified copy of installed files (a package file imported with `?url`, or copied by a
+  plugin), or webpack recorded that it was copied from an installed package: those files shipped;
+- it has a source map beside it (a service worker written by workbox) that names at least one source
+  that is a file here or in an installed package: the map's sources shipped;
+- it is an unmodified copy of a file as git has it in your project (from `public/`), or holds no
+  code at all. An untracked file doesn't count: it may be another build's output.
   A package such a file imports by name counts as shipped.
 
-Any other file stops the run, named with the reason. So does an output folder that can't be found:
+A package the recorded output loads by name when it runs (an esbuild `--external`, a webpack external)
+counts as shipped too: the product uses it, wherever it is loaded from.
+
+**Content check.** Module maps and source maps are records, and records can be incomplete. So before a
+package is called absent, vexproof looks for the package's own string literals in the JavaScript and
+HTML that ship; a minifier keeps what a string says. If some are there, and no file the records name
+holds them too, the finding stays open and a line says which string was found where. The check can
+only keep a finding open, needs `node_modules` installed, and looks only at packages with a finding.
+
+Packages are named by the `package.json` in their folder, not by the folder: `"tiny": "npm:ms@2"` ships
+`ms`. So run vexproof where `node_modules` is installed. Without it, a shipped folder whose name the
+lockfile SBOM doesn't have stops the run, since it may be another package under an alias.
+
+Any other file stops the run, named with the reason. So does a module map that describes another
+build: webpack, Rspack and esbuild record each output file's size, and the file on disk must have it;
+for the Vite plugin, an output written more than two minutes after the map does it. Run vexproof on a
+build before other tools change its files. So does an output folder that can't be found:
 run vexproof from the folder the build ran in, or pass `--root`. In a monorepo that is the app's
 folder, not the repository root.
 
@@ -302,17 +320,26 @@ vexproof … --deploy build --deploy node_modules           # anything that runs
 
 A deployment folder is evidence the same way a browser bundle is: a file that isn't deployed can't run.
 vexproof reads the files copied into it (the framework's traced `node_modules`), and the source maps of
-its bundled code, which name every file bundled in. Turn source maps on for the build (Next.js:
+its bundled code, which name the files bundled in. Turn source maps on for the build (Next.js:
 `productionBrowserSourceMaps` and `experimental.serverSourceMaps`; Nuxt:
 `sourcemap: { server: true, client: 'hidden' }`; Vite: `build.sourcemap: 'hidden'`). Maps that live outside
-the deployment are found in `.next`, or in folders given with `--maps`.
+the deployment are found in `.next`, or in folders given with `--maps`, by matching the folders they sit
+in, not the file name alone.
 
 It refuses a deployment it can't account for:
-- a bundled file with no source map, unless it is an exact copy of an installed file (Next's polyfills) or
-  glue code with no functions of its own (manifests, Next's `server.js`);
+- a `--deploy` folder that doesn't exist, or the server half of a build without the browser half
+  (`.next/standalone` without `.next/static`, `.output/server` without `.output/public`);
+- a bundled file with no source map, unless it is an exact copy of an installed file (Next's polyfills),
+  a file of yours as git has it (`public/sw.js`), a helper chunk the bundler writes itself, or glue with
+  no code of its own (manifests, Next's `server.js`);
 - bundled code that loads a lockfile package at runtime when that package isn't in the deployment
   (imports are parsed, so examples in comments don't count);
-- a source-map source that can't be traced to an installed package.
+- a source-map source under `node_modules` that can't be traced to an installed package.
+
+A source that names no file is placed when it is written from the project folder (`webpack://_N_E/./…`)
+or copied from an installed package's own source map; what is left is counted and reported. A source map
+lists what has mappings, not everything in the file, so a build step that drops a dependency from the
+map hides it here: the content check above is the guard for that.
 
 A package that publishes its own source maps is taken whole: bundler maps point through them at its
 original sources (esbuild followed fast-equals' maps to `src/comparator.ts`), so its file-level rules

@@ -67,7 +67,8 @@ test('Yarn 4 Plug\'n\'Play (Vite 8): zip-cache ids fold to one copy with a known
   assert.equal(entry.roots.size, 1);
   assert.deepEqual([...entry.versionByRoot.values()], ['4.17.21']);
   assert.deepEqual(files(mm, 'lodash'), npm);
-  assert.equal(mm.packages.size, 25);
+  assert.equal(mm.packages.size, 26); // 25 bundled packages, and vite for its preload helper in the output
+  assert.ok(mm.whole.has('vite'));
   for (const pkg of mm.packages.values()) assert.equal(pkg.roots.size, 1, 'no phantom copies from __virtual__ ids');
   const bundleSbom = bundleSbomFromModules(mm, { lockfileSbom: lock, cwd: '/nonexistent' });
   const findings = readFindingsText(raw('recharts.yarn-berry.audit.ndjson'), lock).findings;

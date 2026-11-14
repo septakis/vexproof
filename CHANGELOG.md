@@ -6,6 +6,135 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+A soundness audit of 1.0.0-beta.8 (two independent reviews of the code, and runs over real package-manager
+layouts) found 29 ways to get `not_affected` for code that ships. This release closes most of them and adds a
+check that does not depend on finding each one first. Upgrade from any earlier version.
+
+### Added
+- **Content check.** Before a package is called absent, vexproof looks for the package's own string literals
+  in the JavaScript and HTML that ship. A minifier keeps what a string says. If some are there, and no file
+  the build's records name holds them too, the finding stays open and a line says which string was found
+  where. The check can only keep a finding open. It needs `node_modules` installed and looks only at packages
+  that have a finding.
+
+### Fixed
+Package names:
+- A package installed under another name (`"tiny": "npm:ms@2.1.3"`, an npm `overrides` entry, a git
+  dependency) was named after its folder, so the real package looked absent: npm, Yarn 1 and Yarn's
+  node-modules linker. The name now comes from the `package.json` in the folder, which also settles
+  `require('Lodash')` on a file system that ignores case. A shipped folder that can't be read, under a name the
+  lockfile SBOM doesn't have, stops the run.
+- A finding on a package that is not an npm package (`pkg:pypi/…` from osv-scanner) was marked not affected
+  from a JavaScript build. It is left open.
+
+Module maps (`--modules`):
+- A package the output loads by name when it runs (esbuild `--external`, a webpack external, a library or SSR
+  build) counted as absent. The recorded output files are now read for such loads, and the package counts
+  as shipped.
+- Angular's default builder records the `scripts` bundle under a made-up input name. An output made only of
+  such inputs is no longer vouched for by the stats: it needs a source map (`--source-map`).
+- A Vite worker imported with `?worker&inline` and built without `worker.plugins` sits in the main chunk as
+  a string, where the output check could not see it. The plugin now names workers that no build of its own
+  recorded, and the map is refused.
+- webpack stats with grouped modules (`stats: { all: true }`, `groupModulesByPath`) were neither read nor
+  refused. They are read. The bundler's runtime in the output now counts as the bundler's package.
+- An esbuild or Angular metafile read from a folder that holds none of the project's source files it names
+  is refused: that is not where the build ran.
+- An output file the map doesn't record was accepted for having any source map beside it. The map must now
+  name at least one source that is a file here or in an installed package.
+- A file webpack says it copied is taken at its word only when it came from an installed package.
+
+Deployments (`--deploy`):
+- With `--bundle` and `--deploy` (or `--modules`) together, only the bundle SBOM decided the verdicts. A
+  package either one names now ships. The GitHub Action passes both.
+- A source map that is not beside its file was found by file name alone, first match wins; every route of a
+  webpack-built Next.js app is `route.js`. A map must now sit in folders of the same names, and a map inside
+  a deployed package is never taken for a bundle's.
+- A source that names no file was dropped. It is now placed when it is written from the project folder
+  (`webpack://_N_E/./packages/ui/…`), as a Windows path (`C:/…`), or copied from an installed package's own
+  source map (`webpack://Lib/./src/x.js`, a URL). What still can't be placed is counted, and a line says so.
+- Runtime loads written as `__require("x")` (esbuild's ESM output), `createRequire(…)("x")`, `"punycode/"`,
+  a hashed Next.js alias, or a relative path into `node_modules` outside the deployment were not seen.
+- A `--deploy` folder that does not exist was skipped without a word. So was the browser half of a build:
+  `.next/standalone` without `.next/static`, `.output/server` without `.output/public`. Both stop the run.
+- A folder linked into the deployment was not read. Links are followed.
+- `--deploy build --deploy node_modules`, the README's own example, was refused.
+
+Files accepted without a source map, on both routes:
+- "The project's own file" compared against the working tree, so a tracked file the build had overwritten
+  passed. It is compared against what git has. An accepted file is now filed under its path, so a vendored
+  package's file is given to that package.
+- A copy is credited to every installed file it matches, not the first: two packages can hold the same file.
+  `.node` and `.wasm` files in a deployment are matched too.
+- "Glue" was a file without the word `function` and with at most two arrows, which a class or an object
+  with methods passes. It is now decided by parsing.
+
+Stale and incomplete records:
+- A module map from an earlier build vouched for whatever was on disk under the same file names. For webpack,
+  Rspack and esbuild the size the bundler recorded for each file must now be the file's size; for the Vite
+  plugin a recorded file written more than two minutes after the map stops the run, and the plugin removes
+  the map an earlier build left when a new one starts. Angular's builder rewrites its files after writing
+  the stats and is not held to the sizes.
+- A metafile input with no `bytesInOutput` counted as dropped. Only a stated `0` does.
+- webpack stats that list no runtime modules vouched for any chunk with no modules listed. Such a chunk is now
+  looked at like an unrecorded file. The plugin lists runtime modules; raw stats need `runtimeModules: true`.
+- A source map that names a bundle (a minifier run over a bundler's output) is followed through that bundle's
+  own map when it has one. A file with two `sourceMappingURL` lines accounts for nothing. Nor does a map
+  with no sources, unless the file only wires modules together, as the many small chunks Turbopack writes
+  do: functions that call methods of their own parameters with literals, and compute nothing.
+
+More places a package's code was missed:
+- A deployed package that loads another from outside the deployment (hoisted above it): the loaded package
+  now counts as shipped, and a line names it.
+- A copy of one package published inside another's build (`node_modules/ui-kit/dist/node_modules/tslib/…`)
+  counted for the inner package only. It counts for both.
+- A module a webpack DLL build names `delegated ./node_modules/x/y.js from dll-reference …` is read as that file.
+- Vite's own helpers in the output (`vite/preload-helper.js`) count as the `vite` package, and webpack's or
+  Rspack's runtime as theirs. Advisories on code a bundler puts in its output exist.
+- Compiled files in a build's output (`.wasm`, `.node`) that are exact copies of installed files name their
+  package on the module-map route too.
+- Code under `node_modules/.vite`, where Vite keeps dependencies it bundled ahead of time, stops the run.
+
+Files with no source map, or with one that says nothing:
+- "Glue" is decided by parsing alone: a file of translated strings may say "function", and a function with
+  an empty body is not code.
+- A file a build tool writes from its own template is recognised by what it is. Workbox's generated service
+  worker has a source map that names a temp file, gone by the time vexproof runs; it is accepted as a loader
+  plus settings, and `workbox-build` counts as shipped.
+- A file the bundler says it copied, minified on the way, from a path that names no package
+  (`base/worker/workerMain.js`) is given to the installed files that end in that path when most of their
+  strings are in the copy. Before, such files were accepted without being given to any package.
+- A relative source that climbs too far (`../../../../src/routes/+page.svelte`, as SvelteKit writes them) is
+  found by what follows the dots.
+- A folder inside a package that is no package itself (a test fixture) gives its files to that package.
+- With `--browser-only`, a package the deployed files load by name and the deployment does not hold counts
+  as shipped; the run no longer stops.
+
+File-level rules (Pro):
+- File names are compared without regard to case (`lodash/Template` on Windows and macOS).
+- A package whose original sources a source map leads to (`src/parse.ts`), or that inlines source maps in
+  its files, is taken whole in a deployment, like one that publishes `.map` files.
+
+### Changed
+- webpack multi-compiler stats (`children` with their own `outputPath`) are read instead of refused.
+- The server check also looks at the application's own dependencies, from `package.json` and from the
+  lockfile SBOM's dependency graph, for a server of its own (Express, Fastify, Koa, NestJS, Hono, Electron
+  and others). In a deployment, only bundled code that loads a Node module makes it a server; a script of
+  your own that does (`public/healthcheck.js`) does not.
+- The VEX records a digest of the deployment's files (`vexproof:input:deployment:sha256`) where it had `-`.
+- Runs take longer: the content check reads the shipped files and the installed files of absent packages.
+- With a full SBOM (not `--omit dev`), findings on `vite` or `webpack` stay open for an app whose output
+  holds their helper or runtime code.
+
+### Known limits
+- A source map lists what has mappings, not what is in the file: a build step that drops a dependency from
+  the map (a plugin returning an empty map, a second-stage bundle with no map of its own) hides it from
+  `--deploy`. The content check is the only guard, and it finds nothing for a package with no prose strings.
+- For an esbuild metafile the output folder is taken from the recorded outputs; a sibling folder is searched
+  by the content check only.
+- A server that is in the lockfile but in neither `package.json` nor the SBOM's dependency graph is not seen.
+- Helper code that Rollup or Babel inlines is not attributed to them.
+
 ## [1.0.0-beta.8] - 2026-11-12
 
 ### Fixed

@@ -14,19 +14,38 @@
 //
 // Anything else is refused, with the reason for each file. Finding no output folder at all is refused too:
 // a check that can't run must not pass.
-import { readdirSync, readFileSync, existsSync } from 'node:fs';
+import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { join, resolve, relative, dirname, isAbsolute, sep } from 'node:path';
-import { detectModuleFormat, splitNodeModulesPath } from './modules.js';
-import { mapSources, findMap, loadedSpecifiers, runtimeImports, isGlue, installBases } from './deploy.js';
+import { detectModuleFormat, splitNodeModulesPath, ungroupStats } from './modules.js';
+import { mapSources, withChainedSources, findMap, loadedSpecifiers, runtimeImports, isGlue, isLoaderStub, generatedBy, installBases } from './deploy.js';
 import { copyFinder } from './copies.js';
+import { literalsOf } from './content-check.js';
 
 const JS = /\.(m|c)?js$/;
 const posix = (p) => p.split(sep).join('/');
 
 /** The build output can't be located or isn't described: the caller refuses with this message. */
+// a plugin's virtual module, as esbuild names it: "<namespace>:<path>" (two letters or more, so not a Windows drive)
+const NAMESPACED = /^[a-z][a-z0-9+.-]+:/i;
+
 export class CoverageError extends Error {}
 
 const WHERE = 'Run vexproof from the folder the build ran in, or pass --root, so the build output can be checked.';
+// A module map describes the files of one build. Signs that the files on disk are from another:
+const STALE_AFTER_MS = 120_000;
+const stale = (n) => `${n} output file(s) on disk are not the ones this module map describes:`;
+const REBUILD = 'Rebuild, and run vexproof on that build before anything else changes its output.';
+/** Recorded outputs whose size on disk is not the size the bundler recorded: [{ file, recorded, disk }]. */
+function wrongSizes(pairs) {
+  const out = [];
+  for (const [abs, recorded] of pairs) {
+    if (typeof recorded !== 'number') continue;
+    let disk; try { disk = statSync(abs).size; } catch { continue; } // not there: not shipped
+    if (disk !== recorded) out.push({ file: abs, recorded, disk });
+  }
+  return out;
+}
+const sizeError = (wrong, here) => new CoverageError(`${stale(wrong.length)} ${posix(relative(here, wrong[0].file))} is ${wrong[0].disk} bytes, and the bundler wrote ${wrong[0].recorded}. ${REBUILD}`);
 
 /** JavaScript files under a folder. Links to folders are not followed. */
 function jsFiles(dir, recurse, out = []) {
@@ -63,10 +82,23 @@ export function recordedOutputs(json, { root = process.cwd(), file = null } = {}
 
   if (fmt === 'vite-modules') {
     const keys = Object.keys(json.outputs ?? {});
+    if (Array.isArray(json.unrecordedWorkers) && json.unrecordedWorkers.length) {
+      const w = json.unrecordedWorkers;
+      throw new CoverageError(`${w.length} web worker(s) were bundled without the vexproof plugin, so what they hold is not recorded: ${w.slice(0, 4).join(', ')}${w.length > 4 ? ', …' : ''}. ` +
+        'Add the plugin to that build too (worker: { plugins: () => [vexproof()] } in the Vite config) and rebuild.');
+    }
     if (!Array.isArray(json.outDirs) || !json.outDirs.length) {
       throw new CoverageError('this module map does not record where the build wrote its files (it was written by an older vexproof plugin). Rebuild with the current plugin.');
     }
     const covered = new Set(keys.map((k) => resolve(here, k)));
+    // The plugin writes the map when the build closes, after the output. A recorded file that is newer than
+    // the map by more than a pause was written by a later build that this map knows nothing about.
+    if (file) {
+      let mapTime = null;
+      try { mapTime = statSync(resolve(file)).mtimeMs; } catch { /* read from elsewhere */ }
+      const newer = mapTime === null ? [] : [...covered].filter((p) => { try { return statSync(p).mtimeMs - mapTime > STALE_AFTER_MS; } catch { return false; } });
+      if (newer.length) throw new CoverageError(`${stale(newer.length)} ${posix(relative(here, newer[0]))} was written after the module map. ${REBUILD}`);
+    }
     const dirs = [];
     for (const d of json.outDirs) {
       const abs = resolve(here, d);
@@ -80,11 +112,25 @@ export function recordedOutputs(json, { root = process.cwd(), file = null } = {}
   }
 
   if (fmt === 'esbuild-metafile') {
-    const keys = Object.keys(json.outputs ?? {}).filter((k) => JS.test(k)).map((k) => k.replace(/\\/g, '/'));
+    const all = Object.keys(json.outputs ?? {}).filter((k) => JS.test(k));
+    const keys = all.map((k) => k.replace(/\\/g, '/'));
     if (!keys.length) return { dirs: [], isCovered: () => true };
     const found = (base) => keys.some((k) => existsSync(resolve(base, k)));
+    // An output whose every input is a plugin's virtual module ("angular:script/global:scripts.js", the files
+    // Angular joins from its `scripts` option) is recorded without saying what is in it: not vouched for.
+    const shippedInputs = (k) => Object.entries(json.outputs[k]?.inputs ?? {}).filter(([, i]) => (i?.bytesInOutput ?? 0) > 0).map(([p]) => p.replace(/\\/g, '/'));
+    const vouched = new Set(all.filter((k) => { const ins = shippedInputs(k); return !ins.length || ins.some((p) => !NAMESPACED.test(p)); }).map((k) => k.replace(/\\/g, '/')));
+    // The inputs are named from the folder the build ran in. If none of the project's own is there, this is not it.
+    const own = [...new Set(all.flatMap(shippedInputs))].filter((p) => !NAMESPACED.test(p) && !/(^|\/)node_modules\//.test(p) && !p.startsWith('<'));
+    if (own.length && !own.some((p) => existsSync(resolve(here, p)))) {
+      throw new CoverageError(`none of the ${own.length} source files of the project that this module map names (${own[0]}, …) are under ${posix(here)}. ${WHERE}`);
+    }
     if (found(here)) {
-      const covered = new Set(keys.map((k) => resolve(here, k)));
+      // esbuild records each output's size, and nothing changes the file afterwards. (Angular's builder does:
+      // its outputs are found beside the stats file, below, and are not held to their recorded size.)
+      const wrong = wrongSizes(all.map((k) => [resolve(here, k), json.outputs[k]?.bytes]));
+      if (wrong.length) throw sizeError(wrong, here);
+      const covered = new Set([...vouched].map((k) => resolve(here, k)));
       const top = commonDir(keys);
       // outputs written straight into the project folder: check the folders that hold them, without descending
       const dirs = top === '.'
@@ -94,7 +140,7 @@ export function recordedOutputs(json, { root = process.cwd(), file = null } = {}
     }
     const beside = file ? dirname(resolve(file)) : null;
     if (beside && found(beside)) {
-      const covered = new Set(keys.map((k) => resolve(beside, k)));
+      const covered = new Set([...vouched].map((k) => resolve(beside, k)));
       return { dirs: [{ abs: beside, recurse: true }], isCovered: (abs) => covered.has(abs) };
     }
     if (beside) {
@@ -102,7 +148,7 @@ export function recordedOutputs(json, { root = process.cwd(), file = null } = {}
       let subs = [];
       try { subs = readdirSync(beside, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name); } catch { /* unreadable */ }
       if (subs.some((s) => found(join(beside, s)))) {
-        const names = new Set(keys);
+        const names = vouched;
         return {
           dirs: [{ abs: beside, recurse: true }],
           isCovered: (abs) => { const rel = posix(relative(beside, abs)); return names.has(rel) || names.has(rel.split('/').slice(1).join('/')); },
@@ -113,15 +159,21 @@ export function recordedOutputs(json, { root = process.cwd(), file = null } = {}
   }
 
   // webpack or Rspack stats
+  ungroupStats(json);
   const out = json.vexproofOutDir != null ? resolve(here, json.vexproofOutDir)
     : typeof json.outputPath === 'string' ? (isAbsolute(json.outputPath) ? json.outputPath : resolve(here, json.outputPath)) : null;
-  if (!out || !Array.isArray(json.assets)) {
+  // several configurations in one run (webpack's multi-compiler): the stats have no output of their own, each child has
+  const kids = (json.children ?? []).filter((c) => c && typeof c.outputPath === 'string' && Array.isArray(c.assets));
+  const multi = (!out || !Array.isArray(json.assets)) && kids.length > 0 && kids.length === (json.children ?? []).length;
+  if (!multi && (!out || !Array.isArray(json.assets))) {
     throw new CoverageError(json.vexproofBundler
       ? 'this module map does not record where the build wrote its files or which files it emitted (it was written by an older VexproofPlugin). Rebuild with the current plugin.'
       : "this stats file does not say where the build wrote its files or which files it emitted (no outputPath or assets), so vexproof cannot check that every shipped file is accounted for. Use the VexproofPlugin from 'vexproof/webpack', or keep outputPath and assets in the stats.");
   }
-  if (!existsSync(out)) throw new CoverageError(`the module map records build output in ${posix(out)}, which does not exist. ${WHERE}`);
-  const covered = new Set(), copiedFrom = new Map();
+  const outOf = (c) => (isAbsolute(c.outputPath) ? c.outputPath : resolve(here, c.outputPath));
+  for (const o of multi ? kids.map(outOf) : [out]) if (!existsSync(o)) throw new CoverageError(`the module map records build output in ${posix(o)}, which does not exist. ${WHERE}`);
+  const covered = new Set(), copiedFrom = new Map(), hints = new Map(), sized = [];
+  const checkSizes = () => { const wrong = wrongSizes(sized); if (wrong.length) throw sizeError(wrong, here); };
   const take = (s, dir) => {
     // Chunks that have modules listed. One with none is raw files a plugin joined together (the `scripts` of
     // Angular's webpack-based builder): the stats say nothing about what is in it. That can only be told apart
@@ -135,15 +187,29 @@ export function recordedOutputs(json, { root = process.cwd(), file = null } = {}
       const abs = resolve(dir, String(a.name).split('?')[0]);
       // a file emitted for a chunk, or for a module of a chunk (asset modules), has its modules in the stats;
       // one that a plugin copied in belongs to no chunk
-      if ((a.chunks ?? []).some((c) => !listsRuntime || full.has(String(c))) || (a.auxiliaryChunks?.length ?? 0) > 0) covered.add(abs);
+      // Without runtime modules in the stats, a chunk with none listed is not vouched for either: it is looked
+      // at like any other unrecorded file (the plugin lists them; raw stats need `runtimeModules: true`).
+      if ((a.chunks ?? []).some((c) => full.has(String(c))) || (a.auxiliaryChunks?.length ?? 0) > 0) { covered.add(abs); if (JS.test(abs)) sized.push([abs, a.size]); }
       // copy-webpack-plugin says where it took a file from. The copy is often minified on the way, so it would
       // not match the installed file byte for byte; the bundler's own record of its origin stands instead.
-      else if (a.info?.copied && typeof a.info.sourceFilename === 'string') copiedFrom.set(abs, a.info.sourceFilename.replace(/\\/g, '/'));
+      // That holds for a file taken from an installed package. One copied from anywhere else is looked at
+      // like any other unrecorded file: it may be another build's output.
+      else if (a.info?.copied && typeof a.info.sourceFilename === 'string' && /(^|[\\/])node_modules[\\/]/.test(a.info.sourceFilename)) copiedFrom.set(abs, a.info.sourceFilename.replace(/\\/g, '/'));
+      // a path that names no package ("base/worker/workerMain.js", counted from the copied folder) is only a
+      // hint: accountFor looks for the installed file it ends in and checks the copy against it
+      else if (a.info?.copied && typeof a.info.sourceFilename === 'string') hints.set(abs, a.info.sourceFilename.replace(/\\/g, '/'));
     }
   };
+  if (multi) {
+    for (const c of kids) take(c, outOf(c));
+    checkSizes();
+    return { dirs: [...new Set(kids.map(outOf))].map((abs) => ({ abs, recurse: true })), isCovered: (abs) => covered.has(abs), copiedFrom, hints };
+  }
   take(json, out);
   for (const c of json.children ?? []) take(c, typeof c.outputPath === 'string' && isAbsolute(c.outputPath) ? c.outputPath : out);
-  return { dirs: [{ abs: out, recurse: true }], isCovered: (abs) => covered.has(abs), copiedFrom };
+  // webpack and Rspack record each emitted file's size; Angular's webpack-based builder leaves them as written too
+  checkSizes();
+  return { dirs: [{ abs: out, recurse: true }], isCovered: (abs) => covered.has(abs), copiedFrom, hints };
 }
 
 /**
@@ -151,13 +217,70 @@ export function recordedOutputs(json, { root = process.cwd(), file = null } = {}
  * paths, to be accounted for one by one) and `copied` ([{ file, from }], files whose origin the bundler recorded).
  */
 export function strayOutputs(json, opts = {}) {
-  const { dirs, isCovered, copiedFrom = new Map() } = recordedOutputs(json, opts);
-  const seen = new Set(), copied = [];
+  const { dirs, isCovered, copiedFrom = new Map(), hints = new Map() } = recordedOutputs(json, opts);
+  const seen = new Set(), copied = [], recorded = new Set();
   for (const d of dirs) for (const f of jsFiles(d.abs, d.recurse)) {
-    if (isCovered(f)) continue;
+    if (isCovered(f)) { recorded.add(f); continue; }
     if (copiedFrom.has(f)) copied.push({ file: f, from: copiedFrom.get(f) }); else seen.add(f);
   }
-  return { stray: [...seen].sort(), copied, dirs: dirs.map((d) => d.abs) };
+  return { stray: [...seen].sort(), copied, dirs: dirs.map((d) => d.abs), recorded: [...recorded].sort(), hints };
+}
+
+/**
+ * Whether `code` reads like a minified copy of the installed file at `path`: most of the string literals of the
+ * original are in it. A file with too few strings to tell by is not vouched for this way.
+ */
+function derivesFrom(code, path) {
+  let original;
+  try { original = readFileSync(path, 'utf8'); } catch { return false; }
+  // every string, not only the sentences: a grammar or a table of names has no prose, and many strings; a
+  // file of translations has them in any script (those are compared as written, where nothing is escaped)
+  const strings = [...literalsOf(original)];
+  if (strings.length < 8) for (const m of original.matchAll(/"([^"\\\n]{4,160})"|'([^'\\\n]{4,160})'/g)) strings.push(m[1] ?? m[2]);
+  if (new Set(strings).size < 8) return false;
+  return strings.filter((s) => code.includes(s)).length >= Math.ceil(strings.length * 0.7);
+}
+
+/**
+ * Compiled code in the output folders (.wasm, .node) that is an exact copy of installed files: the installed
+ * files' paths, relative to root. A bundler copies such a file as it is, under a hashed name. One that matches
+ * nothing is left alone: it may be the project's own.
+ */
+export function binaryCopies(outDirs, { root = process.cwd() } = {}) {
+  const here = resolve(root);
+  const files = [];
+  const walk = (dir) => {
+    let entries;
+    try { entries = readdirSync(dir, { withFileTypes: true }); } catch { return; }
+    for (const e of entries) {
+      const p = join(dir, e.name);
+      if (e.isDirectory()) { if (e.name !== 'node_modules') walk(p); } else if (e.isFile() && /\.(wasm|node)$/.test(e.name)) files.push(p);
+    }
+  };
+  for (const d of outDirs) walk(resolve(d));
+  if (!files.length) return [];
+  const copies = copyFinder({ root: here, bases: installBases(here), outDirs });
+  const out = new Set();
+  for (const f of files) {
+    let buf; try { buf = readFileSync(f); } catch { continue; }
+    for (const c of copies.installedAll(buf)) out.add(posix(relative(here, c)));
+  }
+  return [...out];
+}
+
+/**
+ * Packages that recorded output files load by name when they run (an esbuild `--external`, a webpack external, a
+ * library build): code the product uses and the module map does not list. Only loads that are not behind a
+ * test count; code written for browsers and Node guards its Node-only loads.
+ */
+export function runtimeLoads(files) {
+  const names = new Set();
+  for (const f of files) {
+    let specs = null;
+    try { specs = loadedSpecifiers(readFileSync(f, 'utf8')); } catch { /* unreadable */ }
+    for (const n of runtimeImports(specs?.unguarded ?? [])) names.add(n);
+  }
+  return names;
 }
 
 /**
@@ -167,7 +290,7 @@ export function strayOutputs(json, opts = {}) {
  * map names them), `whole` the packages whose files can't be told apart through it, and `loads` the packages
  * it imports by name at runtime.
  */
-export function accountFor(stray, { root = process.cwd(), outDirs = [] } = {}) {
+export function accountFor(stray, { root = process.cwd(), outDirs = [], hints = new Map() } = {}) {
   const here = resolve(root);
   const bases = installBases(here);
   const copies = copyFinder({ root: here, bases, outDirs });
@@ -182,25 +305,44 @@ export function accountFor(stray, { root = process.cwd(), outDirs = [] } = {}) {
     // see (an import map, a loader, another bundle). The caller counts such a package as shipped, whole.
     const loads = specs ? [...runtimeImports(specs)] : [];
 
-    if (buf.length === 0 || (specs && isGlue(code))) { accounted.push({ file, kind: 'glue', adds: [], whole: [], loads }); continue; }
-    let found = null;
-    try { found = findMap(abs, code, new Map()); } catch { /* unreadable map: treated as none */ }
-    if (found) {
-      const adds = [], whole = [], lost = [];
-      for (const src of mapSources(found.map, found.at, here, bases)) {
-        const pkg = splitNodeModulesPath(src.path);
-        if (pkg) { adds.push(src.path); if (!src.exists) whole.push(pkg.name); } else if (/(^|\/)node_modules\//.test(src.path)) lost.push(src.path); else if (src.exists) adds.push(src.path);
-      }
-      if (lost.length) unknown.push({ file, why: `its source map names ${lost[0]}, which cannot be traced to a package` });
-      else accounted.push({ file, kind: 'mapped', adds, whole, loads: [] }); // a bundle: what it loads by name is its bundler's business
-      continue;
+    if (buf.length === 0) { accounted.push({ file, kind: 'glue', adds: [], whole: [], loads }); continue; }
+    // An exact copy of installed files says most, so it is asked first; every file it matches ships (two
+    // packages can hold the same file).
+    const same = copies.installedAll(buf);
+    if (same.length) { accounted.push({ file, kind: 'copy', adds: same.map((p) => posix(relative(here, p))), whole: [], loads }); continue; }
+    // A file the bundler says it copied, minified on the way so that no bytes match, from a path that names no
+    // package. Installed files that end in that path are where it may have come from; one counts when most of
+    // what its strings say is in the copy too. Every such file ships.
+    const hint = hints.get(abs);
+    if (hint) {
+      const from = copies.installedEndingWith(hint).filter((p) => derivesFrom(code, p));
+      if (from.length) { accounted.push({ file, kind: 'copy', adds: from.map((p) => posix(relative(here, p))), whole: [], loads }); continue; }
     }
-    if (!specs) { unknown.push({ file, why: 'it has no source map and could not be parsed, so what it loads is unknown' }); continue; }
-    const installed = copies.installed(buf);
-    if (installed) { accounted.push({ file, kind: 'copy', adds: [posix(relative(here, installed))], whole: [], loads }); continue; }
+    if (specs && (isGlue(code) || isLoaderStub(code))) { accounted.push({ file, kind: 'glue', adds: [], whole: [], loads }); continue; }
+    // a file a build tool wrote from a template of its own (Workbox's service worker): that tool's code is in
+    // it, so the tool counts as shipped, the way a package the file loads by name does
+    const tools = generatedBy(code);
+    if (tools) { accounted.push({ file, kind: 'generated', adds: [], whole: [], loads: [...loads, ...tools] }); continue; }
+    let found = null, noMap = 'it has no source map';
+    try { found = findMap(abs, code, new Map()); } catch { noMap = 'its source map could not be read'; }
+    if (found) {
+      // A map accounts for a file only through sources that can be placed: an installed package's file, or a
+      // file of the project that is there. One that names nothing placeable says nothing about the file.
+      const adds = [], whole = [], lost = [];
+      let unplaced = 0;
+      for (const src of withChainedSources(mapSources(found.map, found.at, here, bases), here, bases)) {
+        const pkg = splitNodeModulesPath(src.path);
+        if (pkg) { adds.push(src.path); if (!src.exists) whole.push(pkg.name); } else if (/(^|\/)node_modules\//.test(src.path)) lost.push(src.path); else if (src.exists) adds.push(src.path); else unplaced++;
+      }
+      if (lost.length) { unknown.push({ file, why: `its source map names ${lost[0]}, which cannot be traced to a package` }); continue; }
+      if (adds.length) { accounted.push({ file, kind: 'mapped', adds, whole, loads: [] }); continue; } // a bundle: what it loads by name is its bundler's business
+      noMap = unplaced ? `its source map names ${unplaced} source(s), none of which is a file here or in an installed package` : 'its source map names no sources';
+    }
+    if (!specs) { unknown.push({ file, why: `${noMap} and it could not be parsed, so what it loads is unknown` }); continue; }
+    // filed under its own path, so that a vendored package's file is given to that package
     const mine = copies.project(buf);
-    if (mine) { accounted.push({ file, kind: 'own', adds: [], whole: [], loads }); continue; }
-    unknown.push({ file, why: 'no bundler recorded it, it has no source map, and it is not an unmodified copy of an installed or project file' });
+    if (mine) { accounted.push({ file, kind: 'own', adds: [posix(relative(here, mine))], whole: [], loads }); continue; }
+    unknown.push({ file, why: `no bundler recorded it, ${noMap}, and it is not an unmodified copy of an installed file or of a file git tracks` });
   }
   return { accounted, unknown };
 }

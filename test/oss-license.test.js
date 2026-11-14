@@ -9,7 +9,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { verifyLicense, detectRepository, normalizeRepo, b64u } from '../src/pro/license.js';
-import { built } from './lib/built.js';
+import { modulesArgs } from './lib/built.js';
 
 const { publicKey, privateKey } = generateKeyPairSync('ed25519');
 const publicKeyPem = publicKey.export({ type: 'spki', format: 'pem' });
@@ -66,7 +66,7 @@ test('CLI: an issued open-source license works in its repository and not elsewhe
     writeFileSync(join(dir, '.git/config'), `[remote "origin"]\n\turl = ${origin}\n`);
     const env = { ...process.env, VEXPROOF_LICENSE: lic };
     for (const k of ['GITHUB_REPOSITORY', 'CI_PROJECT_PATH', 'BITBUCKET_REPO_FULL_NAME']) delete env[k];
-    const r = spawnSync('node', [cli, '--lockfile', fx('recharts.bom.lockfile.json'), '--modules', built(fx('recharts.metafile.json')), '--findings', fx('recharts.audit.json'), '--out', join(dir, 'v.json'), '--report', join(dir, 'r.html')], { cwd: dir, env, encoding: 'utf8' });
+    const r = spawnSync('node', [cli, '--lockfile', fx('recharts.bom.lockfile.json'), ...modulesArgs(fx('recharts.metafile.json')), '--findings', fx('recharts.audit.json'), '--out', join(dir, 'v.json'), '--report', join(dir, 'r.html')], { cwd: dir, env, encoding: 'utf8' });
     return { r, dir };
   };
   const ok = run('https://github.com/acme/widget.git');

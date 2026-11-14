@@ -51,13 +51,13 @@ test('Angular stats: outputs are named relative to the stats file, with one copy
 
 test('webpack stats: files of chunks and of child compilations are recorded; a copied file names its origin', () => {
   const stats = {
-    modules: [], vexproofBundler: 'webpack 5', vexproofOutDir: 'dist',
+    modules: [{ name: './node_modules/a/index.js', chunks: [1] }], vexproofBundler: 'webpack 5', vexproofOutDir: 'dist',
     assets: [
       { name: 'main.js', chunks: [1] },
       { name: 'editor.worker.js', chunks: [] }, // listed by the parent without a chunk, and by its child with one
       { name: 'assets/swagger.js', chunks: [], info: { copied: true, sourceFilename: 'node_modules/swagger-ui-dist/swagger-ui-bundle.js' } },
     ],
-    children: [{ modules: [], assets: [{ name: 'editor.worker.js', chunks: ['w'] }] }],
+    children: [{ modules: [{ name: './node_modules/monaco/worker.js', chunks: ['w'] }], assets: [{ name: 'editor.worker.js', chunks: ['w'] }] }],
   };
   const root = project({ 'dist/main.js': '', 'dist/editor.worker.js': '', 'dist/assets/swagger.js': 'minified', 'dist/stray.js': '' });
   const r = strayOutputs(stats, { root });
@@ -84,7 +84,7 @@ test('a file the module map does not record is accounted for on its own, or name
     'dist/uses.js': uses,
     'dist/empty.js': '',
     'dist/manifest.js': 'self.__MANIFEST = {"a":1};',
-    'dist/sw.js': 'function s(){}\n//# sourceMappingURL=sw.js.map',
+    'dist/sw.js': 'function s(){ return 1 }\n//# sourceMappingURL=sw.js.map',
     'dist/sw.js.map': map(['../node_modules/workbox-core/core.js', '../node_modules/ghost/src/x.ts', '../src/sw.ts']),
     'dist/mystery.js': 'function who(){ return 3 }',
     'lib-dist/prebuilt.js': 'function bundled(){ return 4 }', // another build's output: in the project folder, not tracked
@@ -130,12 +130,15 @@ test('server check: a Node module loaded behind a test does not make a folder a 
   for (const guarded of ['if (IS_NODE) { var fs = require("fs") }', 'var c = isNode ? require("crypto") : null', 'var p = typeof process !== "undefined" && require("path")', 'try { x = require("fs") } catch (e) {}']) assert.ok(!uses(guarded), guarded);
   const client = project({ 'out/glue.js': 'function g(){ if (IS_NODE) { var fs = require("fs") } }\n//# sourceMappingURL=glue.js.map', 'out/glue.js.map': map([]) });
   assert.equal(readDeployment(['out'], { root: client }).hasServer, false);
-  const server = project({ 'out/server.mjs': 'import "node:http"; function s(){}\n//# sourceMappingURL=server.mjs.map', 'out/server.mjs.map': map([]) });
+  const server = project({ 'src/server.js': '', 'out/server.mjs': 'import "node:http"; function s(){}\n//# sourceMappingURL=server.mjs.map', 'out/server.mjs.map': map(['../src/server.js']) });
   assert.equal(readDeployment(['out'], { root: server }).hasServer, true);
+  // a script of the project's own that loads a Node module is no server: a server's code comes out of a bundler, with a map
+  const script = project({ 'out/static/a.js': 'function a(){}\n//# sourceMappingURL=a.js.map', 'out/static/a.js.map': map(['../../src/a.js']), 'src/a.js': '', 'out/healthcheck.js': 'require("http").get("/");' });
+  assert.equal(readDeployment(['out'], { root: script }).hasServer, false);
 });
 
 test('--deploy: a file the project tracks may be deployed as it is; an untracked copy may not', () => {
-  const sw = 'self.addEventListener("install", function () { self.skipWaiting() })';
+  const sw = 'var seen = 0; self.addEventListener("install", function () { seen = seen + 1; self.skipWaiting() })';
   const root = project({ 'public/sw.js': sw, 'cache/sw.js': sw, 'out/public/sw.js': sw });
   assert.deepEqual(readDeployment(['out'], { root }).unmapped, ['out/public/sw.js']); // not a git checkout: nothing is known to be the project's own
   track(root, 'public');

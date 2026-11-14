@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Which files of each npm package survived into the shipped output.
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { join, posix } from 'node:path';
 // Sources: esbuild metafile (esbuild, Bun, Angular 17+ `ng build --stats-json`)
 //          webpack or Rspack stats JSON (`webpack --json=stats.json`)
@@ -43,7 +43,75 @@ function nameStorePackages(moduleMap, cwd, read) {
   }
 }
 
-/** "./node_modules/a/node_modules/@s/pkg/lib/x.js" ->{ name:"@s/pkg", root:"node_modules/a/node_modules/@s/pkg", file:"lib/x.js" } */
+/**
+ * A folder under node_modules is named by whoever installed it, not by the package in it: an alias
+ * ("tiny": "npm:ms@2.1.3"), an override, a git dependency, or `require('Lodash')` on a file system that ignores
+ * case. The package.json inside names the package. Every shipped folder that can be read is filed under that
+ * name; `moduleMap.rootNames` keeps what was renamed, and `moduleMap.unverified` lists the folders that could
+ * not be read and whose path does not spell name and version the way a package store's does.
+ */
+function nameFromPackageJson(moduleMap, cwd, read) {
+  moduleMap.rootNames = new Map();
+  moduleMap.unverified = [];
+  for (const [key, entry] of [...moduleMap.packages]) {
+    if (key.startsWith('.')) continue; // an unnamed store folder, or a dot folder that is no package
+    for (const root of [...entry.roots]) {
+      let pkg = null;
+      try { pkg = read(join(cwd, root, 'package.json')); } catch { /* not installed here */ }
+      if (!pkg && existsSync(join(cwd, root))) {
+        // The folder is there and is no package: a fixture inside another package's tests
+        // (resolve/test/shadowed_core/node_modules/util). Its files belong to the package that holds it.
+        let dir = root, holder = null;
+        for (let i = 0; i < 8 && !holder; i++) {
+          const up = dir.slice(0, dir.lastIndexOf('/'));
+          if (!up || up === dir || !up.includes('node_modules/')) break;
+          dir = up;
+          try { const p = read(join(cwd, dir, 'package.json')); if (typeof p.name === 'string' && p.name) holder = { name: p.name, root: dir }; } catch { /* keep climbing */ }
+        }
+        if (holder) {
+          const files = entry.byRoot?.get(root) ?? entry.files, prefix = root.slice(holder.root.length + 1);
+          if (!moduleMap.packages.has(holder.name)) moduleMap.packages.set(holder.name, { roots: new Set(), files: new Set(), byRoot: new Map() });
+          const to = moduleMap.packages.get(holder.name);
+          to.roots.add(holder.root);
+          if (!to.byRoot.has(holder.root)) to.byRoot.set(holder.root, new Set());
+          for (const f of files) { to.files.add(`${prefix}/${f}`); to.byRoot.get(holder.root).add(`${prefix}/${f}`); }
+          entry.roots.delete(root);
+          entry.byRoot?.delete(root);
+          continue;
+        }
+      }
+      if (!pkg) {
+        // a package counted by name alone (a runtime load, the bundler's runtime) has no folder to read
+        const files = entry.byRoot?.get(root);
+        const byName = files?.size === 1 && files.has('package.json');
+        if (!byName && versionFromStorePath(root, key) === undefined) moduleMap.unverified.push({ name: key, root });
+        continue;
+      }
+      const name = pkg.name;
+      if (typeof name !== 'string' || !name || name === key || name.startsWith('.')) continue;
+      moduleMap.rootNames.set(root, name);
+      if (!moduleMap.packages.has(name)) moduleMap.packages.set(name, { roots: new Set(), files: new Set(), byRoot: new Map() });
+      const to = moduleMap.packages.get(name), files = entry.byRoot?.get(root) ?? entry.files;
+      to.roots.add(root);
+      to.byRoot.set(root, new Set([...(to.byRoot.get(root) ?? []), ...files]));
+      for (const f of files) to.files.add(f);
+      entry.roots.delete(root);
+      entry.byRoot?.delete(root);
+      if (moduleMap.whole?.has(key)) moduleMap.whole.add(name);
+    }
+    if (!entry.roots.size) { moduleMap.packages.delete(key); moduleMap.whole?.delete(key); }
+    else if (entry.byRoot?.size) entry.files = new Set([...entry.byRoot.values()].flatMap((s) => [...s]));
+  }
+}
+
+/** splitNodeModulesPath, with the package named as attachVersions found it in the folder's package.json. */
+export function splitShipped(moduleMap, path) {
+  const s = splitNodeModulesPath(path);
+  const name = s && moduleMap?.rootNames?.get(s.root);
+  return name ? { ...s, name } : s;
+}
+
+/** "./node_modules/a/node_modules/@s/pkg/lib/x.js" -> { name:"@s/pkg", root:"node_modules/a/node_modules/@s/pkg", file:"lib/x.js" } */
 export function splitNodeModulesPath(p) {
   // drop webpack loader prefixes ("babel-loader!./x") and query strings first, then the leading "./"
   const path = String(p).replace(/\\/g, '/').replace(/^.*!/, '').replace(/\?.*$/, '').replace(/^\.\//, '');
@@ -91,12 +159,21 @@ export function detectModuleFormat(json) {
 export function addToMap(map, path) {
   const s = splitNodeModulesPath(path);
   if (!s) return;
-  if (!map.has(s.name)) map.set(s.name, { roots: new Set(), files: new Set(), byRoot: new Map() });
-  const e = map.get(s.name);
-  e.roots.add(s.root);
-  e.files.add(s.file);
-  if (!e.byRoot.has(s.root)) e.byRoot.set(s.root, new Set());
-  e.byRoot.get(s.root).add(s.file);
+  const put = ({ name, root, file }) => {
+    if (!map.has(name)) map.set(name, { roots: new Set(), files: new Set(), byRoot: new Map() });
+    const e = map.get(name);
+    e.roots.add(root);
+    e.files.add(file);
+    if (!e.byRoot.has(root)) e.byRoot.set(root, new Set());
+    e.byRoot.get(root).add(file);
+  };
+  put(s);
+  // "node_modules/ui-kit/dist/node_modules/tslib/x.js": a copy of tslib that ui-kit publishes inside its own
+  // build (a preserveModules build does this). The file is tslib's code and it is ui-kit's file: both ship.
+  // An installed nested dependency (node_modules/a/node_modules/b) sits directly under the outer package and
+  // is b's alone.
+  const outer = splitNodeModulesPath(s.root.slice(0, s.root.lastIndexOf('node_modules/')).replace(/\/$/, ''));
+  if (outer && !outer.name.startsWith('.')) put({ ...outer, file: `${outer.file}/${s.root.slice(s.root.lastIndexOf('node_modules/'))}/${s.file}` });
 }
 const add = addToMap;
 
@@ -132,6 +209,7 @@ export const versionFromPnpmPath = versionFromStorePath; // v0.6 name
 export function attachVersions(moduleMap, { cwd = process.cwd(), readJson } = {}) {
   const read = readJson ?? ((p) => JSON.parse(readFileSync(p, 'utf8')));
   nameStorePackages(moduleMap, cwd, read);
+  nameFromPackageJson(moduleMap, cwd, read);
   for (const [name, entry] of moduleMap.packages) {
     entry.versionByRoot = new Map();
     for (const root of entry.roots) {
@@ -163,14 +241,21 @@ function graphFrom(edges, shipped) {
 }
 
 function fromEsbuild(meta) {
-  const map = new Map(), shipped = new Set(), edges = [], own = new Set();
+  const map = new Map(), shipped = new Set(), edges = [], own = new Set(), whole = new Set();
   for (const out of Object.values(meta.outputs ?? {})) {
     for (const [path, info] of Object.entries(out.inputs ?? {})) {
-      if ((info?.bytesInOutput ?? 0) > 0) { add(map, path); shipped.add(path); if (outsideNodeModules(path)) own.add(moduleKey(path)); }
+      // an input listed with no byte count is in the output for all the file says: only a stated 0 is "dropped"
+      const bytes = typeof info?.bytesInOutput === 'number' ? info.bytesInOutput : 1;
+      if (bytes <= 0) continue;
+      add(map, path); shipped.add(path);
+      if (outsideNodeModules(path)) own.add(moduleKey(path));
+      // Vite's own helpers (vite/preload-helper.js, vite/modulepreload-polyfill.js) are Vite's code in the
+      // output, under a made-up id: the package counts by name.
+      if (/^\0?vite\/[\w.-]+$/.test(path)) { add(map, 'node_modules/vite/package.json'); whole.add('vite'); }
     }
   }
   for (const [path, info] of Object.entries(meta.inputs ?? {})) for (const i of info?.imports ?? []) if (!i.external) edges.push([path, i.path]);
-  return { map, graph: graphFrom(edges, shipped), own };
+  return { map, graph: graphFrom(edges, shipped), own, whole };
 }
 
 const CONCATENATED = / \+ (\d+) modules?$/;
@@ -186,6 +271,32 @@ const mislabelled = (m, nested) => CONCATENATED.test(m.name ?? '') && !(m.module
   && (nested || Boolean(m.orphan && !(m.chunks?.length)));
 
 /** Module lists of a stats file: its own, per chunk (Angular's webpack-based builder keeps them only there), and the same for child compilations. */
+/**
+ * webpack groups modules when asked to (stats.all, groupModulesByPath): a list then holds entries like
+ * { type: "modules by path", children: [...] } with the modules inside. Put the modules back in the list, in
+ * place; the emptied group stays, so that a group that left children out is still seen as a gap.
+ */
+export function ungroupStats(stats) {
+  const isGroup = (m) => m && typeof m === 'object' && m.type !== undefined && m.type !== 'module' && Array.isArray(m.children);
+  const flat = (mods) => {
+    if (!Array.isArray(mods) || !mods.some(isGroup)) { for (const m of mods ?? []) if (m && Array.isArray(m.modules)) m.modules = flat(m.modules); return mods; }
+    const out = [];
+    for (const m of mods) {
+      if (isGroup(m)) { const kids = m.children; m.children = []; out.push(m, ...flat(kids)); }
+      else { if (m && Array.isArray(m.modules)) m.modules = flat(m.modules); out.push(m); }
+    }
+    return out;
+  };
+  const take = (s) => {
+    if (!s || typeof s !== 'object') return;
+    if (Array.isArray(s.modules)) s.modules = flat(s.modules);
+    for (const c of s.chunks ?? []) if (c && Array.isArray(c.modules)) c.modules = flat(c.modules);
+  };
+  take(stats);
+  for (const c of stats?.children ?? []) take(c);
+  return stats;
+}
+
 function moduleLists(stats) {
   const lists = [];
   const take = (s, where) => {
@@ -226,6 +337,7 @@ export function webpackStatsGaps(stats) {
 }
 
 function fromWebpack(stats) {
+  ungroupStats(stats);
   const gaps = webpackStatsGaps(stats);
   if (gaps.length) {
     throw new Error(
@@ -263,7 +375,9 @@ function fromWebpack(stats) {
       const included = parentIncluded || (Array.isArray(m.chunks) && m.chunks.length > 0);
       if (!included || m.orphan && !parentIncluded) { visit(m.modules, false); continue; }
       // concatenated roots are named "./x.js + 12 modules"; their members arrive via m.modules
-      const name = parentIncluded && mislabelled(m, true) ? realName(m) : String(m.name ?? m.identifier ?? '').replace(CONCATENATED, '');
+      // "delegated ./node_modules/lodash/lodash.js from dll-reference vendor": the module, as a DLL build names it
+      const name = parentIncluded && mislabelled(m, true) ? realName(m)
+        : String(m.name ?? m.identifier ?? '').replace(CONCATENATED, '').replace(/^delegated (.+) from dll-reference \S+$/, '$1');
       add(map, name);
       shipped.add(name);
       if (name && outsideNodeModules(name)) own.add(moduleKey(name));
@@ -272,15 +386,24 @@ function fromWebpack(stats) {
     }
   };
   for (const l of lists) visit(l.modules, false);
-  return { map, graph: graphFrom(edges, shipped), own };
+  // The bundler's runtime (chunk loading, the module registry, the public path) is the bundler's own code in
+  // the output. No file of the bundler's package stands for it in the stats, so the package counts by name.
+  const hasRuntime = (mods) => (mods ?? []).some((m) => m && (m.moduleType === 'runtime' || /^webpack\/runtime\//.test(String(m.name ?? '')) || hasRuntime(m.modules)));
+  const whole = new Set();
+  if (lists.some((l) => hasRuntime(l.modules))) {
+    const bundlerPackage = /^rspack/i.test(String(stats.vexproofBundler ?? '')) ? '@rspack/core' : 'webpack';
+    add(map, `node_modules/${bundlerPackage}/package.json`);
+    whole.add(bundlerPackage);
+  }
+  return { map, graph: graphFrom(edges, shipped), own, whole };
 }
 
 /** Map<packageName, { roots:Set<string>, files:Set<string> }> */
 export function readModuleMap(json) {
   const fmt = detectModuleFormat(json);
-  const { map, graph, own } = fmt === 'webpack-stats' ? fromWebpack(json) : fromEsbuild(json); // the Vite plugin writes the metafile shape
+  const { map, graph, own, whole } = fmt === 'webpack-stats' ? fromWebpack(json) : fromEsbuild(json); // the Vite plugin writes the metafile shape
   const label = fmt === 'vite-modules' ? `vite-modules (${json.bundler ?? 'unknown bundler'})` : fmt === 'webpack-stats' && json.vexproofBundler ? `webpack-stats (${json.vexproofBundler})` : fmt;
-  return { format: label, packages: map, graph, own };
+  return { format: label, packages: map, graph, own, ...(whole?.size ? { whole } : {}) };
 }
 
 /**
