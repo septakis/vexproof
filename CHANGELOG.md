@@ -6,6 +6,8 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+## [1.0.0-beta.9] - 2026-11-13
+
 A soundness audit of 1.0.0-beta.8 (two independent reviews of the code, and runs over real package-manager
 layouts) found 29 ways to get `not_affected` for code that ships. This release closes most of them and adds a
 check that does not depend on finding each one first. Upgrade from any earlier version.
@@ -329,7 +331,8 @@ module map; findings from npm, pnpm, yarn and bun audit, osv-scanner, Trivy, Gry
 directly; Vite, Rollup, webpack, Rspack, esbuild, bun and Angular inputs; `--deploy` for server-rendered apps;
 `vexproof review` and `vexproof rules derive`; Pro module-level analysis, baselines and the evidence report.
 
-[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.8...HEAD
+[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.9...HEAD
+[1.0.0-beta.9]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.9
 [1.0.0-beta.8]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.8
 [1.0.0-beta.7]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.7
 [1.0.0-beta.6]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.6

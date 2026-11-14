@@ -1,6 +1,6 @@
 {
   "name": "vexproof",
-  "version": "1.0.0-beta.8",
+  "version": "1.0.0-beta.9",
   "description": "Build-proven VEX for npm: CycloneDX and OpenVEX statements for vulnerable code that never reached your bundle",
   "author": "Septakis (https://septakis.io)",
   "homepage": "https://vexproof.dev",
@@ -28,11 +28,26 @@
   },
   "types": "./src/index.d.ts",
   "exports": {
-    ".": { "types": "./src/index.d.ts", "default": "./src/index.js" },
-    "./vite": { "types": "./src/vite.d.ts", "default": "./src/vite.js" },
-    "./rollup": { "types": "./src/vite.d.ts", "default": "./src/vite.js" },
-    "./webpack": { "types": "./src/webpack.d.cts", "default": "./src/webpack.cjs" },
-    "./rspack": { "types": "./src/webpack.d.cts", "default": "./src/webpack.cjs" },
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./vite": {
+      "types": "./src/vite.d.ts",
+      "default": "./src/vite.js"
+    },
+    "./rollup": {
+      "types": "./src/vite.d.ts",
+      "default": "./src/vite.js"
+    },
+    "./webpack": {
+      "types": "./src/webpack.d.cts",
+      "default": "./src/webpack.cjs"
+    },
+    "./rspack": {
+      "types": "./src/webpack.d.cts",
+      "default": "./src/webpack.cjs"
+    },
     "./package.json": "./package.json"
   },
   "scripts": {
