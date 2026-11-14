@@ -56,7 +56,7 @@ test('lodash-es (ES modules) on Vite 7 and 8: the same 21 files as the Angular/e
 });
 
 test('Rspack: `rspack build --json` output is refused (it hides concatenated modules); the plugin output is complete', () => {
-  assert.throws(() => readModuleMap(fx('recharts.rspack-cli-incomplete.json')), /leaves modules out.*lists 0 of its 190 concatenated modules/s);
+  assert.throws(() => readModuleMap(fx('recharts.rspack-cli-incomplete.json')), /leaves modules out.*lists 0 of its 191 concatenated modules/s);
   const mm = readModuleMap(fx('recharts.rspack-plugin.json'));
   assert.equal(mm.packages.size, 25);
   assert.deepEqual(files(mm, 'recharts'), files(readModuleMap(fx('recharts.metafile.json')), 'recharts'));

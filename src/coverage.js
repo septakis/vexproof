@@ -14,20 +14,23 @@
 //
 // Anything else is refused, with the reason for each file. Finding no output folder at all is refused too:
 // a check that can't run must not pass.
-import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync, existsSync } from 'node:fs';
 import { join, resolve, relative, dirname, isAbsolute, sep } from 'node:path';
 import { detectModuleFormat, splitNodeModulesPath, ungroupStats } from './modules.js';
 import { mapSources, withChainedSources, findMap, loadedSpecifiers, runtimeImports, isGlue, isLoaderStub, generatedBy, installBases } from './deploy.js';
 import { copyFinder } from './copies.js';
 import { literalsOf } from './content-check.js';
+import { listFiles, UnreadableFolder } from './walk.js';
+import { readPackageJson } from './package-json.js';
 
-const JS = /\.(m|c)?js$/;
+// any case: a server serves app.JS as JavaScript too
+const JS = /\.(m|c)?js$/i;
 const posix = (p) => p.split(sep).join('/');
 
-/** The build output can't be located or isn't described: the caller refuses with this message. */
 // a plugin's virtual module, as esbuild names it: "<namespace>:<path>" (two letters or more, so not a Windows drive)
 const NAMESPACED = /^[a-z][a-z0-9+.-]+:/i;
 
+/** The build output can't be located or isn't described: the caller refuses with this message. */
 export class CoverageError extends Error {}
 
 const WHERE = 'Run vexproof from the folder the build ran in, or pass --root, so the build output can be checked.';
@@ -47,15 +50,14 @@ function wrongSizes(pairs) {
 }
 const sizeError = (wrong, here) => new CoverageError(`${stale(wrong.length)} ${posix(relative(here, wrong[0].file))} is ${wrong[0].disk} bytes, and the bundler wrote ${wrong[0].recorded}. ${REBUILD}`);
 
-/** JavaScript files under a folder. Links to folders are not followed. */
-function jsFiles(dir, recurse, out = []) {
-  let entries;
-  try { entries = readdirSync(dir, { withFileTypes: true }); } catch { return out; }
-  for (const e of entries) {
-    const p = join(dir, e.name);
-    if (e.isDirectory()) { if (recurse) jsFiles(p, true, out); } else if (JS.test(e.name)) out.push(p);
+/** JavaScript files under an output folder, linked folders included (see listFiles). An unreadable folder is refused. */
+function jsFiles(dir, recurse) {
+  try {
+    return listFiles(dir, { recurse, strict: true }).filter((p) => JS.test(p));
+  } catch (e) {
+    if (e instanceof UnreadableFolder) throw new CoverageError(`${posix(e.message)}, so the files in it can't be checked.`);
+    throw e;
   }
-  return out;
 }
 
 /** The folder every path shares, as posix segments; '.' when they share none. */
@@ -250,16 +252,7 @@ function derivesFrom(code, path) {
  */
 export function binaryCopies(outDirs, { root = process.cwd() } = {}) {
   const here = resolve(root);
-  const files = [];
-  const walk = (dir) => {
-    let entries;
-    try { entries = readdirSync(dir, { withFileTypes: true }); } catch { return; }
-    for (const e of entries) {
-      const p = join(dir, e.name);
-      if (e.isDirectory()) { if (e.name !== 'node_modules') walk(p); } else if (e.isFile() && /\.(wasm|node)$/.test(e.name)) files.push(p);
-    }
-  };
-  for (const d of outDirs) walk(resolve(d));
+  const files = outDirs.flatMap((d) => listFiles(resolve(d), { enter: (name) => name !== 'node_modules' })).filter((p) => /\.(wasm|node)$/i.test(p));
   if (!files.length) return [];
   const copies = copyFinder({ root: here, bases: installBases(here), outDirs });
   const out = new Set();
@@ -337,7 +330,9 @@ export function accountFor(stray, { root = process.cwd(), outDirs = [], hints = 
         if (pkg) { adds.push(src.path); if (!src.exists) whole.push(pkg.name); } else if (/(^|\/)node_modules\//.test(src.path)) lost.push(src.path); else if (src.exists) adds.push(src.path); else unplaced++;
       }
       if (lost.length) { unknown.push({ file, why: `its source map names ${lost[0]}, which cannot be traced to a package` }); continue; }
-      if (adds.length) { accounted.push({ file, kind: 'mapped', adds, whole, loads: [] }); continue; } // a bundle: what it loads by name is its bundler's business
+      // a bundle: what it loads by name outside a test (a webpack external, a worker's `import`) is used by the
+      // product, the same rule as for the recorded outputs (runtimeLoads)
+      if (adds.length) { accounted.push({ file, kind: 'mapped', adds, whole, loads: [...runtimeImports(specs?.unguarded ?? [])] }); continue; }
       noMap = unplaced ? `its source map names ${unplaced} source(s), none of which is a file here or in an installed package` : 'its source map names no sources';
     }
     if (!specs) { unknown.push({ file, why: `${noMap} and it could not be parsed, so what it loads is unknown` }); continue; }
@@ -362,7 +357,11 @@ export function addWorkspacePackages(moduleMap, root = process.cwd()) {
     if (owners.has(dir)) return owners.get(dir);
     let found = null;
     const pj = join(dir, 'package.json');
-    if (existsSync(pj)) { try { const name = JSON.parse(readFileSync(pj, 'utf8')).name; if (typeof name === 'string' && name) found = { dir, name }; } catch { /* not a package */ } }
+    const r = readPackageJson(dir);
+    // a package.json that is there and can't be read belongs to a package whose name is unknown: stop, rather
+    // than give its files to a package further up
+    if (r.error) throw new Error(`${pj} could not be read (${r.error.message}), so the workspace package it belongs to can't be named`);
+    if (typeof r.pkg?.name === 'string' && r.pkg.name) found = { dir, name: r.pkg.name };
     if (!found) { const up = dirname(dir); found = up === dir ? null : owner(up); }
     owners.set(dir, found);
     return found;

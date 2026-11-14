@@ -35,7 +35,7 @@ test("Angular's webpack-based builder: the stats list modules per chunk, not at 
   assert.deepEqual([files(mm, 'a'), files(mm, 'b')], [['index.js'], ['x.js', 'y.js']]);
   // a per-chunk list is checked for gaps like any other
   assert.equal(webpackStatsGaps({ chunks: [{ id: 1, names: ['main'], filteredModules: 2, modules: [] }] }).length, 1);
-  assert.throws(() => readModuleMap({ chunks: [{ id: 1, modules: [{ name: './node_modules/b/x.js + 3 modules', chunks: [1], modules: [] }] }] }), /lists 0 of its 3/);
+  assert.throws(() => readModuleMap({ chunks: [{ id: 1, modules: [{ name: './node_modules/b/x.js + 3 modules', chunks: [1], modules: [] }] }] }), /lists 0 of its 4/);
 });
 
 test('webpack stats: a chunk with no modules listed is not vouched for', () => {
@@ -72,7 +72,7 @@ test('Rspack 2.0: a member named after its concatenation is read by its real pat
   assert.deepEqual([...mm.packages.get('i18n').roots], ['node_modules/i18n']);
   // a concatenation that is in a chunk and lists no members is still a gap, and the message doesn't say "use the plugin" to someone who did
   assert.throws(() => readModuleMap({ vexproofBundler: 'rspack 2.0.0', modules: [{ name: label, nameForCondition: at('i18n\\dist\\index.js'), chunks: ['1'], orphan: false }] }),
-    (e) => /lists 0 of its 2/.test(e.message) && /written by the VexproofPlugin/.test(e.message) && !/Use the VexproofPlugin/.test(e.message));
+    (e) => /lists 0 of its 3/.test(e.message) && /written by the VexproofPlugin/.test(e.message) && !/Use the VexproofPlugin/.test(e.message));
 });
 
 test("Vite 8: the bundler's own helper chunks have no source map and hold no package code", () => {
@@ -145,7 +145,8 @@ test('Nitro: each version under node_modules/.nitro/<name>@<version> is that pac
 
 test("Yarn's pnpm linker: node_modules/.store/<folder>/package is the package its package.json names", () => {
   const meta = (...folders) => ({ inputs: {}, outputs: { 'dist/app.js': { inputs: Object.fromEntries(folders.map((f) => [`node_modules/.store/${f}/package/index.js`, { bytesInOutput: 9 }])) } } });
-  const notInstalled = () => { throw new Error('ENOENT'); };
+  const missing = () => Object.assign(new Error('ENOENT'), { code: 'ENOENT' }); // as a missing package.json reads
+  const notInstalled = () => { throw missing(); };
 
   // not installed where vexproof runs: an unscoped folder name leaves no doubt, a scoped one with more dashes does
   const mm = attachVersions(readModuleMap(meta('ms-npm-2.1.3-81ff3cfac1', '@a-b-npm-1.0.0-0000000001', '@a-b-c-npm-1.0.0-0000000002')), { readJson: notInstalled });
@@ -156,7 +157,7 @@ test("Yarn's pnpm linker: node_modules/.store/<folder>/package is the package it
 
   // installed: the package.json decides, also where the folder name says nothing
   const installed = { '@a-b-c-npm-1.0.0-0000000003': { name: '@a-b/c', version: '1.0.0' }, 'x-patch-1a2b3c4d5e-0000000004': { name: 'x', version: '3.1.0' } };
-  const readJson = (p) => { const hit = Object.entries(installed).find(([f]) => p.split(sep).join('/').includes(`/.store/${f}/package/`)); if (!hit) throw new Error('ENOENT'); return hit[1]; };
+  const readJson = (p) => { const hit = Object.entries(installed).find(([f]) => p.split(sep).join('/').includes(`/.store/${f}/package/`)); if (!hit) throw missing(); return hit[1]; };
   const named = attachVersions(readModuleMap(meta(...Object.keys(installed))), { readJson });
   assert.deepEqual(unnamedStorePackages(named), []);
   assert.deepEqual(bundleSbomFromModules(named, { readJson }).components.map((c) => c.purl).sort(), ['pkg:npm/%40a-b/c@1.0.0', 'pkg:npm/x@3.1.0']);

@@ -6,6 +6,65 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+A code audit of 1.0.0-beta.9 (five independent reviews, each finding reproduced) found about twenty more ways to
+get `not_affected` for code that ships, and a test suite that missed most of the CLI's decisions about what
+shipped. This release closes them, and adds a test for each route and each refusal. Upgrade from any earlier
+version.
+
+### Fixed
+Package names and SBOMs:
+- npm package names are compared without regard to case. cyclonedx-npm writes `pkg:npm/jsonstream` for
+  `JSONStream`, as the purl spec says, while module maps keep the published name, so a shipped `JSONStream`
+  was called absent. The content check, the inline source map check and the Dependabot sync match names the
+  same way.
+- A bundle SBOM component listed by name and version without a purl counts as shipped.
+- A bundle SBOM that names none of the lockfile's npm packages (an empty file, one that lists only the app,
+  another project's) settles nothing. Before, any component at all made it usable.
+
+Module maps (`--modules`):
+- A package file vendored into `public/` and checked out with CRLF line endings is still that package's file.
+  And a git-tracked file accepted as the project's own no longer explains away its strings in the content
+  check, which let a patched copy of a package pass unseen.
+- Externals count as shipped: webpack's (also `externals: { react: 'React' }`, which reads a global), esbuild's
+  `--external`, and Rollup's in the Vite plugin, also for iife and umd output.
+- A nested package whose `package.json` can't be parsed (a UTF-8 byte order mark, which Node accepts) was filed
+  under the package around it. It keeps its own name now; every `package.json` is read with the BOM removed.
+- A folder in the build output that is a link (a symlink or junction) is checked like any other, and one that
+  can't be read stops the run. Output files are found whatever the case of their extension (`app.JS`).
+- A file outside the module map that is accounted for by its source map keeps the packages it loads by name.
+- A concatenated module named `x.js + 21 modules` holds 22; a list of 21 was taken as complete.
+
+Deployments (`--deploy`):
+- A deployed package that loads another from the project's own `node_modules` was missed when the load was
+  written as esbuild's `__require("x")`, as `createRequire(…)("x")`, or behind a `try`. All three count now.
+- Deployed code that loads a file from outside the deployment folders (a generated client beside the build)
+  stops the run: what that file holds is not checked.
+- TypeScript files that Node runs as they are (type stripping) are read like JavaScript.
+- The server half of React Router, Astro, Angular SSR and SvelteKit builds is refused without its browser
+  half, as Next.js and Nuxt builds were.
+- A source map whose every source is made up accounts for nothing, unless it carries the file's debug id
+  (Turbopack's maps do). Turbopack's runtime counts as `next`.
+- A map found elsewhere by name must sit in folders named like all of the file's own, up to the deployment
+  folder, and agree with the file's name and debug id where it gives them: `app/[locale]/about/page.js` took
+  `app/about/page.js.map` before.
+- A map written on Windows (`C:\build\node_modules\x\index.js`) names the same package on Linux.
+- SvelteKit's generated files (`generated/root.svelte`) are found under `.svelte-kit` after an adapter
+  copied the build.
+
+Module rules (Pro) and `rules derive`:
+- A `--rules` file no longer drops a package's full-build guards (`monoliths`, `monolithDirs`), and every rule
+  must list its files: a rule with none settled every build.
+- `rules derive` looks for the fix outside every range an advisory gives, not only the one for the installed
+  release line, names every JavaScript file the fix changed (also under `spec/` or `docs/`), ignores a file
+  that only had its version number changed, and refuses a fix that changed the package's dependencies.
+- Advisory ranges are read with a space after an operator (`>= 1.0.0`), as hyphen ranges, and with
+  prereleases compared as semver says. A `bun audit` finding is never dropped for a range misread.
+
+Dependabot (Pro):
+- With several `--manifest` scopes, each needs its own `--vex`, in the same order: one application's VEX
+  dismissed another application's alerts before. An alert on a workspace's root lockfile is judged only by a
+  VEX for the root package.
+
 ## [1.0.0-beta.9] - 2026-11-13
 
 A soundness audit of 1.0.0-beta.8 (two independent reviews of the code, and runs over real package-manager

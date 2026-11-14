@@ -68,8 +68,8 @@ test('inputs that are not vexproof VEX, duplicates, and a missing product are re
   assert.throws(() => rollup({ apps: [app] }), /--product/);
 });
 
-test('CLI: rollup is gated, writes a signed document, and reports disagreements on stderr', () => {
-  const { dir, run } = proCopy();
+test('CLI: rollup is gated, writes a signed document, and reports disagreements on stderr', (t) => {
+  const { dir, run } = proCopy(t);
   const { a, b } = twoApps();
   writeFileSync(join(dir, 'a.json'), JSON.stringify(a));
   writeFileSync(join(dir, 'b.json'), JSON.stringify(b));

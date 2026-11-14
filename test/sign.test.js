@@ -64,8 +64,8 @@ test('an RSA or unsupported key is refused with a clear message', () => {
   assert.throws(() => signCycloneDx(makeVex(), rsa), /Ed25519 or ECDSA P-256/);
 });
 
-test('CLI: keygen, --sign on every output, verify with and without --key, tampering, and the free path', () => {
-  const { dir, run } = proCopy();
+test('CLI: keygen, --sign on every output, verify with and without --key, tampering, and the free path', (t) => {
+  const { dir, run } = proCopy(t);
   const keygen = run(['keygen', '--out', join(dir, 'rel')], { license: null });
   assert.equal(keygen.status, 0, keygen.stderr);
   assert.ok(existsSync(join(dir, 'rel.pem')) && existsSync(join(dir, 'rel.pub.pem')));

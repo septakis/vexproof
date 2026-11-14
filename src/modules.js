@@ -1,12 +1,27 @@
 // SPDX-License-Identifier: MIT
 // Which files of each npm package survived into the shipped output.
-import { readFileSync, existsSync } from 'node:fs';
-import { join, posix } from 'node:path';
+import { existsSync } from 'node:fs';
+import { join, posix, dirname } from 'node:path';
+import { builtinModules } from 'node:module';
+import { readPackageJson } from './package-json.js';
+import { npmName } from './names.js';
 // Sources: esbuild metafile (esbuild, Bun, Angular 17+ `ng build --stats-json`)
 //          webpack or Rspack stats JSON (`webpack --json=stats.json`)
 //          vexproof-modules.json from the vexproof/vite plugin (Vite 7/8, Rollup)
 
 const UNNAMED = '.store/';
+
+/**
+ * The installed package.json at path `p`, read as Node reads it (see package-json.js). Throws an error whose
+ * `code` is ENOENT when there is none, and the read or parse error when there is one that can't be read: the
+ * two mean different things below. Tests replace it through the `readJson` option.
+ */
+const readInstalled = (p) => {
+  const r = readPackageJson(dirname(p));
+  if (r.pkg) return r.pkg;
+  throw r.missing ? Object.assign(new Error(`no ${p}`), { code: 'ENOENT' }) : r.error;
+};
+const isMissing = (e) => e?.code === 'ENOENT' || e?.code === 'ENOTDIR';
 const storeNames = new Map(); // Yarn store folder -> the package in it, once attachVersions has read its package.json
 
 /** Packages in Yarn's store whose name could not be read: nothing can be said about them, so a run must stop. */
@@ -56,8 +71,15 @@ function nameFromPackageJson(moduleMap, cwd, read) {
   for (const [key, entry] of [...moduleMap.packages]) {
     if (key.startsWith('.')) continue; // an unnamed store folder, or a dot folder that is no package
     for (const root of [...entry.roots]) {
-      let pkg = null;
-      try { pkg = read(join(cwd, root, 'package.json')); } catch { /* not installed here */ }
+      let pkg = null, unreadable = false;
+      try { pkg = read(join(cwd, root, 'package.json')); } catch (e) { unreadable = !isMissing(e); }
+      if (unreadable) {
+        // The folder has a package.json that can't be read: it is a package, and its name is unknown. Its files
+        // stay under the folder's name, which the CLI accepts only when the lockfile has a package of that
+        // name; filing them under the package around it would make this one look absent.
+        moduleMap.unverified.push({ name: key, root });
+        continue;
+      }
       if (!pkg && existsSync(join(cwd, root))) {
         // The folder is there and is no package: a fixture inside another package's tests
         // (resolve/test/shadowed_core/node_modules/util). Its files belong to the package that holds it.
@@ -177,6 +199,32 @@ export function addToMap(map, path) {
 }
 const add = addToMap;
 
+const BUILTIN = new Set([...builtinModules, ...builtinModules.map((m) => `node:${m}`)]);
+/**
+ * The npm package a bare import specifier names ("lodash/omit" is lodash, "@a/b/c" is @a/b), or null for a
+ * relative or absolute path, a URL, a subpath import (#x) or a Node built-in.
+ */
+export function packageOfSpecifier(spec) {
+  const s = String(spec ?? '');
+  if (!s || /^[./\\#]/.test(s) || /^[a-z][a-z0-9+.-]*:/i.test(s)) return null; // paths, URLs, node:fs
+  const parts = s.split('/');
+  const name = s.startsWith('@') ? parts.slice(0, 2).join('/') : parts[0];
+  if (BUILTIN.has(name)) return null;
+  return /^(@[^/@\s]+\/)?[^/@\s]+$/.test(name) ? name : null;
+}
+
+/**
+ * A package the output loads when it runs instead of bundling (an esbuild --external, a Rollup `external`, a
+ * webpack external, also one read from a global as in `externals: { react: 'React' }`): the product uses it,
+ * so it ships, whole. Which of its files run is recorded nowhere.
+ */
+function addExternal(map, whole, spec) {
+  const name = packageOfSpecifier(spec);
+  if (!name) return;
+  add(map, `node_modules/${name}/package.json`);
+  whole.add(name);
+}
+
 /** A shipped module that is not in node_modules: the app's own source, or a workspace package bundled from source. */
 const outsideNodeModules = (path) => !/(^|\/)node_modules\//.test(String(path).replace(/\\/g, '/'));
 
@@ -207,7 +255,7 @@ export const versionFromPnpmPath = versionFromStorePath; // v0.6 name
  * store path. Copies with no readable version stay undefined, and file-level rules then make no claim.
  */
 export function attachVersions(moduleMap, { cwd = process.cwd(), readJson } = {}) {
-  const read = readJson ?? ((p) => JSON.parse(readFileSync(p, 'utf8')));
+  const read = readJson ?? readInstalled;
   nameStorePackages(moduleMap, cwd, read);
   nameFromPackageJson(moduleMap, cwd, read);
   for (const [name, entry] of moduleMap.packages) {
@@ -253,12 +301,17 @@ function fromEsbuild(meta) {
       // output, under a made-up id: the package counts by name.
       if (/^\0?vite\/[\w.-]+$/.test(path)) { add(map, 'node_modules/vite/package.json'); whole.add('vite'); }
     }
+    for (const i of out.imports ?? []) if (i?.external) addExternal(map, whole, i.path);
   }
-  for (const [path, info] of Object.entries(meta.inputs ?? {})) for (const i of info?.imports ?? []) if (!i.external) edges.push([path, i.path]);
+  for (const [path, info] of Object.entries(meta.inputs ?? {})) {
+    for (const i of info?.imports ?? []) { if (i.external) addExternal(map, whole, i.path); else edges.push([path, i.path]); }
+  }
   return { map, graph: graphFrom(edges, shipped), own, whole };
 }
 
 const CONCATENATED = / \+ (\d+) modules?$/;
+// how webpack and Rspack name an external module: external "React", external var "React", external commonjs "fs"
+const EXTERNAL = /^external (?:[\w-]+ )?"/;
 
 /**
  * Rspack 2.0 names some members of a concatenated module after the concatenation itself
@@ -321,10 +374,14 @@ export function webpackStatsGaps(stats) {
     for (const m of mods ?? []) {
       // the bundler's own runtime (chunk loading, module registry) never comes from node_modules
       if ((m.filteredChildren ?? 0) > 0 && m.type !== 'runtime modules') gaps.push(`${where}: ${m.filteredChildren} modules filtered out of "${m.name ?? m.type}"`);
+      // an external whose stats name no request leaves the package it stands for unknown (stats without reasons)
+      if (EXTERNAL.test(String(m.name ?? '')) && !(m.reasons ?? []).some((r) => r.userRequest)) gaps.push(`"${m.name}" does not say which package it stands for (keep reasons in the stats)`);
       const n = CONCATENATED.exec(m.name ?? '');
       if (n && !mislabelled(m, nested)) {
         const listed = (m.modules ?? []).filter((x) => x.name).length;
-        if (listed < Number(n[1])) gaps.push(`"${m.name}" lists ${listed} of its ${n[1]} concatenated modules`);
+        // "./x.js + 21 modules" is x.js and 21 more: its list holds all 22
+        const total = Number(n[1]) + 1;
+        if (listed < total) gaps.push(`"${m.name}" lists ${listed} of its ${total} concatenated modules`);
       }
       check(m.modules, where, true);
     }
@@ -373,10 +430,17 @@ function fromWebpack(stats) {
     return rel.startsWith('.') ? rel : `./${rel}`;
   };
 
+  const whole = new Set();
   const visit = (mods, parentIncluded) => {
     for (const m of mods ?? []) {
       const included = parentIncluded || (Array.isArray(m.chunks) && m.chunks.length > 0);
       if (!included || m.orphan && !parentIncluded) { visit(m.modules, false); continue; }
+      // An external (external "React") is code the output gets at runtime, from a require() or from a global.
+      // The package is what the importing code asked for: each reason's userRequest.
+      if (EXTERNAL.test(String(m.name ?? m.identifier ?? ''))) {
+        for (const r of m.reasons ?? []) addExternal(map, whole, r.userRequest);
+        continue;
+      }
       // concatenated roots are named "./x.js + 12 modules"; their members arrive via m.modules
       // "delegated ./node_modules/lodash/lodash.js from dll-reference vendor": the module, as a DLL build names it
       const name = parentIncluded && mislabelled(m, true) ? realName(m)
@@ -392,7 +456,6 @@ function fromWebpack(stats) {
   // The bundler's runtime (chunk loading, the module registry, the public path) is the bundler's own code in
   // the output. No file of the bundler's package stands for it in the stats, so the package counts by name.
   const hasRuntime = (mods) => (mods ?? []).some((m) => m && (m.moduleType === 'runtime' || /^webpack\/runtime\//.test(String(m.name ?? '')) || hasRuntime(m.modules)));
-  const whole = new Set();
   if (lists.some((l) => hasRuntime(l.modules))) {
     const bundlerPackage = /^rspack/i.test(String(stats.vexproofBundler ?? '')) ? '@rspack/core' : 'webpack';
     add(map, `node_modules/${bundlerPackage}/package.json`);
@@ -415,12 +478,13 @@ export function readModuleMap(json) {
  * under `cwd`, or from the lockfile SBOM when it lists exactly one version; otherwise none is claimed.
  */
 export function bundleSbomFromModules(moduleMap, { lockfileSbom = null, cwd = process.cwd(), readJson } = {}) {
-  const read = readJson ?? ((p) => JSON.parse(readFileSync(p, 'utf8')));
-  const lockVersions = new Map();
+  const read = readJson ?? readInstalled;
+  const lockVersions = new Map(); // npmName → versions in the lockfile SBOM
   for (const c of flatten(lockfileSbom?.components)) {
     const m = /^pkg:npm\/(.+)@([^@?#]+)/.exec(c.purl ?? '');
     if (!m) continue;
-    const name = decodeURIComponent(m[1]);
+    let name;
+    try { name = npmName(decodeURIComponent(m[1])); } catch { continue; }
     if (!lockVersions.has(name)) lockVersions.set(name, new Set());
     lockVersions.get(name).add(m[2]);
   }
@@ -434,7 +498,8 @@ export function bundleSbomFromModules(moduleMap, { lockfileSbom = null, cwd = pr
       let version = entry.versionByRoot?.get(root);
       if (!version) try { version = read(join(cwd, root, 'package.json')).version; } catch { /* not installed here */ }
       version ??= versionFromStorePath(root, name);
-      if (!version && lockVersions.get(name)?.size === 1) version = [...lockVersions.get(name)][0];
+      const inLock = lockVersions.get(npmName(name));
+      if (!version && inLock?.size === 1) version = [...inLock][0];
       const enc = name.startsWith('@') ? `%40${name.slice(1)}` : name;
       const purl = `pkg:npm/${enc}${version ? '@' + version : ''}`;
       if (seen.has(purl)) continue; // one copy linked from two places, or two copies of one version

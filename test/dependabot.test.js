@@ -58,7 +58,8 @@ test('an alert is dismissed only when the VEX settles it, by its GHSA or CVE', (
 });
 
 test('a version in range that the VEX says nothing about keeps the alert open', () => {
-  const l2 = sbom(['pkg:npm/lodash@4.17.20', 'pkg:npm/lodash@4.17.19']);
+  // react ships, so the bundle SBOM shares a package with the lockfile and can vouch for lodash's absence
+  const l2 = sbom(['pkg:npm/lodash@4.17.20', 'pkg:npm/lodash@4.17.19', 'pkg:npm/react@1.0.0']);
   const results = triage({ lockfileSbom: l2, bundleSbom: sbom(['pkg:npm/react@1.0.0']), findings: [{ purl: 'pkg:npm/lodash@4.17.20', id: 'GHSA-lodash-0001', aliases: [] }] });
   const vex = toCycloneDxVex({ results, bundleSbom: bundle, lockfileSbom: l2, productPurl: 'pkg:npm/app@1', inputs: [{ role: 'lockfile-sbom', path: 'l', sha256: sha(l2) }] });
   const d = readDocuments([{ file: 'v', vex }], [{ file: 'l', sbom: l2, sha256: sha(l2) }]);
@@ -295,4 +296,35 @@ test('vexproof dependabot: a key without the feature, or an open-source key for 
   assert.equal(elsewhere.code, 0, elsewhere.err);
   assert.match(elsewhere.err, /covers github\.com\/o\/r, not github\.com\/o\/other/);
   assert.match(elsewhere.err, /no alerts changed/);
+});
+
+// ---------- which VEX speaks for which alert (code audit of 1.0.0-beta.9) ----------
+
+const onManifest = (n, manifest) => alert(n, 'lodash', 'GHSA-lodash-0001', { dependency: { package: { ecosystem: 'npm', name: 'lodash' }, manifest_path: manifest, scope: 'runtime' } });
+
+test("one application's VEX never settles another application's alert", () => {
+  const a = docs();
+  // two scopes, one VEX: refused, rather than judging app B's alert by app A's VEX
+  assert.throws(() => planAlerts({ alerts: [onManifest(7, 'apps/b/package-lock.json')], docs: a, scopes: ['apps/a', 'apps/b'] }), /one --vex for each/);
+  // paired in order: app A's VEX judges app A's alert, and only app B's VEX (which ships lodash) judges app B's
+  const shipsLodash = sbom(['pkg:npm/react@18.3.1', 'pkg:npm/lodash@4.17.20']);
+  const bResults = triage({ lockfileSbom: lock, bundleSbom: shipsLodash, findings: [{ purl: 'pkg:npm/lodash@4.17.20', id: 'GHSA-lodash-0001', aliases: [] }] });
+  const bVex = readDocuments([{ file: 'b.json', vex: toCycloneDxVex({ results: bResults, bundleSbom: shipsLodash, lockfileSbom: lock, productPurl: 'pkg:npm/b@1', inputs: [{ role: 'lockfile-sbom', path: 'l.json', sha256: sha(lock) }] }) }], [lockEntry]);
+  const { plan } = planAlerts({ alerts: [onManifest(1, 'apps/a/package-lock.json'), onManifest(2, 'apps/b/package-lock.json')], docs: [...a, ...bVex], scopes: ['apps/a', 'apps/b'] });
+  assert.deepEqual(plan.map((i) => i.action), ['dismiss', 'open']);
+});
+
+test("a workspace's root lockfile is judged only by a VEX for the root package", () => {
+  const root = (m) => (m === 'package-lock.json' ? 'monorepo' : null);
+  const { plan } = planAlerts({ alerts: [onManifest(1, 'package-lock.json')], docs: docs(), scopes: [''], workspaceRoot: root });
+  assert.equal(plan[0].action, 'open');
+  assert.match(plan[0].why, /lockfile of the workspace monorepo, and vex\.json speaks for app only/);
+  // a VEX made for the root package itself may
+  const forRoot = readDocuments([{ file: 'vex.json', vex: makeVex({ productPurl: 'pkg:npm/monorepo@1' }) }], [lockEntry]);
+  assert.equal(planAlerts({ alerts: [onManifest(1, 'package-lock.json')], docs: forRoot, scopes: [''], workspaceRoot: root }).plan[0].action, 'dismiss');
+});
+
+test('alert package names are matched without regard to case', () => {
+  const upper = alert(1, 'LoDash', 'GHSA-lodash-0001');
+  assert.equal(judge(upper, docs()).kind, 'settled');
 });

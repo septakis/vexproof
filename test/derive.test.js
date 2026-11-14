@@ -29,10 +29,11 @@ test('fix boundary: first release after the installed one that leaves the range'
   assert.ok(compareVersions('5.0.0-beta.1', '5.0.0') < 0);
 });
 
-test('rule files = runtime files of the installed version that the fixed release changed or dropped', () => {
+test('rule files = JavaScript files of the installed version that the fixed release changed or dropped', () => {
   const installedFiles = new Map([['template.js', B('a')], ['trim.js', B('b')], ['omit.js', B('c')], ['README.md', B('x')], ['test/t.js', B('t')], ['index.d.ts', B('d')]]);
   const fixedFiles = new Map([['template.js', B('A')], ['omit.js', B('c')], ['README.md', B('y')], ['test/t.js', B('T')], ['index.d.ts', B('D')], ['new.js', B('n')]]);
-  assert.deepEqual(diffForRule({ installedFiles, fixedFiles }), { files: ['template.js', 'trim.js'], runtimeFiles: 3 });
+  // test/t.js is named too: a file that never ships costs nothing, and some "test" or "doc" folders are code
+  assert.deepEqual(diffForRule({ installedFiles, fixedFiles }), { files: ['template.js', 'test/t.js', 'trim.js'], runtimeFiles: 3 });
   assert.match(diffForRule({ installedFiles, fixedFiles: installedFiles }).reason, /no runtime JavaScript/);
   assert.match(diffForRule({ installedFiles, fixedFiles: new Map([['lib/other.js', B('')]]) }).reason, /reorganised/);
   assert.ok(isRuntimeFile('lib/loader.mjs') && !isRuntimeFile('__tests__/x.js') && !isRuntimeFile('types/a.d.mts'));

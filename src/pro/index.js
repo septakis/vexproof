@@ -5,7 +5,7 @@
 import { readFileSync } from 'node:fs';
 
 export { verifyLicense, loadLicenseToken, PRO_FEATURES } from './license.js';
-export { evaluateModuleRule, mergeRules } from './module-check.js';
+export { evaluateModuleRule, mergeRules, validateRules } from './module-check.js';
 export { readBaseline, applyBaseline } from './baseline.js';
 export { renderReport } from './report.js';
 export * as dependabot from './dependabot.js';

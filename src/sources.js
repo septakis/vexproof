@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Findings sources: OSV (direct), npm audit, osv-scanner, Trivy, Grype, Snyk, internal shape.
 import { sbomPurls, parsePurl, npmPurl, mergeFindings } from './index.js';
+import { inAdvisoryRange } from './versions.js';
 
 const OSV_BATCH = 'https://api.osv.dev/v1/querybatch';
 const BATCH_SIZE = 1000; // OSV's documented limit per querybatch call
@@ -80,24 +81,8 @@ export function fromNpmAudit(audit, lockfileSbom) {
   return mergeFindings(out);
 }
 
-/** Does `version` satisfy an npm advisory range like ">=4.0.0 <=4.17.22 || <1.2"? Unparseable → true (keeps it). */
-export function inAdvisoryRange(version, range) {
-  const num = (v) => { const m = /^v?(\d+)(?:\.(\d+))?(?:\.(\d+))?(-[0-9A-Za-z.-]+)?/.exec(String(v).trim()); return m ? [+m[1], +(m[2] ?? 0), +(m[3] ?? 0), m[4] ? 0 : 1] : null; };
-  const cmp = (a, b) => { for (let i = 0; i < 4; i++) if (a[i] !== b[i]) return a[i] < b[i] ? -1 : 1; return 0; };
-  const v = num(version);
-  if (!v || typeof range !== 'string' || !range.trim()) return true;
-  return range.split('||').some((alt) => {
-    const parts = alt.trim().split(/\s+/).filter(Boolean);
-    if (!parts.length || parts.includes('*')) return true;
-    return parts.every((c) => {
-      const m = /^(<=|>=|<|>|=)?(.+)$/.exec(c);
-      const b = num(m[2]);
-      if (!b) return true;
-      const r = cmp(v, b);
-      return { '<': r < 0, '<=': r <= 0, '>': r > 0, '>=': r >= 0, '=': r === 0, undefined: r === 0 }[m[1]];
-    });
-  });
-}
+// inAdvisoryRange lives in versions.js; it is exported from here too, where it has always been
+export { inAdvisoryRange };
 
 const looksLikeBunAudit = (json) => json && typeof json === 'object' && !Array.isArray(json) && Object.keys(json).length > 0
   && Object.values(json).every((a) => Array.isArray(a) && a.every((x) => x && typeof x === 'object' && 'url' in x && 'vulnerable_versions' in x));
@@ -117,8 +102,10 @@ export function fromBunAudit(audit, lockfileSbom) {
     const vs = [...(versions.get(name) ?? [])];
     for (const a of advisories) {
       const id = a.url?.match(/GHSA-[a-z0-9-]+/i)?.[0] ?? String(a.id);
+      // bun reported the advisory for this package, so it stands even when no listed version seems to be in its
+      // range: then it is attached to every installed version (or, with none listed, to the package)
       const hits = vs.filter((v) => inAdvisoryRange(v, a.vulnerable_versions));
-      for (const v of hits.length || vs.length ? hits : [undefined]) out.push({ purl: npmPurl(name, v), id, aliases: [] });
+      for (const v of hits.length ? hits : vs.length ? vs : [undefined]) out.push({ purl: npmPurl(name, v), id, aliases: [] });
     }
   }
   return mergeFindings(out);

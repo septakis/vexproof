@@ -7,7 +7,10 @@
 // An alert is settled only when every installed version of its package that falls in the alert's vulnerable range
 // (read from the lockfile SBOM the VEX was made from) has a not_affected or false_positive statement. A version the
 // VEX says nothing about keeps the alert open, so a scanner that missed a version can't lead to a dismissal.
-import { indexSbom, parsePurl } from '../index.js';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { indexSbom, parsePurl, npmName } from '../index.js'; // npmName: see src/names.js
+import { readPackageJson } from '../package-json.js';
 
 export const MARKER = 'vexproof:';
 export const COMMENT_MAX = 280; // GitHub's limit for dismissed_comment
@@ -41,7 +44,7 @@ export function readDocuments(vexes, lockfiles) {
       if (p?.type !== 'npm') continue;
       statements.push({
         ids: new Set([v.id, ...(v.references ?? []).map((r) => r.id)].filter(Boolean).map(up)),
-        name: p.name,
+        name: npmName(p.name), // compared without case, as indexSbom's keys are
         version: p.version ?? null,
         state: v.analysis?.state,
         justification: v.analysis?.justification ?? null,
@@ -51,7 +54,9 @@ export function readDocuments(vexes, lockfiles) {
         reviewedBy: prop(v.properties, 'vexproof:reviewed-by') ?? null,
       });
     }
-    return { file, statements, installed };
+    // the product the VEX speaks for: the application whose lockfile SBOM it was made from
+    const product = parsePurl(vex.metadata?.component?.purl)?.name ?? vex.metadata?.component?.name ?? null;
+    return { file, statements, installed, product };
   });
 }
 
@@ -109,7 +114,8 @@ export function alertIds(alert) {
  *   unknown   no installed version is in the range, so the VEX can't speak to it either way
  */
 export function judge(alert, docs) {
-  const name = alert.dependency?.package?.name;
+  const shown = alert.dependency?.package?.name;
+  const name = npmName(shown); // the lockfile SBOM's purls may spell it in lower case (see npmName)
   const range = alert.security_vulnerability?.vulnerable_version_range ?? null;
   const ids = alertIds(alert);
   const needed = [];
@@ -118,19 +124,19 @@ export function judge(alert, docs) {
     let why;
     if (alert.dependency?.scope === 'development') why = 'a development dependency; vexproof speaks only for what ships';
     else if (docs.some((d) => d.installed.has(name))) why = `no installed version is in the vulnerable range (${range})`;
-    else why = `${name} is not in the lockfile SBOM`;
+    else why = `${shown} is not in the lockfile SBOM`;
     return { kind: 'unknown', why };
   }
   const proven = [];
   for (const { doc, version } of needed) {
     const found = doc.statements.filter((s) => s.name === name && (!s.version || s.version === version) && [...s.ids].some((i) => ids.has(i)));
-    if (!found.length) return { kind: 'unsettled', why: `the VEX has no statement for ${name}@${version}` };
+    if (!found.length) return { kind: 'unsettled', why: `the VEX has no statement for ${shown}@${version}` };
     const open = found.find((s) => !SETTLED.has(s.state));
-    if (open) return { kind: 'unsettled', why: `${name}@${version} is ${words(open.state)} in the VEX` };
+    if (open) return { kind: 'unsettled', why: `${shown}@${version} is ${words(open.state)} in the VEX` };
     proven.push(...found);
   }
   const versions = [...new Set(needed.map((n) => n.version))];
-  return { kind: 'settled', statements: proven, versions, ...dismissal(name, versions, proven) };
+  return { kind: 'settled', statements: proven, versions, ...dismissal(shown, versions, proven) };
 }
 
 function dismissal(name, versions, statements) {
@@ -170,6 +176,34 @@ export function inScope(manifestPath, scopes) {
 }
 
 /**
+ * The documents that may judge each alert. With one scope every document speaks for it. With several, the n-th
+ * --vex is for the n-th --manifest: an alert is judged only by the documents for the scope it is in, so that one
+ * application's VEX never settles another's alert. Returns (alert) => documents.
+ */
+export function documentsByScope(docs, scopes) {
+  if (scopes.length <= 1) return () => docs;
+  if (docs.length !== scopes.length) {
+    throw new Error(`with ${scopes.length} --manifest scopes, give one --vex for each, in the same order (got ${docs.length}): an alert is settled only by the VEX of the application it belongs to`);
+  }
+  return (alert) => docs.filter((_, i) => inScope(alert.dependency?.manifest_path ?? '', [scopes[i]]));
+}
+
+/**
+ * A workspace's root lockfile lists the packages of every application in it. A VEX made for one of them says
+ * nothing about the packages only the others use, so it may judge an alert on that lockfile only when it is
+ * the root package's own. `workspaceRoot(manifestPath)` names the root package when the manifest is such a
+ * lockfile, else null. Returns why the documents can't judge the alert, or null when they can.
+ */
+function workspaceMismatch(alert, docs, workspaceRoot) {
+  const manifest = alert.dependency?.manifest_path ?? '';
+  const root = workspaceRoot?.(manifest);
+  if (!root) return null;
+  const others = docs.filter((d) => !d.product || npmName(d.product) !== npmName(root));
+  if (!others.length) return null;
+  return `${manifest} is the lockfile of the workspace ${root}, and ${others.map((d) => d.file).join(', ')} speaks for ${others[0].product ?? 'another application'} only`;
+}
+
+/**
  * What to do with each npm alert in scope. Actions:
  *   dismiss   open, and the VEX settles it
  *   reopen    dismissed by vexproof, and the VEX now leaves an installed vulnerable version unsettled
@@ -178,14 +212,17 @@ export function inScope(manifestPath, scopes) {
  *   pending   open with a dismissal request waiting for approval: left as it is
  *   person    dismissed by someone else: never touched
  */
-export function planAlerts({ alerts, docs, scopes, link = null }) {
+export function planAlerts({ alerts, docs, scopes, link = null, workspaceRoot = null }) {
   const plan = [];
   const elsewhere = new Set();
+  const docsFor = documentsByScope(docs, scopes);
   for (const alert of alerts) {
     if (alert.dependency?.package?.ecosystem !== 'npm') continue;
     if (alert.state !== 'open' && alert.state !== 'dismissed') continue;
     if (!inScope(alert.dependency?.manifest_path ?? '', scopes)) { elsewhere.add(alert.dependency?.manifest_path); continue; }
-    const verdict = judge(alert, docs);
+    const forAlert = docsFor(alert);
+    const mismatch = workspaceMismatch(alert, forAlert, workspaceRoot);
+    const verdict = mismatch ? { kind: 'unknown', why: mismatch } : judge(alert, forAlert);
     const ours = alert.state === 'dismissed' && String(alert.dismissed_comment ?? '').startsWith(MARKER);
     let item;
     if (alert.state === 'open') {
@@ -202,6 +239,25 @@ export function planAlerts({ alerts, docs, scopes, link = null }) {
     plan.push({ alert, ...item });
   }
   return { plan, elsewhere: [...elsewhere].filter(Boolean).sort() };
+}
+
+/**
+ * workspaceRoot for planAlerts, reading the checkout at `repoDir`: a lockfile whose folder holds a package.json
+ * with "workspaces", or a pnpm-workspace.yaml, belongs to a workspace, named by that package.json.
+ */
+export function workspaceRootIn(repoDir) {
+  const cache = new Map();
+  return (manifestPath) => {
+    const m = clean(manifestPath);
+    if (!/(^|\/)(package-lock\.json|npm-shrinkwrap\.json|yarn\.lock|pnpm-lock\.yaml|bun\.lockb?)$/.test(m)) return null;
+    const dir = join(repoDir, dirOf(m));
+    if (!cache.has(dir)) {
+      const pkg = readPackageJson(dir).pkg;
+      const isRoot = Boolean(pkg?.workspaces) || existsSync(join(dir, 'pnpm-workspace.yaml'));
+      cache.set(dir, isRoot ? (typeof pkg?.name === 'string' && pkg.name ? pkg.name : '(unnamed root)') : null);
+    }
+    return cache.get(dir);
+  };
 }
 
 // ---------- GitHub ----------
@@ -267,9 +323,10 @@ export function explain(e, repo) {
  * Lists the alerts, plans, and (unless dryRun) applies the plan. Mutations go one at a time with a pause between
  * them, as GitHub asks of clients that make many. A 401 or 403 stops the run; other failures are recorded per alert.
  */
-export async function syncDependabot({ client, docs, scopes, link = null, dryRun = false, pause = 1000, sleep = (ms) => new Promise((r) => setTimeout(r, ms)) }) {
+export async function syncDependabot({ client, docs, scopes, link = null, dryRun = false, workspaceRoot = null, pause = 1000, sleep = (ms) => new Promise((r) => setTimeout(r, ms)) }) {
+  documentsByScope(docs, scopes); // refuse a mismatched pairing before anything is read from GitHub
   const alerts = await client.listAlerts();
-  const { plan, elsewhere } = planAlerts({ alerts, docs, scopes, link });
+  const { plan, elsewhere } = planAlerts({ alerts, docs, scopes, link, workspaceRoot });
   let first = true;
   for (const item of plan) {
     if (!item.body) continue;

@@ -87,7 +87,10 @@ export default function vexproof({ output = 'vexproof-modules.json', includeServ
         const info = this.getModuleInfo?.(id);
         if (!info) continue;
         const k = cleanModuleId(id, root);
-        const imports = [...(info.importedIds ?? []), ...(info.dynamicallyImportedIds ?? [])].map((i) => ({ path: cleanModuleId(i, root) })).filter((i) => i.path !== k);
+        // an external (Rollup `external`, iife/umd `globals`) is marked: the output loads it at runtime, so it ships
+        const imports = [...(info.importedIds ?? []), ...(info.dynamicallyImportedIds ?? [])]
+          .map((i) => (this.getModuleInfo?.(i)?.isExternal ? { path: i, external: true } : { path: cleanModuleId(i, root) }))
+          .filter((i) => i.path !== k);
         if (imports.length) rec.inputs[k] = { imports: [...new Map([...(rec.inputs[k]?.imports ?? []), ...imports].map((i) => [i.path, i])).values()] };
       }
       // A worker imported with ?worker or ?sharedworker is bundled by a build of its own, and that build runs

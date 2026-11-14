@@ -13,7 +13,7 @@ import { recordReview, sameCause } from './review.js';
 import { attachFingerprints } from './evidence.js';
 import { readDeployment, mergeModuleMaps, defaultMapDirs, installBases, inlineMapPackages, deploymentDigest } from './deploy.js';
 import { contentCheck } from './content-check.js';
-import { normalizeFindings, parsePurl, indexSbom } from './index.js';
+import { normalizeFindings, parsePurl, indexSbom, NpmNameSet } from './index.js';
 import { deriveRules } from './derive.js';
 
 // engines in package.json only makes npm warn, and npx not even that: say it here, before a newer API fails
@@ -419,7 +419,7 @@ if (args._[0] === 'dependabot') {
   const host = (u) => { try { return new URL(u).host; } catch { return 'github.com'; } };
   const named = args.repo ? { repo: `${host(process.env.GITHUB_SERVER_URL)}/${args.repo}` } : undefined;
   if (!licensedFor(loadLicense(named), 'dependabot')) { log('vexproof dependabot is a Pro feature; no alerts changed'); process.exit(0); }
-  const { readDocuments, github, syncDependabot, explain, summaryLine, markdownSummary, verb, scopeLabel } = proLib.dependabot;
+  const { readDocuments, github, syncDependabot, explain, summaryLine, markdownSummary, verb, scopeLabel, workspaceRootIn } = proLib.dependabot;
   const env = process.env;
   const git = (...a) => { try { return execFileSync('git', a, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { return null; } };
   const vexFiles = every('vex');
@@ -448,7 +448,8 @@ if (args._[0] === 'dependabot') {
     const docs = readDocuments(vexFiles.map((file) => ({ file, vex: readJson(file) })), lockfiles);
     const client = github({ token, repo, apiUrl: env.GITHUB_API_URL || 'https://api.github.com', userAgent: `vexproof/${VERSION}` });
     log(`vexproof: ${dryRun ? 'previewing' : 'applying'} ${vexFiles.join(', ')} to Dependabot's npm alerts in ${repo}, on manifests ${scopeLabel(scopes)}`);
-    const { plan, elsewhere } = await syncDependabot({ client, docs, scopes, link, dryRun });
+    const top = git('rev-parse', '--show-toplevel');
+    const { plan, elsewhere } = await syncDependabot({ client, docs, scopes, link, dryRun, workspaceRoot: top ? workspaceRootIn(top) : null });
     const shown = plan.filter((i) => i.action !== 'kept');
     const w = Math.max(8, ...shown.map((i) => String(i.alert.dependency?.package?.name ?? '').length));
     for (const i of shown) {
@@ -503,9 +504,14 @@ if (!args.findings || args['enrich-aliases']) {
 
 let moduleMap = null;
 const root = args.root ?? process.cwd();
-const lockNames = new Set([...indexSbom(lockfileSbom).keys()].filter((k) => k.startsWith('npm/')).map((k) => k.slice(4)));
+// the lockfile's npm package names, matched without regard to case (see src/names.js)
+const lockNames = new NpmNameSet([...indexSbom(lockfileSbom).keys()].filter((k) => k.startsWith('npm/')).map((k) => k.slice(4)));
 const maps = [];
 const shippedDirs = []; // every folder of files that ship, for the content check
+// Project files that vouch for an output file only by being its git-tracked original (public/vendor/x.js). They
+// are not records of what a bundler put in: a vendored package's file passes this way too. So the content check
+// must not count their strings as explained, or the shipped copy would explain itself away.
+const selfVouched = new Set();
 for (const file of args.modules ?? []) {
   const mmJson = readJson(file);
   let mm;
@@ -533,6 +539,7 @@ for (const file of args.modules ?? []) {
     mm.whole ??= new Set();
     for (const a of accounted) {
       for (const p of a.adds) { if (splitNodeModulesPath(p)) addToMap(mm.packages, p); else mm.own.add(p); }
+      if (a.kind === 'own') for (const p of a.adds) selfVouched.add(resolve(root, p));
       for (const n of a.whole) mm.whole.add(n);
       // loaded by name from a file that ships as it is: present, by a route vexproof can't follow to files
       for (const n of a.loads) if (lockNames.has(n)) { addToMap(mm.packages, `node_modules/${n}/package.json`); mm.whole.add(n); }
@@ -589,6 +596,14 @@ if (args.deploy) {
     for (const f of deployment.unmapped.slice(0, 8)) log(`  ${f}`);
     log('Turn on source maps for that build (Next.js: productionBrowserSourceMaps and experimental.serverSourceMaps;');
     log("Nuxt: sourcemap: { server: true, client: 'hidden' }; Vite: build.sourcemap: 'hidden'), or pass --maps <folder>.");
+    log('A file whose source map names only modules the bundler made up says nothing about its contents either.');
+    process.exit(2);
+  }
+  if (deployment.escapes.length) {
+    // code the deployment loads from a file outside it: it runs, and nothing vexproof was shown can say what it holds
+    const e = deployment.escapes[0];
+    log(`vexproof: code in the deployment loads ${deployment.escapes.length} file(s) from outside the deployment folders (e.g. ${e.target}, from ${e.from}),`);
+    log('so what those files hold, and load, is not checked. Add the folder that holds them as another --deploy folder.');
     process.exit(2);
   }
   if (deployment.unattributed.length) {
@@ -612,6 +627,7 @@ if (args.deploy) {
     log('the server runs with (after npm prune --omit=dev) as another --deploy folder.');
     process.exit(2);
   }
+  for (const p of deployment.selfVouched) selfVouched.add(resolve(root, p));
   maps.push(deployment);
   for (const d of args.deploy) shippedDirs.push(resolve(root, d));
   inputs.push({ role: 'deployment', path: args.deploy.join(','), sha256: deploymentDigest(args.deploy, root) });
@@ -675,7 +691,7 @@ if (maps.length) {
 let rules = proLib ? proLib.loadRules() : null;
 if (args.rules) {
   if (has('modules')) {
-    rules = proLib.mergeRules(rules, readJson(args.rules));
+    rules = proLib.mergeRules(rules, proLib.validateRules(readJson(args.rules), args.rules));
     inputs.push({ role: 'rules', path: args.rules, sha256: sha256(args.rules) });
   } else log('vexproof: --rules is a Pro feature; ignoring it');
 }
@@ -716,7 +732,7 @@ if (shippedDirs.length) {
     const files = [];
     for (const e of moduleMap?.packages.values() ?? []) for (const [r, fs] of e.byRoot ?? []) for (const f of fs) files.push(resolve(root, r, f));
     for (const p of moduleMap?.own ?? []) files.push(resolve(root, p));
-    return files;
+    return files.filter((f) => !selfVouched.has(f));
   };
   const c = contentCheck(results, { root, bases: installBases(root), shippedDirs, recorded });
   for (const k of c.kept) log(`vexproof: ${k.name} is not in the build's records, but ${k.hits.length} string(s) from its own files are in the shipped output (e.g. "${k.hits[0].text}" in ${k.hits[0].file}): its findings stay open`);

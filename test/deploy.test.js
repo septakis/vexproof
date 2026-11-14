@@ -166,7 +166,7 @@ test('a whole package gets no file-level claims', () => {
   const sbom = { components: [{ purl: 'pkg:npm/lodash@4.17.21' }] };
   const [r] = triage({ lockfileSbom: sbom, bundleSbom: sbom, findings, moduleMap: d, rules, moduleCheck: evaluateModuleRule, pro: true });
   assert.equal(r.state, 'in_triage');
-  assert.match(r.moduleReason, /publishes its own source maps/);
+  assert.match(r.moduleReason, /its own source maps name its original sources/);
 });
 
 test('several module maps merge; the import graph survives only if every map has one', () => {

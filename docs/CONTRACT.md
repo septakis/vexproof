@@ -121,7 +121,7 @@ Pro:
 | `--vex <file>` | The VEX to apply. Repeatable. Required. |
 | `--lockfile <file>` | The lockfile SBOM the VEX was made from. Repeatable. Required. |
 | `--repo <owner/name>` | Default: `GITHUB_REPOSITORY`, then the git remote. |
-| `--manifest <path>` | Manifest file or folder whose alerts to change. Default: the current folder. Repeatable. |
+| `--manifest <path>` | Manifest file or folder whose alerts to change. Default: the current folder. Repeatable; with several, give one `--vex` for each, in the same order, and each alert is judged only by the VEX for its scope. |
 | `--link <url>` | What the dismissal comment links to. Default: the current Actions run. |
 | `--token <token>` | A token that can write Dependabot alerts. |
 | `--dry-run` | Print what would change and change nothing. |

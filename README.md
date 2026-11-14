@@ -227,9 +227,11 @@ vexproof dependabot --vex vex.cdx.json --lockfile bom.lockfile.json --dry-run
 - It **never touches** an alert a person dismissed, an alert with a dismissal request waiting for approval, or one
   on a development dependency.
 - `--manifest` picks the lockfiles whose alerts to change (a file or a folder, repeatable; default the current
-  folder, which is the repository root in CI). `--repo owner/name` defaults to `GITHUB_REPOSITORY`, then the git
-  origin. A VEX written with `--browser-only` is refused, because a server may run packages the browser bundle
-  leaves out.
+  folder, which is the repository root in CI). With several, give one `--vex` for each, in the same order: an
+  alert is judged only by the VEX for its own application. An alert on a workspace's root lockfile is judged
+  only by a VEX made for the root package, since one application's VEX can't speak for what the others use.
+  `--repo owner/name` defaults to `GITHUB_REPOSITORY`, then the git origin. A VEX written with `--browser-only`
+  is refused, because a server may run packages the browser bundle leaves out.
 - It needs a token that can **write** Dependabot alerts: a fine-grained token or GitHub App token with
   "Dependabot alerts" read and write, from `--token`, `VEXPROOF_DEPENDABOT_TOKEN`, `GH_TOKEN` or `GITHUB_TOKEN`. The
   workflow's own `GITHUB_TOKEN` can read alerts (`permissions: vulnerability-alerts: read`) but not change them, so
@@ -339,13 +341,19 @@ in, not the file name alone.
 
 It refuses a deployment it can't account for:
 - a `--deploy` folder that doesn't exist, or the server half of a build without the browser half
-  (`.next/standalone` without `.next/static`, `.output/server` without `.output/public`);
+  (`.next/standalone` without `.next/static`, `.output/server` without `.output/public`, and a `server`
+  folder beside a `client`, `browser`, `public` or `static` one with JavaScript in it: React Router, Astro,
+  Angular SSR, SvelteKit);
 - a bundled file with no source map, unless it is an exact copy of an installed file (Next's polyfills),
   a file of yours as git has it (`public/sw.js`), a helper chunk the bundler writes itself, or glue with
-  no code of its own (manifests, Next's `server.js`);
+  no code of its own (manifests, Next's `server.js`); also one whose map names only modules the bundler
+  made up, unless the map carries the file's debug id;
 - bundled code that loads a lockfile package at runtime when that package isn't in the deployment
-  (imports are parsed, so examples in comments don't count);
+  (imports are parsed, so examples in comments don't count), or that loads a file from outside the
+  deployment folders;
 - a source-map source under `node_modules` that can't be traced to an installed package.
+
+TypeScript files that Node runs as they are (type stripping) are read like JavaScript.
 
 A source that names no file is placed when it is written from the project folder (`webpack://_N_E/./…`)
 or copied from an installed package's own source map; what is left is counted and reported. A source map
@@ -450,7 +458,7 @@ covers. Still no network calls. Help for open-source licenses is through GitHub 
 
 ## Tests
 
-`npm test` runs 227 tests, including schema validation of both output formats. Most fixtures are
+`npm test` runs 283 tests, including schema validation of both output formats. Most fixtures are
 real builds, slimmed down:
 
 - two Angular 20 apps, one using only `capitalize` and one also using `template` and `omit`,

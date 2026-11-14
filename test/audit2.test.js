@@ -97,8 +97,9 @@ test('--deploy: a package that a deployed package loads from outside the deploym
     'build/node_modules/inside/package.json': pkg('inside'), 'build/node_modules/inside/index.js': '',
   });
   const d = readDeployment(['build'], { root, lockNames: new Set(['vuln', 'optional', 'inside', 'wrapper']) });
-  assert.deepEqual(d.loadedFromOutside, [{ name: 'vuln', from: 'build/node_modules/wrapper/index.js' }]);
-  assert.ok(d.packages.has('vuln') && d.whole.has('vuln') && !d.packages.has('optional'));
+  // a load behind a test counts too: the lockfile has the package, so it is installed and the load succeeds
+  assert.deepEqual(d.loadedFromOutside.map((x) => x.name).sort(), ['optional', 'vuln']);
+  assert.ok(d.packages.has('vuln') && d.whole.has('vuln') && d.packages.has('optional'));
   assert.deepEqual(d.missingRuntime, []);
 });
 

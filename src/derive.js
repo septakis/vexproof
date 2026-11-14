@@ -13,27 +13,23 @@
 // verdict unless the run passes --accept-derived, and every refusal below errs toward no rule at all.
 import { gunzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
-import { inAdvisoryRange, fetchRetrying } from './sources.js';
+import { fetchRetrying } from './sources.js';
+import { parseVersion, compareVersions, inAdvisoryRange } from './versions.js';
 
 const REGISTRY = 'https://registry.npmjs.org';
 
 // ---------- versions ----------
 
-const parse = (v) => {
-  const m = /^(\d+)\.(\d+)\.(\d+)(-.+)?$/.exec(v);
-  return m ? { n: [+m[1], +m[2], +m[3]], pre: m[4] ?? null } : null;
-};
-export function compareVersions(a, b) {
-  const x = parse(a), y = parse(b);
-  for (let i = 0; i < 3; i++) if (x.n[i] !== y.n[i]) return x.n[i] - y.n[i];
-  if (x.pre === y.pre) return 0;
-  return x.pre ? -1 : 1;
-}
+export { compareVersions }; // from versions.js, exported here as before
 
-/** { vulnerable: L, fixed: F } for installed V, or { reason } when no fix brackets it. */
+/**
+ * { vulnerable: L, fixed: F } for installed V, or { reason } when no fix brackets it. `range` is the whole of
+ * the advisory's vulnerable range: when the registry lists it once per release line, all of those ranges joined
+ * with ||, so that a release still vulnerable on another line is not taken for the fix.
+ */
 export function fixBoundary(versions, installed, range) {
-  const stable = versions.filter((v) => parse(v) && !parse(v).pre).sort(compareVersions);
-  if (!parse(installed)) return { reason: `cannot read version ${installed}` };
+  const stable = versions.filter((v) => parseVersion(v) && !parseVersion(v).pre.length).sort(compareVersions);
+  if (!parseVersion(installed)) return { reason: `cannot read version ${installed}` };
   const fixed = stable.find((v) => compareVersions(v, installed) > 0 && !inAdvisoryRange(v, range));
   if (!fixed) return { reason: 'no fixed version has been published' };
   const vulnerable = stable.filter((v) => compareVersions(v, fixed) < 0 && compareVersions(v, installed) >= 0 && inAdvisoryRange(v, range)).at(-1);
@@ -74,21 +70,39 @@ const RUNTIME = /\.(m|c)?js$/;
 const NOT_RUNTIME = /(^|\/)(test|tests|__tests__|spec|specs|benchmark|benchmarks|example|examples|docs?|fixtures?|coverage)\/|\.d\.(m|c)?ts$|\.(test|spec)\.(m|c)?js$/;
 export const isRuntimeFile = (p) => RUNTIME.test(p) && !NOT_RUNTIME.test(p);
 
+const CODE = /\.(m|c)?js$/;
+const DEPENDENCY_FIELDS = ['dependencies', 'optionalDependencies', 'peerDependencies'];
+
 /**
- * Files of V to treat as vulnerable: every runtime file of V that differs in F or is missing from F.
- * Refuses (returns { reason }) when no runtime file changed (the fix was a dependency update or not in code),
- * or when most of V's runtime files moved away (a reorganised package, whose fix can't be located by path).
+ * Files of V to treat as vulnerable: every JavaScript file of V that differs in F or is missing from F. Files in
+ * folders that usually hold no runtime code (spec/, docs/, examples/) are included when they changed: some
+ * packages run code from them (yaml's dist/doc, three's examples/jsm), and naming a file that never ships costs
+ * nothing. A file that differs only in V's version number written as F's (a version constant) did not change.
+ *
+ * Refuses (returns { reason }) when
+ *   - the fix changed the package's dependencies: the vulnerable code may be in one of them, out of sight;
+ *   - no runtime file changed (the fix was elsewhere, or not in code);
+ *   - most of V's runtime files moved away (a reorganised package, whose fix can't be located by path).
+ * `versions` ({ installed, fixed }) enables the version-constant rule; without it files compare as bytes.
  */
-export function diffForRule({ installedFiles, fixedFiles }) {
-  const runtime = [...installedFiles.keys()].filter(isRuntimeFile);
+export function diffForRule({ installedFiles, fixedFiles, versions = null }) {
+  const deps = (files) => { try { const p = JSON.parse(files.get('package.json')?.toString('utf8') ?? '{}'); return JSON.stringify(DEPENDENCY_FIELDS.map((k) => p[k] ?? {})); } catch { return null; } };
+  if (installedFiles.has('package.json') && fixedFiles.has('package.json') && deps(installedFiles) !== deps(fixedFiles)) {
+    return { reason: 'the fix also changed the package\'s dependencies, so the vulnerable code may be in one of them' };
+  }
+  const same = (before, after) => after.equals(before)
+    || (versions && before.toString('utf8').split(versions.installed).join(versions.fixed) === after.toString('utf8'));
+  const code = [...installedFiles.keys()].filter((p) => CODE.test(p));
+  const runtime = code.filter(isRuntimeFile);
   const changed = [], gone = [];
-  for (const p of runtime) {
+  for (const p of code) {
     const after = fixedFiles.get(p);
     if (!after) gone.push(p);
-    else if (!after.equals(installedFiles.get(p))) changed.push(p);
+    else if (!same(installedFiles.get(p), after)) changed.push(p);
   }
-  if (!changed.length && !gone.length) return { reason: 'the fix changed no runtime JavaScript file (a dependency update or a non-code fix)' };
-  if (gone.length > runtime.length / 2) return { reason: `the package was reorganised before the fix (${gone.length} of ${runtime.length} files moved)` };
+  if (![...changed, ...gone].some(isRuntimeFile)) return { reason: 'the fix changed no runtime JavaScript file (a dependency update or a non-code fix)' };
+  const goneRuntime = gone.filter(isRuntimeFile).length;
+  if (goneRuntime > runtime.length / 2) return { reason: `the package was reorganised before the fix (${goneRuntime} of ${runtime.length} files moved)` };
   return { files: [...changed, ...gone].sort(), runtimeFiles: runtime.length };
 }
 
@@ -151,18 +165,21 @@ export async function deriveRules(findings, { fetchImpl = globalThis.fetch, now 
   const report = [];
   for (const f of findings) {
     const names = [f.id, ...(f.aliases ?? [])];
-    // one advisory can be listed once per release line, each with its own range: take the one covering this version
-    const adv = (advisories[f.name] ?? []).find((a) => names.some((n) => a.url?.endsWith(`/${n}`)) && inAdvisoryRange(f.version, a.vulnerable_versions));
+    // One advisory can be listed once per release line, each with its own range. The entry covering this version
+    // names it; the fix must be outside all of them (see fixBoundary).
+    const entries = (advisories[f.name] ?? []).filter((a) => names.some((n) => a.url?.endsWith(`/${n}`)));
+    const adv = entries.find((a) => inAdvisoryRange(f.version, a.vulnerable_versions));
+    const wholeRange = entries.map((a) => a.vulnerable_versions).filter((r) => typeof r === 'string' && r.trim()).join(' || ');
     const row = { name: f.name, version: f.version, id: f.id };
     report.push(row);
     if (!adv) { row.reason = 'advisory not in the npm registry\'s database'; continue; }
     try {
       if (!packuments.has(f.name)) packuments.set(f.name, await json(`${REGISTRY}/${f.name.replace('/', '%2f')}`, fetchImpl));
-      const b = fixBoundary(Object.keys(packuments.get(f.name).versions ?? {}), f.version, adv.vulnerable_versions);
+      const b = fixBoundary(Object.keys(packuments.get(f.name).versions ?? {}), f.version, wholeRange || adv.vulnerable_versions);
       if (b.reason) { row.reason = b.reason; continue; }
       const versions = packuments.get(f.name).versions ?? {};
       const [installedFiles, fixedFiles] = await Promise.all([f.version, b.fixed].map((v) => tarball(f.name, v, fetchImpl, cache, versions[v]?.dist)));
-      const d = diffForRule({ installedFiles, fixedFiles });
+      const d = diffForRule({ installedFiles, fixedFiles, versions: { installed: f.version, fixed: b.fixed } });
       if (d.reason) { row.reason = d.reason; continue; }
       const ghsa = adv.url.match(/GHSA-[a-z0-9-]+/i)?.[0] ?? f.id;
       const pkg = (rules.packages[f.name] ??= { advisories: {} });

@@ -11,6 +11,9 @@
 // can only keep a finding open, never close one.
 import { readdirSync, readFileSync, statSync, realpathSync } from 'node:fs';
 import { join, resolve, relative, sep } from 'node:path';
+import { npmName } from './names.js';
+import { readPackageJson } from './package-json.js';
+import { listFiles } from './walk.js';
 
 const JS = /\.(m|c)?js$/;
 const SHIPPED = /\.(m|c)?js$|\.html?$/i;
@@ -49,30 +52,37 @@ export function markersOf(text, into = new Set()) {
 
 const scan = (dir) => { try { return readdirSync(dir, { withFileTypes: true }); } catch { return []; } };
 const real = (p) => { try { return realpathSync(p); } catch { return null; } };
-const nameIn = (dir) => { try { return JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')).name; } catch { return undefined; } };
+const nameIn = (dir) => readPackageJson(dir).pkg?.name;
+const sameName = (a, b) => typeof a === 'string' && npmName(a) === npmName(b);
+// A child folder spelled like `part` without regard to case: lockfile SBOMs lower-case npm names (see npmName),
+// while node_modules keeps the published spelling, and on Linux the two are different paths.
+const childLike = (dir, part) => {
+  const exact = join(dir, part);
+  if (real(exact)) return exact;
+  const e = scan(dir).find((x) => x.name.toLowerCase() === part.toLowerCase());
+  return e ? join(dir, e.name) : null;
+};
+const pathLike = (dir, name) => name.split('/').reduce((d, part) => (d ? childLike(d, part) : null), dir);
 
 /**
  * Where a package is installed: node_modules/<name> under each base, and its folders in the stores of pnpm,
- * Bun and Yarn. Copies nested inside other packages are not looked for.
+ * Bun and Yarn. Names are matched without regard to case (see npmName). Copies nested inside other packages
+ * are not looked for.
  */
 export function installedDirs(name, bases) {
   const out = new Set();
-  const flat = name.replace('/', '+'), dashed = name.replace('/', '-');
+  const flat = npmName(name).replace('/', '+'), dashed = npmName(name).replace('/', '-');
+  const keep = (d) => { const r = d && real(d); if (r && sameName(nameIn(r), name)) out.add(r); };
   for (const b of bases) {
     const nm = join(b, 'node_modules');
-    const top = real(join(nm, name));
-    if (top && nameIn(top) === name) out.add(top);
+    keep(pathLike(nm, name));
     for (const store of ['.pnpm', '.bun']) {
       for (const e of scan(join(nm, store))) {
-        if (!e.name.startsWith(`${flat}@`)) continue;
-        const d = real(join(nm, store, e.name, 'node_modules', name));
-        if (d && nameIn(d) === name) out.add(d);
+        if (e.name.toLowerCase().startsWith(`${flat}@`)) keep(pathLike(join(nm, store, e.name, 'node_modules'), name));
       }
     }
     for (const e of scan(join(nm, '.store'))) {
-      if (!e.name.startsWith(`${dashed}-`)) continue;
-      const d = real(join(nm, '.store', e.name, 'package'));
-      if (d && nameIn(d) === name) out.add(d);
+      if (e.name.toLowerCase().startsWith(`${dashed}-`)) keep(join(nm, '.store', e.name, 'package'));
     }
   }
   return [...out];
@@ -97,17 +107,11 @@ function packageMarkers(dirs) {
   return out;
 }
 
+/** The JavaScript and HTML under the shipped folders, linked folders included (see listFiles). */
 function shippedFiles(dirs) {
-  const out = [];
-  const walk = (dir) => {
-    for (const e of scan(dir)) {
-      const p = join(dir, e.name);
-      // packages deployed as folders are counted by name already; their files would only repeat that
-      if (e.isDirectory()) { if (e.name !== 'node_modules') walk(p); } else if (e.isFile() && SHIPPED.test(e.name)) out.push(p);
-    }
-  };
-  for (const d of dirs) walk(resolve(d));
-  return [...new Set(out)];
+  // packages deployed as folders are counted by name already; their files would only repeat that
+  const enter = (name) => name !== 'node_modules';
+  return [...new Set(dirs.flatMap((d) => listFiles(resolve(d), { enter })).filter((p) => SHIPPED.test(p)))];
 }
 
 /**

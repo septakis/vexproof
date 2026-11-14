@@ -9,11 +9,17 @@
 //                     or the simple internal {purl, ids[]} shape)
 //
 // Rule (deliberately narrow): a vulnerability is marked `not_affected` with
-// justification `code_not_present` ONLY when the vulnerable package name does
-// not appear in the bundle SBOM at all. Everything else is `in_triage`.
+// justification `code_not_present` when the vulnerable package does not appear
+// in what shipped at all: the bundle SBOM, which the CLI may build from a module
+// map or a deployment. vexproof Pro can also settle one at module level, when
+// the package shipped but the files a rule names did not. Everything else is
+// `in_triage`.
 
 import { createHash } from 'node:crypto';
 import { fingerprintProperties } from './evidence.js';
+import { npmName } from './names.js';
+
+export { npmName, NpmNameSet } from './names.js';
 
 // ---------- determinism ----------
 
@@ -50,7 +56,9 @@ export function parsePurl(purl) {
   const slash = body.indexOf('/');
   if (slash < 0) return null;
   const type = body.slice(0, slash);
-  let rest = decodeURIComponent(body.slice(slash + 1));
+  let rest;
+  try { rest = decodeURIComponent(body.slice(slash + 1)); } catch { return null; } // a bad %-escape: not a purl
+
   let version;
   const at = rest.lastIndexOf('@');
   // scoped npm names start with "@", so only treat "@" past index 0 as the version separator
@@ -61,10 +69,12 @@ export function parsePurl(purl) {
   return { type, name: rest, version };
 }
 
+/** "npm/<name>" (lowercased, see npmName in names.js) or "<type>/<name>" for a purl, or null when it can't be read. */
 export function packageKey(purl) {
   const p = parsePurl(purl);
-  return p ? `${p.type}/${p.name}` : null;
+  return p ? keyOf(p.type, p.name) : null;
 }
+const keyOf = (type, name) => `${type}/${type === 'npm' ? npmName(name) : name}`;
 
 // ---------- SBOM reading ----------
 
@@ -82,14 +92,28 @@ export function sbomPurls(sbom) {
   return all.map((c) => c.purl).filter(Boolean);
 }
 
-export function indexSbom(sbom) {
-  const byName = new Map(); // "npm/lodash" -> Set(versions)
-  for (const purl of sbomPurls(sbom)) {
-    const p = parsePurl(purl);
-    if (!p) continue;
-    const key = `${p.type}/${p.name}`;
+/**
+ * Map of "npm/lodash" (see packageKey) → Set of versions, for every component of a CycloneDX SBOM.
+ *
+ * With `withoutPurl`, a component that has no purl counts as an npm package by its group and name. CycloneDX
+ * makes the purl optional, and a bundle SBOM that lists a shipped package by name alone must not make that
+ * package look absent. Only use it where an extra package can only keep findings open: the bundle side.
+ */
+export function indexSbom(sbom, { withoutPurl = false } = {}) {
+  const byName = new Map();
+  const put = (key, version) => {
     if (!byName.has(key)) byName.set(key, new Set());
-    if (p.version) byName.get(key).add(p.version);
+    if (version) byName.get(key).add(version);
+  };
+  const all = [];
+  walkComponents(sbom?.components, all);
+  for (const c of all) {
+    if (c.purl) {
+      const p = parsePurl(c.purl);
+      if (p) put(keyOf(p.type, p.name), p.version);
+    } else if (withoutPurl && c.name) {
+      put(keyOf('npm', c.group ? `${c.group}/${c.name}` : c.name), c.version);
+    }
   }
   return byName;
 }
@@ -171,11 +195,12 @@ export const VERSION = createRequire(import.meta.url)('../package.json').version
  */
 export function triage({ lockfileSbom, bundleSbom, findings, moduleMap = null, rules = null, moduleCheck = null, pro = false, acceptDerived = false }) {
   const lock = indexSbom(lockfileSbom);
-  const bundle = indexSbom(bundleSbom);
+  const bundle = indexSbom(bundleSbom, { withoutPurl: true });
   const results = [];
-  // An empty bundle SBOM almost always means a broken build or wrong file, not
-  // "we ship no third-party code". Refuse to make any not_affected claim from it.
-  const bundleUsable = bundle.size > 0;
+  // A bundle SBOM that names none of the lockfile's npm packages almost always means a broken build or the
+  // wrong file, not "we ship no third-party code" (an empty file, or one that lists only the app itself).
+  // Refuse to make any not_affected claim from it.
+  const bundleUsable = [...bundle.keys()].some((k) => k.startsWith('npm/') && lock.has(k));
 
   for (const f of applyRuleAliases(normalizeFindings(findings), rules)) {
     const key = packageKey(f.purl);
@@ -185,7 +210,7 @@ export function triage({ lockfileSbom, bundleSbom, findings, moduleMap = null, r
     if (!key) {
       detail = `Could not parse purl "${f.purl}".`;
     } else if (!bundleUsable) {
-      detail = 'Bundle SBOM contains no components; refusing to infer absence from it.';
+      detail = 'The bundle SBOM names none of the npm packages in the lockfile SBOM; refusing to infer absence from it.';
     } else if (parsed?.type !== 'npm') {
       // a JavaScript build's records say what npm packages are in it, and nothing about a Python or Go package
       detail = `${key} is not an npm package; a JavaScript build says nothing about it, so no claim is made.`;

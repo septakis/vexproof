@@ -3,13 +3,38 @@
 // Module-level analysis: a package is in the bundle, but did the files holding the vulnerable code ship?
 // Rules (hand-checked in ./rules/module-rules.json, or derived from an advisory's fix) name those files.
 
-/** Hand-checked rules plus derived ones. A hand-checked rule for the same package and advisory always wins. */
+/**
+ * A rules file as vexproof can use it, or a thrown Error naming what is wrong. Every advisory rule must list the
+ * files that hold the code (a rule with none would claim every build); monoliths and monolithDirs, when given,
+ * are lists of paths.
+ */
+export function validateRules(rules, where = 'the rules file') {
+  const fail = (what) => { throw new Error(`${where}: ${what}`); };
+  if (!rules || typeof rules !== 'object' || typeof rules.packages !== 'object' || !rules.packages) fail('has no "packages" object');
+  const paths = (v) => Array.isArray(v) && v.every((x) => typeof x === 'string' && x);
+  for (const [name, pkg] of Object.entries(rules.packages)) {
+    for (const k of ['monoliths', 'monolithDirs']) if (pkg?.[k] !== undefined && !paths(pkg[k])) fail(`${name}.${k} must be a list of paths`);
+    for (const [key, a] of Object.entries(pkg?.advisories ?? {})) {
+      if (!paths(a?.files) || !a.files.length) fail(`the rule ${name} ${key} must list the files that hold the vulnerable code ("files")`);
+    }
+  }
+  return rules;
+}
+
+/**
+ * Hand-checked rules plus extra ones (derived, or a --rules file). A hand-checked rule for the same package and
+ * advisory always wins. A package's full-build guards (monoliths, monolithDirs) are kept from every file: a
+ * file that adds rules for a package must not lose the guard that keeps them from applying to a full build.
+ */
 export function mergeRules(base, ...extra) {
   const out = { ...base, packages: structuredClone(base?.packages ?? {}) };
   for (const r of extra) {
     for (const [name, pkg] of Object.entries(r?.packages ?? {})) {
       const into = (out.packages[name] ??= { advisories: {} });
       into.advisories ??= {};
+      for (const k of ['monoliths', 'monolithDirs']) {
+        if (Array.isArray(pkg[k]) && pkg[k].length) into[k] = [...new Set([...(into[k] ?? []), ...pkg[k]])];
+      }
       const handIds = new Set(Object.entries(into.advisories).filter(([, a]) => a.origin !== 'derived').flatMap(([k, a]) => [a.id ?? k, ...(a.aliases ?? [])]));
       for (const [k, a] of Object.entries(pkg.advisories ?? {})) {
         if ([a.id ?? k, ...(a.aliases ?? [])].some((x) => handIds.has(x))) continue;
@@ -41,7 +66,7 @@ export function evaluateModuleRule({ key, parsed, id, aliases = [], bundleVersio
   const derived = rule.origin === 'derived';
 
   if (moduleMap.whole?.has(parsed.name))
-    return { ok: false, reason: `${parsed.name} publishes its own source maps, so the bundler's maps name its original sources, not the files that shipped; only package-level claims apply` };
+    return { ok: false, reason: `${parsed.name} counts as shipped whole (it is loaded at runtime by name, or its own source maps name its original sources, not the files that shipped), so which of its files shipped is not known; only package-level claims apply` };
   const entry = moduleMap.packages.get(parsed.name);
   if (!entry || entry.files.size === 0)
     return { ok: false, reason: `module map shows no surviving files for ${parsed.name}, which contradicts the bundle SBOM` };
@@ -74,7 +99,9 @@ export function evaluateModuleRule({ key, parsed, id, aliases = [], bundleVersio
   if (monolith) return { ok: false, reason: `the full build (${monolith}) is bundled` };
   const hit = rule.files.filter((f) => shippedLower.has(lower(f)));
   const list = (a) => (a.length > 5 ? `${a.slice(0, 5).join(', ')} and ${a.length - 5} more` : a.join(', '));
-  if (hit.length) return { ok: false, derived, reason: derived ? `files the fix changed (${parsed.version} → ${rule.derivedFrom?.fixed}) are bundled: ${list(hit)}` : `vulnerable file(s) bundled: ${hit.join(', ')}` };
+  // a derived rule names the release it was derived from; a rule file without that is described without it
+  const fixedIn = rule.derivedFrom?.fixed ? ` → ${rule.derivedFrom.fixed}` : '';
+  if (hit.length) return { ok: false, derived, reason: derived ? `files the fix changed (${parsed.version}${fixedIn}) are bundled: ${list(hit)}` : `vulnerable file(s) bundled: ${hit.join(', ')}` };
   const others = entry.roots.size - roots.length;
 
   const lead = `${key}@${parsed.version} is in the bundle, but only ${files.length} of its files survived the production build ` +
@@ -84,7 +111,7 @@ export function evaluateModuleRule({ key, parsed, id, aliases = [], bundleVersio
     ok: true,
     derived,
     detail: derived
-      ? lead + `The fix for ${ruleId} (${rule.affects}) changed ${rule.files.length} runtime file(s) between ${parsed.version} and ${rule.derivedFrom?.fixed}: ${list(rule.files)}. None of them are present in the shipped output.`
+      ? lead + `The fix for ${ruleId} (${rule.affects}) changed ${rule.files.length} runtime file(s)${rule.derivedFrom?.fixed ? ` between ${parsed.version} and ${rule.derivedFrom.fixed}` : ''}: ${list(rule.files)}. None of them are present in the shipped output.`
       : lead + `The code affected by ${ruleId} — ${rule.affects} — lives in ${rule.files.join(', ')}, none of which are present in the shipped output.`,
     evidence: { survivingFiles: files, checkedFiles: rule.files, ruleSource: rule.source, ruleOrigin: derived ? 'derived' : 'reviewed', derivedFrom: rule.derivedFrom, rulesVersion: rules.version, moduleMapFormat: moduleMap.format, copies: roots },
   };

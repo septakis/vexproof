@@ -108,8 +108,8 @@ test('the document is written with sorted keys and is the same for the same inpu
   assert.equal(JSON.stringify(a), JSON.stringify(sortKeys(a)));
 });
 
-test('CLI: --csaf writes the document next to the VEX, needs a namespace, and is skipped without a license', () => {
-  const { dir, run } = proCopy();
+test('CLI: --csaf writes the document next to the VEX, needs a namespace, and is skipped without a license', (t) => {
+  const { dir, run } = proCopy(t);
   const base = ['--lockfile', fixture('recharts.bom.lockfile.json'), '--findings', fixture('recharts.audit.json'), '--bundle', fixture('recharts.bom.bundle.json'), '--product', APP, '--out', join(dir, 'vex.cdx.json')];
   const ok = run([...base, '--csaf', join(dir, 'vex.csaf.json'), '--csaf-namespace', 'https://acme.example', '--csaf-url', 'https://acme.example/csaf/other-name.json']);
   assert.equal(ok.status, 0, ok.stderr);
