@@ -24,7 +24,7 @@ Full guides and reference: [vexproof.dev/docs](https://vexproof.dev/docs/) (sour
 | Preview of how many open findings Pro would settle | ✓ | |
 | **Vulnerable files not in bundle** → `not_affected` (`--modules`) | | ✓ |
 | **Audit report**: printable HTML with evidence, reviewer names, input hashes (`--report`) | | ✓ |
-| **Baselines**: reviewed decisions carry into the next release; `--fail-on new` only fails on new risk (`--baseline`) | | ✓ |
+| **Baselines**: reviewed decisions carry into the next release; `--fail-on new` only fails on new risk, and on findings reviewed exploitable (`--baseline`) | | ✓ |
 | **Dependabot**: dismiss the GitHub alerts a VEX settles, and reopen them if it stops (`vexproof dependabot`) | | ✓ |
 | **CSAF 2.0 VEX** for customers, procurement and regulators (`--csaf`) | | ✓ |
 | **Signed VEX**: prove who produced a document; anyone can verify it (`--sign`, `vexproof verify`) | | ✓ |
@@ -205,8 +205,9 @@ details, commented "CycloneDX VEX". Two things to know:
     license: ${{ secrets.VEXPROOF_LICENSE }}
 ```
 
-The Action runs the vexproof release its tag names, so pinning the Action (to a tag or a commit) pins the
-code that runs. Set `version:` to run another release. It needs Node.js 22 or later on the runner.
+The Action runs the vexproof release its tag names (pinning a commit runs that release too, from npm). Set
+`version:` to run another release. It needs Node.js 22 or later on the runner. Every option of the command
+is an input of the same name (`root`, `browser-only`, `rules`, `csaf-status`, …); see `action.yml`.
 
 ## Dependabot (Pro)
 
@@ -400,7 +401,8 @@ need re-confirming (`--review-max-age <days>`; `0` turns it off).
 
 `--fail-on new` then fails only on findings that are open and weren't open or validly reviewed
 before, including a package that used to be absent and is now bundled, and a review that needs
-re-confirming. `e2e-reviews/` walks through all three cases on a real build.
+re-confirming. `e2e-reviews/` walks through all three cases on a real build. A finding reviewed as
+`exploitable` fails either gate, however long it has been known.
 
 Import graphs come from the esbuild metafile, the Vite plugin, and the webpack plugin (which now
 includes each module's `reasons`). A module map without them falls back to version matching.
@@ -458,7 +460,7 @@ covers. Still no network calls. Help for open-source licenses is through GitHub 
 
 ## Tests
 
-`npm test` runs 283 tests, including schema validation of both output formats. Most fixtures are
+`npm test` runs 318 tests, including schema validation of both output formats. Most fixtures are
 real builds, slimmed down:
 
 - two Angular 20 apps, one using only `capitalize` and one also using `template` and `omit`,

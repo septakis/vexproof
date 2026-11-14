@@ -10,12 +10,12 @@ import { spawnSync } from 'node:child_process';
 
 const JS = /\.(m|c)?js$/;
 const BINARY = /\.(node|wasm)$/; // compiled code a bundler copies as it is
-const sha = (buf) => createHash('sha256').update(buf).digest('hex');
+const sha = (buffer) => createHash('sha256').update(buffer).digest('hex');
 /** The same bytes with CRLF line endings turned into LF. */
-const toLf = (buf) => Buffer.from(buf.toString('latin1').replace(/\r\n/g, '\n'), 'latin1');
+const toLf = (buffer) => Buffer.from(buffer.toString('latin1').replace(/\r\n/g, '\n'), 'latin1');
 
 /**
- * { installedAll(buf), installedEndingWith(tail), project(buf) }: installedAll returns every installed file with
+ * { installedAll(buffer), installedEndingWith(tail), project(buffer) }: installedAll returns every installed file with
  * the same content (line endings aside), project the tracked project file with it, or undefined.
  *
  * `installedAll` looks in node_modules under each of `bases` (installBases). `project` looks only at files git
@@ -25,73 +25,129 @@ const toLf = (buf) => Buffer.from(buf.toString('latin1').replace(/\r\n/g, '\n'),
  */
 export function copyFinder({ root, bases, outDirs = [] }) {
   const hashes = new Map();
-  const hashOf = (f) => { if (!hashes.has(f)) { try { hashes.set(f, sha(readFileSync(f))); } catch { hashes.set(f, null); } } return hashes.get(f); };
+  const hashOf = (file) => {
+    if (!hashes.has(file)) {
+      try {
+        hashes.set(file, sha(readFileSync(file)));
+      } catch {
+        hashes.set(file, null);
+      }
+    }
+
+    return hashes.get(file);
+  };
   const bySizeOf = (files) => {
     const bySize = new Map();
-    for (const p of files) {
-      let size; try { size = statSync(p).size; } catch { continue; }
+    for (const file of files) {
+      let size;
+      try {
+        size = statSync(file).size;
+      } catch {
+        continue;
+      }
       if (!bySize.has(size)) bySize.set(size, []);
-      bySize.get(size).push(p);
+      bySize.get(size).push(file);
     }
+
     return bySize;
   };
-  const matches = (bySize, buf) => { const h = sha(buf); return (bySize.get(buf.length) ?? []).filter((f) => hashOf(f) === h); };
+  const matches = (bySize, buffer) => {
+    const hash = sha(buffer);
+
+    return (bySize.get(buffer.length) ?? []).filter((file) => hashOf(file) === hash);
+  };
 
   // node_modules also holds tool folders (.cache, .vite, .bin): only the package stores among them hold packages
-  const notPackages = (name, p) => name.startsWith('.') && !['.pnpm', '.bun', '.store'].includes(name) && dirname(p).endsWith('node_modules');
+  const notPackages = (name, path) => name.startsWith('.')
+    && !['.pnpm', '.bun', '.store'].includes(name)
+    && dirname(path).endsWith('node_modules');
   const installedFiles = () => {
-    const out = [];
+    const found = [];
     const walk = (dir) => {
       let entries;
-      try { entries = readdirSync(dir, { withFileTypes: true }); } catch { return; }
-      for (const e of entries) {
-        const p = join(dir, e.name);
-        if (e.isDirectory()) { if (!notPackages(e.name, p)) walk(p); } else if (JS.test(e.name) || BINARY.test(e.name)) out.push(p);
+      try {
+        entries = readdirSync(dir, { withFileTypes: true });
+      } catch {
+        return;
+      }
+
+      for (const entry of entries) {
+        const path = join(dir, entry.name);
+        if (entry.isDirectory()) {
+          if (!notPackages(entry.name, path)) walk(path);
+        } else if (JS.test(entry.name) || BINARY.test(entry.name)) {
+          found.push(path);
+        }
       }
     };
-    for (const b of bases) walk(join(b, 'node_modules'));
-    return out;
+
+    for (const base of bases) walk(join(base, 'node_modules'));
+
+    return found;
   };
 
   // compared without case on Windows, where a stats file may spell the output folder differently from --root
-  const fold = process.platform === 'win32' ? (p) => p.toLowerCase() : (p) => p;
-  const outs = outDirs.map((d) => fold(resolve(d)));
+  const fold = process.platform === 'win32' ? (path) => path.toLowerCase() : (path) => path;
+  const foldedOutDirs = outDirs.map((outDir) => fold(resolve(outDir)));
   // What git has for each tracked file: the id of its content as committed or staged, not what is in the
   // working tree now. A build that overwrites a tracked file does not make its output the project's own.
   const trackedBlobs = () => {
     const top = bases.at(-1) ?? root;
     const blobs = new Map(); // blob id -> path
-    const r = spawnSync('git', ['ls-files', '-s', '-z'], { cwd: top, encoding: 'utf8', maxBuffer: 512 * 1024 * 1024 });
-    if (r.status !== 0 || typeof r.stdout !== 'string') return blobs;
-    for (const line of r.stdout.split('\0')) {
-      const m = /^\d+ ([0-9a-f]+) \d+\t(.+)$/.exec(line);
-      if (!m || !JS.test(m[2]) || /(^|\/)node_modules\//.test(m[2])) continue;
-      const p = resolve(top, m[2]), f = fold(p);
-      if (outs.some((o) => f === o || f.startsWith(o + '/') || f.startsWith(o + '\\'))) continue;
-      if (!blobs.has(m[1])) blobs.set(m[1], p);
+    const git = spawnSync('git', ['ls-files', '-s', '-z'], { cwd: top, encoding: 'utf8', maxBuffer: 512 * 1024 * 1024 });
+    if (git.status !== 0 || typeof git.stdout !== 'string') {
+      return blobs;
     }
+
+    for (const line of git.stdout.split('\0')) {
+      const match = /^\d+ ([0-9a-f]+) \d+\t(.+)$/.exec(line);
+      if (!match || !JS.test(match[2]) || /(^|\/)node_modules\//.test(match[2])) continue;
+
+      const path = resolve(top, match[2]);
+      const folded = fold(path);
+      const inOutDir = foldedOutDirs.some((outDir) => folded === outDir
+        || folded.startsWith(outDir + '/')
+        || folded.startsWith(outDir + '\\'));
+      if (inOutDir) continue;
+      if (!blobs.has(match[1])) blobs.set(match[1], path);
+    }
+
     return blobs;
   };
-  const blobId = (buf, algo) => createHash(algo).update(`blob ${buf.length}\0`).update(buf).digest('hex');
+  const blobId = (buffer, algorithm) => createHash(algorithm).update(`blob ${buffer.length}\0`).update(buffer).digest('hex');
 
-  let installed = null, project = null, list = null;
-  const files = () => (list ??= installedFiles());
+  let installedBySize = null;
+  let projectBlobs = null;
+  let installedList = null;
+  const files = () => (installedList ??= installedFiles());
   // git may check a vendored copy out with CRLF line endings (core.autocrlf): it is still that package's file
-  const installedAll = (buf) => {
-    const exact = matches(installed ??= bySizeOf(files()), buf);
-    return exact.length || !buf.includes(13) ? exact : matches(installed, toLf(buf));
+  const installedAll = (buffer) => {
+    installedBySize ??= bySizeOf(files());
+    const exact = matches(installedBySize, buffer);
+
+    return exact.length || !buffer.includes(13) ? exact : matches(installedBySize, toLf(buffer));
   };
+
   return {
     installedAll,
     /** Installed files whose path ends with the given one ("base/worker/workerMain.js"): where a copy may have come from. */
-    installedEndingWith: (tail) => { const t = `/${String(tail).replace(/\\/g, '/').replace(/^\.?\/+/, '')}`; return files().filter((f) => f.replace(/\\/g, '/').endsWith(t)); },
-    project: (buf) => {
-      project ??= trackedBlobs();
-      if (!project.size) return undefined;
-      const algo = [...project.keys()][0].length === 64 ? 'sha256' : 'sha1';
+    installedEndingWith: (tail) => {
+      const suffix = `/${String(tail).replace(/\\/g, '/').replace(/^\.?\/+/, '')}`;
+
+      return files().filter((file) => file.replace(/\\/g, '/').endsWith(suffix));
+    },
+    project: (buffer) => {
+      projectBlobs ??= trackedBlobs();
+      if (!projectBlobs.size) {
+        return undefined;
+      }
+
+      const algorithm = [...projectBlobs.keys()][0].length === 64 ? 'sha256' : 'sha1';
       // git may store line endings as LF and check them out as CRLF: the same file either way
-      const lf = buf.includes(13) ? toLf(buf) : null;
-      return project.get(blobId(buf, algo)) ?? (lf ? project.get(blobId(lf, algo)) : undefined);
+      const lfBuffer = buffer.includes(13) ? toLf(buffer) : null;
+
+      return projectBlobs.get(blobId(buffer, algorithm))
+        ?? (lfBuffer ? projectBlobs.get(blobId(lfBuffer, algorithm)) : undefined);
     },
   };
 }

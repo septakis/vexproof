@@ -1,7 +1,17 @@
 // SPDX-License-Identifier: LicenseRef-vexproof-Pro
 // Part of vexproof Pro. Not MIT: see LICENSE.md in this directory.
 // Pro: a self-contained, printable evidence report for auditors and customer security reviews.
-const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+}[character]));
+
+const advisoryLink = (id) => (/^GHSA-/.test(id)
+  ? `<a href="https://github.com/advisories/${escapeHtml(id)}">${escapeHtml(id)}</a>`
+  : escapeHtml(id));
 
 const LABEL = {
   package: 'Package not in bundle',
@@ -10,47 +20,98 @@ const LABEL = {
   open: 'Open — needs review',
 };
 
-function group(r) {
-  if (r.origin === 'reviewed') return 'reviewed';
-  if (r.state === 'not_affected' && r.level) return r.level;
+function group(result) {
+  if (result.origin === 'reviewed') {
+    return 'reviewed';
+  }
+  if (result.state === 'not_affected' && result.level) {
+    return result.level;
+  }
+
   return 'open';
 }
 
 export function renderReport({ results, summary, inputs, productPurl, license, command, version, now = new Date() }) {
   const groups = { open: [], module: [], package: [], reviewed: [] };
-  for (const r of results) groups[group(r)].push(r);
+  for (const result of results) groups[group(result)].push(result);
 
-  const row = (r) => {
-    const adv = /^GHSA-/.test(r.id) ? `<a href="https://github.com/advisories/${esc(r.id)}">${esc(r.id)}</a>` : esc(r.id);
-    let ev = '';
-    if (r.evidence?.survivingFiles) {
-      ev = `<details><summary>${r.evidence.survivingFiles.length} surviving files; checked ${esc(r.evidence.checkedFiles.join(', '))}</summary>
-        <p class="files">${r.evidence.survivingFiles.map(esc).join(' ')}</p>
-        <p>Rule: <a href="${esc(r.evidence.ruleSource)}">${esc(r.evidence.ruleSource)}</a> (rules ${esc(r.evidence.rulesVersion)}, ${esc(r.evidence.moduleMapFormat)})</p>
-        ${r.evidence.copies?.length ? `<p>Copy checked: <code>${r.evidence.copies.map(esc).join('</code>, <code>')}</code></p>` : ''}</details>`;
+  const row = (result) => {
+    const advisory = advisoryLink(result.id);
+
+    const evidence = result.evidence;
+    let evidenceHtml = '';
+    if (evidence?.survivingFiles) {
+      const between = evidence.derivedFrom?.fixed
+        ? ` between ${escapeHtml(evidence.derivedFrom.installed)} and ${escapeHtml(evidence.derivedFrom.fixed)}`
+        : '';
+      const ruleOrigin = evidence.ruleOrigin === 'derived'
+        ? `derived from the files the fix changed${between}, accepted with --accept-derived`
+        : 'hand-checked';
+      const copies = evidence.copies?.length
+        ? `<p>Copy checked: <code>${evidence.copies.map(escapeHtml).join('</code>, <code>')}</code></p>`
+        : '';
+      const checked = escapeHtml(evidence.checkedFiles.join(', '));
+      const ruleSource = escapeHtml(evidence.ruleSource);
+      const ruleNote = `${ruleOrigin}; rules ${escapeHtml(evidence.rulesVersion)}, ${escapeHtml(evidence.moduleMapFormat)}`;
+      evidenceHtml = `<details><summary>${evidence.survivingFiles.length} surviving files; checked ${checked}</summary>
+        <p class="files">${evidence.survivingFiles.map(escapeHtml).join(' ')}</p>
+        <p>Rule: <a href="${ruleSource}">${ruleSource}</a> (${ruleNote})</p>
+        ${copies}</details>`;
     }
-    const who = r.reviewedBy ? `<p class="who">Reviewed by ${esc(r.reviewedBy)}</p>` : '';
-    const isNew = r.isNew ? ' <span class="new">new since baseline</span>' : '';
-    return `<tr><td>${adv}${isNew}</td><td><code>${esc(r.purl)}</code></td><td><span class="state s-${esc(r.state)}">${esc(r.state)}</span>${r.justification ? `<br><small>${esc(r.justification)}</small>` : ''}</td><td>${esc(r.detail)}${ev}${who}</td></tr>`;
+
+    const who = result.reviewedBy ? `<p class="who">Reviewed by ${escapeHtml(result.reviewedBy)}</p>` : '';
+    const isNew = result.isNew ? ' <span class="new">new since baseline</span>' : '';
+    const justification = result.justification ? `<br><small>${escapeHtml(result.justification)}</small>` : '';
+    const verdict = `<span class="state s-${escapeHtml(result.state)}">${escapeHtml(result.state)}</span>${justification}`;
+    const basis = `${escapeHtml(result.detail)}${evidenceHtml}${who}`;
+
+    return `<tr><td>${advisory}${isNew}</td><td><code>${escapeHtml(result.purl)}</code></td><td>${verdict}</td><td>${basis}</td></tr>`;
   };
 
   // package-level statements share one basis per package: one row per package, all its advisories listed
   const packageRows = () => {
-    const byPkg = new Map();
-    for (const r of groups.package) { if (!byPkg.has(r.purl)) byPkg.set(r.purl, []); byPkg.get(r.purl).push(r); }
-    return [...byPkg.values()].map((rs) => {
-      const links = rs.map((r) => (/^GHSA-/.test(r.id) ? `<a href="https://github.com/advisories/${esc(r.id)}">${esc(r.id)}</a>` : esc(r.id))).join('<br>');
-      return `<tr><td>${links}</td><td><code>${esc(rs[0].purl)}</code></td><td><span class="state s-not_affected">not_affected</span><br><small>code_not_present</small></td><td>${esc(rs[0].detail)}${rs.length > 1 ? ` <span class="muted">Applies to all ${rs.length} advisories listed.</span>` : ''}</td></tr>`;
+    const byPackage = new Map();
+    for (const result of groups.package) {
+      if (!byPackage.has(result.purl)) byPackage.set(result.purl, []);
+      byPackage.get(result.purl).push(result);
+    }
+
+    return [...byPackage.values()].map((packageResults) => {
+      const links = packageResults.map((result) => advisoryLink(result.id)).join('<br>');
+      const first = packageResults[0];
+      const verdict = '<span class="state s-not_affected">not_affected</span><br><small>code_not_present</small>';
+      const appliesToAll = packageResults.length > 1
+        ? ` <span class="muted">Applies to all ${packageResults.length} advisories listed.</span>`
+        : '';
+      const basis = `${escapeHtml(first.detail)}${appliesToAll}`;
+
+      return `<tr><td>${links}</td><td><code>${escapeHtml(first.purl)}</code></td><td>${verdict}</td><td>${basis}</td></tr>`;
     }).join('');
   };
 
-  const section = (k) => groups[k].length === 0 ? '' : `
-    <h2>${LABEL[k]} <span class="count">${groups[k].length}</span></h2>
+  const section = (groupName) => {
+    if (groups[groupName].length === 0) {
+      return '';
+    }
+
+    const rows = groupName === 'package' ? packageRows() : groups[groupName].map(row).join('');
+
+    return `
+    <h2>${LABEL[groupName]} <span class="count">${groups[groupName].length}</span></h2>
     <table><thead><tr><th>Advisory</th><th>Package</th><th>Verdict</th><th>Basis</th></tr></thead>
-    <tbody>${k === 'package' ? packageRows() : groups[k].map(row).join('')}</tbody></table>`;
+    <tbody>${rows}</tbody></table>`;
+  };
+
+  const licensedTo = license?.org
+    ? ` · licensed to ${escapeHtml(license.org)}${license.plan === 'oss' ? ' (open-source license)' : ''}`
+    : '';
+  const sections = `${section('open')}${section('module')}${section('package')}${section('reviewed')}`;
+  const inputList = inputs
+    .map((input) => `<dt>${escapeHtml(input.role)}</dt><dd>${escapeHtml(input.path)}<br>sha256 ${escapeHtml(input.sha256)}</dd>`)
+    .join('');
 
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Vulnerability applicability report — ${esc(productPurl)}</title>
+<title>Vulnerability applicability report — ${escapeHtml(productPurl)}</title>
 <style>
   :root{--ink:#12213A;--ink2:#4A5A72;--rule:#C9D3DE;--bg:#fff;--ok:#2E7A69;--okbg:#DDF0EA;--warn:#B5731C;--warnbg:#FBEBD2;--bad:#A33A3A;--badbg:#F6DADA}
   body{font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg);max-width:1100px;margin:0 auto;padding:32px 20px}
@@ -69,7 +130,7 @@ export function renderReport({ results, summary, inputs, productPurl, license, c
   @media print{a{color:inherit;text-decoration:none} details{display:block} details>*{display:block} h2{break-after:avoid} tr{break-inside:avoid}}
 </style></head><body>
 <h1>Vulnerability applicability report</h1>
-<p class="meta">${esc(productPurl)} · generated ${esc(now.toISOString())} by vexproof ${esc(version)}${license?.org ? ` · licensed to ${esc(license.org)}${license.plan === 'oss' ? ' (open-source license)' : ''}` : ''}</p>
+<p class="meta">${escapeHtml(productPurl)} · generated ${escapeHtml(now.toISOString())} by vexproof ${escapeHtml(version)}${licensedTo}</p>
 
 <div class="totals">
   <div><b>${results.length}</b>advisories matched the lockfile</div>
@@ -80,12 +141,12 @@ export function renderReport({ results, summary, inputs, productPurl, license, c
 </div>
 
 <h2>Method</h2>
-<p>Each advisory reported against the dependency lockfile is checked against what actually ships. A statement is marked <em>not affected</em> only when it can be shown mechanically: either no component of that package appears in the SBOM generated from the production build, or the package is present but none of the files containing the vulnerable code survived bundling, according to the bundler's own module graph and a published per-advisory rule. Anything else stays open for human review. Reviewed decisions record who made them.</p>
-${section('open')}${section('module')}${section('package')}${section('reviewed')}
+<p>Each advisory reported against the dependency lockfile is checked against what actually ships. A statement is marked <em>not affected</em> only when it can be shown mechanically: either no component of that package appears in the SBOM generated from the production build, or the package is present but none of the files containing the vulnerable code survived bundling, according to the bundler's own module graph and a per-advisory rule. A rule is hand-checked, or derived from the files the advisory's fix changed and accepted with --accept-derived; each statement below says which. Anything else stays open for human review. Reviewed decisions record who made them.</p>
+${sections}
 
 <h2>Inputs</h2>
-<dl>${inputs.map((i) => `<dt>${esc(i.role)}</dt><dd>${esc(i.path)}<br>sha256 ${esc(i.sha256)}</dd>`).join('')}</dl>
+<dl>${inputList}</dl>
 <h2>Reproduce</h2>
-<pre>${esc(command)}</pre>
+<pre>${escapeHtml(command)}</pre>
 </body></html>`;
 }

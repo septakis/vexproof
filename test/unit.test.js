@@ -31,7 +31,10 @@ test('parsePurl handles scoped npm names and qualifiers', () => {
 });
 
 test('only packages absent from the bundle become not_affected', () => {
-  const byId = Object.fromEntries(triage({ lockfileSbom: lockfile, bundleSbom: bundle, findings }).map((r) => [r.id, r]));
+  const results = triage({ lockfileSbom: lockfile, bundleSbom: bundle, findings });
+
+  const byId = Object.fromEntries(results.map((result) => [result.id, result]));
+
   assert.equal(byId['GHSA-lodash-1'].state, 'not_affected');
   assert.equal(byId['GHSA-lodash-1'].justification, 'code_not_present');
   assert.equal(byId['GHSA-babel-1'].state, 'not_affected');
@@ -46,7 +49,8 @@ test('only packages absent from the bundle become not_affected', () => {
 test('empty bundle SBOM makes no not_affected claims', () => {
   // an empty bundle SBOM is more likely a broken build than "we ship nothing"
   const results = triage({ lockfileSbom: lockfile, bundleSbom: sbom([]), findings });
-  assert.ok(results.every((r) => r.state === 'in_triage'), 'should not claim not_affected against an empty bundle');
+
+  assert.ok(results.every((result) => result.state === 'in_triage'), 'should not claim not_affected against an empty bundle');
 });
 
 test('normalizeFindings reads osv-scanner JSON', () => {
@@ -54,27 +58,39 @@ test('normalizeFindings reads osv-scanner JSON', () => {
     package: { name: '@babel/core', version: '7.24.0', ecosystem: 'npm' },
     vulnerabilities: [{ id: 'GHSA-babel-1', aliases: ['CVE-2024-0001'] }],
   }]}]};
-  assert.deepEqual(normalizeFindings(osv), [{ purl: 'pkg:npm/%40babel/core@7.24.0', id: 'GHSA-babel-1', aliases: ['CVE-2024-0001'] }]);
+
+  const normalized = normalizeFindings(osv);
+
+  assert.deepEqual(normalized, [{ purl: 'pkg:npm/%40babel/core@7.24.0', id: 'GHSA-babel-1', aliases: ['CVE-2024-0001'] }]);
 });
 
 test('VEX output is well-formed CycloneDX 1.6 with justification only on not_affected', () => {
   const results = triage({ lockfileSbom: lockfile, bundleSbom: bundle, findings });
+
   const vex = toCycloneDxVex({ results, bundleSbom: bundle, lockfileSbom: lockfile, productPurl: 'pkg:npm/my-app@1.0.0' });
+
   assert.equal(vex.bomFormat, 'CycloneDX');
   assert.equal(vex.specVersion, '1.6');
   assert.equal(vex.vulnerabilities.length, findings.length);
-  for (const v of vex.vulnerabilities) {
+  for (const vulnerability of vex.vulnerabilities) {
     // no valid SBOM serial in this fixture → affects falls back to the package itself (BOM-Links are tested in scanners.test.js)
-    assert.equal(v.affects[0].ref, v.properties.find((p) => p.name === 'vexproof:package').value);
-    if (v.analysis.state === 'not_affected') assert.equal(v.analysis.justification, 'code_not_present');
-    else assert.equal(v.analysis.justification, undefined);
+    assert.equal(vulnerability.affects[0].ref, vulnerability.properties.find((property) => property.name === 'vexproof:package').value);
+    if (vulnerability.analysis.state === 'not_affected') {
+      assert.equal(vulnerability.analysis.justification, 'code_not_present');
+    } else {
+      assert.equal(vulnerability.analysis.justification, undefined);
+    }
   }
 });
 
 test('an unrecognised module map is refused by name, with the supported formats listed', async () => {
   const { readModuleMap, detectModuleFormat } = await import('../src/modules.js');
+
   for (const json of [{ chunks: [] }, { version: 1, files: {} }, [], 'text', null]) {
-    assert.throws(() => detectModuleFormat(json), /Unrecognised module map \(expected vexproof-modules\.json, an esbuild or bun build metafile, Angular stats\.json, or webpack stats JSON\)/);
+    assert.throws(
+      () => detectModuleFormat(json),
+      /Unrecognised module map \(expected vexproof-modules\.json, an esbuild or bun build metafile, Angular stats\.json, or webpack stats JSON\)/,
+    );
     assert.throws(() => readModuleMap(json), /Unrecognised module map/);
   }
 });

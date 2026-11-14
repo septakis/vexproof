@@ -20,28 +20,52 @@ export class UnreadableFolder extends Error {
  * `strict` a folder that can't be read throws UnreadableFolder (a missing `dir` itself is an empty list).
  */
 export function listFiles(dir, { enter = () => true, recurse = true, strict = false } = {}) {
-  const out = [];
+  const files = [];
   const seen = new Set();
-  const visit = (d, top) => {
-    let real = d;
-    try { real = realpathSync(d); } catch { /* listed below, or reported */ }
-    if (seen.has(real)) return;
-    seen.add(real);
-    let entries;
-    try { entries = readdirSync(d, { withFileTypes: true }); } catch (e) {
-      if (strict && !(top && e.code === 'ENOENT')) throw new UnreadableFolder(d, e);
+
+  const visit = (folder, isTop) => {
+    let real = folder;
+    try {
+      real = realpathSync(folder);
+    } catch {
+      /* listed below, or reported */
+    }
+    if (seen.has(real)) {
       return;
     }
-    for (const e of entries) {
-      const p = join(d, e.name);
-      let isFile = e.isFile(), isDir = e.isDirectory();
-      if (e.isSymbolicLink()) {
-        try { const st = statSync(p); isFile = st.isFile(); isDir = st.isDirectory(); } catch { continue; } // dangling
+    seen.add(real);
+
+    let entries;
+    try {
+      entries = readdirSync(folder, { withFileTypes: true });
+    } catch (error) {
+      if (strict && !(isTop && error.code === 'ENOENT')) {
+        throw new UnreadableFolder(folder, error);
       }
-      if (isFile) out.push(p);
-      else if (isDir && recurse && enter(e.name, p)) visit(p, false);
+
+      return;
+    }
+
+    for (const entry of entries) {
+      const path = join(folder, entry.name);
+      let isFile = entry.isFile();
+      let isDir = entry.isDirectory();
+      if (entry.isSymbolicLink()) {
+        try {
+          const stats = statSync(path);
+          isFile = stats.isFile();
+          isDir = stats.isDirectory();
+        } catch {
+          continue; // dangling
+        }
+      }
+
+      if (isFile) files.push(path);
+      else if (isDir && recurse && enter(entry.name, path)) visit(path, false);
     }
   };
+
   visit(dir, true);
-  return out;
+
+  return files;
 }

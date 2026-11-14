@@ -3,25 +3,42 @@
 // source files it names. built() copies a fixture into a fresh folder beside a stand-in file for each of them
 // and returns the copy's path; modulesArgs() gives the CLI arguments that read it from that folder. The
 // stand-in outputs are recorded outputs, so the coverage check passes them unread.
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join, dirname, basename } from 'node:path';
-import { tmpdir } from 'node:os';
+import { temporaryFolderForFile } from './temporary.js';
 
 export function built(fixture) {
-  const dir = mkdtempSync(join(tmpdir(), 'vxp-built-'));
+  const dir = temporaryFolderForFile('vxp-built-');
   const text = readFileSync(fixture, 'utf8');
   const json = JSON.parse(text);
-  const put = (p, c) => { mkdirSync(dirname(join(dir, p)), { recursive: true }); writeFileSync(join(dir, p), c); };
+  const put = (path, contents) => {
+    mkdirSync(dirname(join(dir, path)), { recursive: true });
+    writeFileSync(join(dir, path), contents);
+  };
   // of the size the bundler recorded: a file of another size is not the one the map describes
-  const standIn = (bytes) => { const text = '/* stand-in for a build output */\n'; return typeof bytes === 'number' && bytes > text.length ? text + ' '.repeat(bytes - text.length) : typeof bytes === 'number' ? ' '.repeat(bytes) : text; };
-  for (const [out, o] of Object.entries(json.outputs ?? {})) put(out, standIn(o?.bytes));
-  for (const out of Object.values(json.outputs ?? {})) {
-    for (const input of Object.keys(out?.inputs ?? {})) {
-      if (!/(^|\/)node_modules\//.test(input) && !/^[a-z][a-z0-9+.-]+:|^</i.test(input) && !input.startsWith('..')) put(input, '// stand-in for a source file\n');
+  const standIn = (bytes) => {
+    const banner = '/* stand-in for a build output */\n';
+    if (typeof bytes === 'number' && bytes > banner.length) {
+      return banner + ' '.repeat(bytes - banner.length);
+    }
+    if (typeof bytes === 'number') {
+      return ' '.repeat(bytes);
+    }
+
+    return banner;
+  };
+
+  for (const [outputPath, output] of Object.entries(json.outputs ?? {})) put(outputPath, standIn(output?.bytes));
+  for (const output of Object.values(json.outputs ?? {})) {
+    for (const input of Object.keys(output?.inputs ?? {})) {
+      const ownSource = !/(^|\/)node_modules\//.test(input) && !/^[a-z][a-z0-9+.-]+:|^</i.test(input) && !input.startsWith('..');
+      if (ownSource) put(input, '// stand-in for a source file\n');
     }
   }
+
   const copy = join(dir, basename(fixture));
   writeFileSync(copy, text);
+
   return copy;
 }
 

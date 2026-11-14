@@ -1,11 +1,15 @@
 # Pushing a tag v<version> runs the tests, publishes that version to npm with provenance, and drafts the GitHub
-# release from its CHANGELOG.md section. The tag must match package.json, or nothing is published.
+# release from its CHANGELOG.md section. The tag must match package.json and the changelog must have a section for
+# it, or nothing is published: both are checked before the publish, which can't be undone.
 #
 # npm authentication uses trusted publishing (OIDC): on npmjs.com, under the package's Settings → Trusted
 # publisher, allow repository septakis/vexproof, workflow release.yml. No token is stored in GitHub.
 #
 # A pre-release version (1.0.0-beta.1) is published under the `beta` dist-tag, so `npm install vexproof` keeps
 # resolving to `latest` until a final version lands.
+#
+# The tests run in a job of their own with read-only access: installing and running dev dependencies never
+# happens where the publish token is available. The publish job installs nothing (the package has no build step).
 name: Release
 
 on:
@@ -13,22 +17,33 @@ on:
     tags: ['v*']
 
 permissions:
-  contents: write   # draft the GitHub release
-  id-token: write   # npm provenance and trusted publishing
+  contents: read
 
 jobs:
-  release:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+  publish:
+    needs: test
     runs-on: ubuntu-latest
     environment: release
+    permissions:
+      contents: write   # draft the GitHub release
+      id-token: write   # npm provenance and trusted publishing
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v5
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
-          cache: npm
-      - run: npm ci
-      - run: npm test
 
       - name: The tag matches package.json
         id: version
@@ -41,9 +56,6 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
           case "$version" in *-*) echo "tag=beta" >> "$GITHUB_OUTPUT" ;; *) echo "tag=latest" >> "$GITHUB_OUTPUT" ;; esac
 
-      - name: Publish to npm with provenance
-        run: npm publish --provenance --access public --tag "${{ steps.version.outputs.tag }}"
-
       - name: Release notes from CHANGELOG.md
         run: |
           awk -v v="${{ steps.version.outputs.version }}" '
@@ -51,6 +63,9 @@ jobs:
             /^## \[/ { on = 0 }
             on' CHANGELOG.md > notes.md
           if [ ! -s notes.md ]; then echo "No CHANGELOG.md section for ${{ steps.version.outputs.version }}; add one." >&2; exit 1; fi
+
+      - name: Publish to npm with provenance
+        run: npm publish --provenance --access public --tag "${{ steps.version.outputs.tag }}"
 
       - name: Draft the GitHub release
         env:

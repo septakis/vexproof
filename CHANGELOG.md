@@ -11,7 +11,70 @@ get `not_affected` for code that ships, and a test suite that missed most of the
 shipped. This release closes them, and adds a test for each route and each refusal. Upgrade from any earlier
 version.
 
+### Changed
+- **A finding reviewed as `exploitable` fails the gate.** Both `--fail-on in_triage` and `--fail-on new` trip on
+  it, however long it has been known; before, neither did, so a confirmed exploitable vulnerability passed CI.
+  The message counts open and exploitable findings apart.
+- **Every option is checked against its command, and every value before any work.** An option of another
+  command (`--dry-run` on the main command) stops the run, and so do a `--review-max-age` that is not a whole
+  number of days (`90d` turned review expiry off), a `--spec-version`, `--csaf-status`, `--csaf-tlp` or
+  `--type` it can't take, an option given twice, and `--help` after an unknown command.
+- **Exit 2 means nothing was written.** Every output (the VEX, OpenVEX, CSAF, signatures, the report) is built
+  first and written in one step; one that can't be written leaves no other behind. `review` and `keygen` write
+  the same way.
+- An input that can't be read or parsed is named in the message (`the lockfile SBOM bom.json is not valid
+  JSON`), and a `SOURCE_DATE_EPOCH` past the last date a VEX can carry is refused.
+- `vexproof verify` needs the file to check as its argument; `--vex` is not one of its options.
+- The CycloneDX VEX names each module map `module-map`, then `module-map-2`, …, as docs/CONTRACT.md says;
+  it wrote `modules-<format>`, with the bundler's version in it.
+- `--bundle` with `--modules`: packages are matched by name and version, not by purl text, so one with
+  qualifiers in the bundle SBOM is not counted twice.
+- The maintainers' license tools (issuing, revoking, and making the signing key) are no longer in this
+  repository. They were never part of the npm package.
+- The source is split up: src/cli.js checks the Node.js version and reports how a run ended, src/cli/ holds
+  each command, and src/shipped.js decides what shipped, with each refusal a Stop it throws.
+
 ### Fixed
+Baselines and reviews (Pro):
+- Without an import graph (any `--deploy` run), every review went back for re-confirming, also on the same
+  package version, and `--fail-on new` tripped on all of them. A review now carries for the same version when
+  nothing that can be compared changed. A review whose date can't be read counts as too old, and review age
+  is measured from `SOURCE_DATE_EPOCH` when it is set.
+- `vexproof review` removes the derived-rule note from the statement, renews the document's serial number and
+  timestamp, and removes a signature the review broke, saying so.
+- A package installed in two places at the same version: a review's evidence covers both copies. A change to
+  the first copy went unseen when the second was the same as before, and the review carried.
+- A file path holding a space or `=` (`src/settings panel.js`) is read back whole from the VEX; before, every
+  review of code it imports went back for re-confirming. Other paths are written as before.
+- A review that names no reviewer says so ("an unnamed reviewer"), not "undefined".
+
+Findings:
+- OSV results that come back in pages are all read.
+- A clean `yarn audit` is zero findings, not an unrecognised file; an empty file or `{}` is refused with the way
+  out. Alias lookups say how many ids OSV could not be reached for.
+
+CSAF (Pro):
+- A draft can be revised as a draft and then released (version 1, without its draft history); a released
+  document can't become a draft again. A document with no findings is refused for every status.
+- Product ids are unique: two purls that read alike get a hash, and one advisory reported under two ids lists
+  a package once (findings are merged again after a rule's aliases are added).
+
+Pro, other:
+- The rollup finds a disagreement between applications that name an advisory by different ids.
+- Signing takes the document as JSON will write it, and a malformed embedded key is a reason, not a crash.
+- An open-source license is matched from a git worktree too.
+- The Dependabot sync's GitHub calls time out, retry a 429 and a secondary rate limit, and explain a used-up
+  rate limit as that. A dismissal is vexproof's own (and may be reopened) only when its comment is one vexproof
+  writes. Alert names are matched without regard to case.
+- The HTML report says whether a module-level verdict rests on a hand-checked or a derived rule.
+- A license is valid through the whole of its expiry day.
+
+Release and Action:
+- The release workflow checks the changelog section before it publishes, and runs the tests in a job that has
+  no publish token.
+- The Action takes `browser-only`, `root`, `rules`, `accept-derived`, `review-max-age` and the CSAF options it
+  lacked, says truthfully which version it runs, and doesn't change Dependabot alerts in a cancelled run.
+
 Package names and SBOMs:
 - npm package names are compared without regard to case. cyclonedx-npm writes `pkg:npm/jsonstream` for
   `JSONStream`, as the purl spec says, while module maps keep the published name, so a shipped `JSONStream`
@@ -33,6 +96,14 @@ Module maps (`--modules`):
   can't be read stops the run. Output files are found whatever the case of their extension (`app.JS`).
 - A file outside the module map that is accounted for by its source map keeps the packages it loads by name.
 - A concatenated module named `x.js + 21 modules` holds 22; a list of 21 was taken as complete.
+- The Vite plugin records each output file's size once the build is done, and a file of another size is
+  refused: a later build without the plugin wrote it (a library build's fixed file names), within the two
+  minutes the file-time check allows.
+- A worker's record moves to where the main build puts its file only when a worker build made it and no other
+  worker record has that file's name. A file of another build with the same name took the record before, and
+  vouched for code it does not hold.
+- The webpack and Rspack plugin forgets a compiler once it shuts down, so a later build in the same process
+  writes a file about its own output only.
 
 Deployments (`--deploy`):
 - A deployed package that loads another from the project's own `node_modules` was missed when the load was
@@ -50,6 +121,10 @@ Deployments (`--deploy`):
 - A map written on Windows (`C:\build\node_modules\x\index.js`) names the same package on Linux.
 - SvelteKit's generated files (`generated/root.svelte`) are found under `.svelte-kit` after an adapter
   copied the build.
+- A source map that names a nested install (`a/node_modules/b`) not installed here is no longer read as the
+  top-level `b`, which can be another version: the nested one then looked absent.
+- The deployment digest in the VEX covers the source maps the files were read with, from `--maps` too, so
+  two runs with the same code and other maps no longer record the same evidence.
 
 Module rules (Pro) and `rules derive`:
 - A `--rules` file no longer drops a package's full-build guards (`monoliths`, `monolithDirs`), and every rule
@@ -59,11 +134,18 @@ Module rules (Pro) and `rules derive`:
   that only had its version number changed, and refuses a fix that changed the package's dependencies.
 - Advisory ranges are read with a space after an operator (`>= 1.0.0`), as hyphen ranges, and with
   prereleases compared as semver says. A `bun audit` finding is never dropped for a range misread.
+- A range bound without its minor or patch covers every version that starts that way, as npm reads it:
+  `<=1.2` is `<1.3.0`. It was read as `<=1.2.0`, so 1.2.3 fell outside and could be picked as the fix.
+- `rules derive` reads a tarball whose folder is written `./package/`, and refuses one with an entry whose size
+  can't be read or that is cut short. Such a tarball was read in part, and the files after it looked absent.
 
 Dependabot (Pro):
 - With several `--manifest` scopes, each needs its own `--vex`, in the same order: one application's VEX
   dismissed another application's alerts before. An alert on a workspace's root lockfile is judged only by a
   VEX for the root package.
+- A reopen that GitHub did not apply is reported as unchanged, not done. A link too long to leave the reason
+  room is left out of the dismissal comment, and the job summary keeps each alert on one table row.
+- GitHub's vulnerable ranges are read by the same code as advisory ranges, so `<= 4.17` covers 4.17.30.
 
 ## [1.0.0-beta.9] - 2026-11-13
 

@@ -11,7 +11,15 @@ export const npmName = (name) => String(name).toLowerCase();
 
 /** A Set of npm package names whose `add`, `has` and `delete` ignore case (see npmName). */
 export class NpmNameSet extends Set {
-  add(name) { return super.add(npmName(name)); }
-  has(name) { return super.has(npmName(name)); }
-  delete(name) { return super.delete(npmName(name)); }
+  add(name) {
+    return super.add(npmName(name));
+  }
+
+  has(name) {
+    return super.has(npmName(name));
+  }
+
+  delete(name) {
+    return super.delete(npmName(name));
+  }
 }

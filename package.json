@@ -51,10 +51,7 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "test": "node --test test/*.test.js",
-    "keygen": "node scripts/keygen.js",
-    "issue-license": "node scripts/issue-license.js",
-    "revoke-license": "node scripts/revoke-license.js"
+    "test": "node --test test/*.test.js"
   },
   "license": "MIT AND LicenseRef-vexproof-Pro",
   "engines": {

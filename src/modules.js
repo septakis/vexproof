@@ -12,48 +12,71 @@ import { npmName } from './names.js';
 const UNNAMED = '.store/';
 
 /**
- * The installed package.json at path `p`, read as Node reads it (see package-json.js). Throws an error whose
+ * The installed package.json at path `path`, read as Node reads it (see package-json.js). Throws an error whose
  * `code` is ENOENT when there is none, and the read or parse error when there is one that can't be read: the
  * two mean different things below. Tests replace it through the `readJson` option.
  */
-const readInstalled = (p) => {
-  const r = readPackageJson(dirname(p));
-  if (r.pkg) return r.pkg;
-  throw r.missing ? Object.assign(new Error(`no ${p}`), { code: 'ENOENT' }) : r.error;
+const readInstalled = (path) => {
+  const result = readPackageJson(dirname(path));
+  if (result.pkg) {
+    return result.pkg;
+  }
+
+  throw result.missing ? Object.assign(new Error(`no ${path}`), { code: 'ENOENT' }) : result.error;
 };
-const isMissing = (e) => e?.code === 'ENOENT' || e?.code === 'ENOTDIR';
+const isMissing = (error) => error?.code === 'ENOENT' || error?.code === 'ENOTDIR';
 const storeNames = new Map(); // Yarn store folder -> the package in it, once attachVersions has read its package.json
 
 /** Packages in Yarn's store whose name could not be read: nothing can be said about them, so a run must stop. */
-export const unnamedStorePackages = (moduleMap) => [...moduleMap.packages].filter(([n]) => n.startsWith(UNNAMED)).flatMap(([, e]) => [...e.roots]);
+export const unnamedStorePackages = (moduleMap) => [...moduleMap.packages]
+  .filter(([name]) => name.startsWith(UNNAMED))
+  .flatMap(([, entry]) => [...entry.roots]);
 
 /**
  * "@a-b-c-npm-1.0.0-<hash>" is @a/b-c or @a-b/c, so the name comes from the package.json inside; the folder
  * name is used only when that can't be read and leaves no doubt.
  */
 function nameFromYarnStore(folder) {
-  const m = /^(.+)-npm-\d[^/]*-[0-9a-f]{10}$/.exec(folder);
-  if (!m) return undefined;
-  if (!m[1].startsWith('@')) return m[1];
-  const parts = m[1].split('-');
+  const match = /^(.+)-npm-\d[^/]*-[0-9a-f]{10}$/.exec(folder);
+  if (!match) {
+    return undefined;
+  }
+  if (!match[1].startsWith('@')) {
+    return match[1];
+  }
+
+  const parts = match[1].split('-');
+
   return parts.length === 2 ? parts.join('/') : undefined;
 }
 
 function nameStorePackages(moduleMap, cwd, read) {
   for (const [key, entry] of [...moduleMap.packages]) {
     if (!key.startsWith(UNNAMED)) continue;
+
     const folder = key.slice(UNNAMED.length);
     let name;
-    for (const root of entry.roots) { try { name = read(join(cwd, root, 'package.json')).name; } catch { /* not installed here */ } if (name) break; }
+    for (const root of entry.roots) {
+      try {
+        name = read(join(cwd, root, 'package.json')).name;
+      } catch {
+        /* not installed here */
+      }
+      if (name) break;
+    }
     name ??= nameFromYarnStore(folder);
     if (typeof name !== 'string' || !name || name.startsWith('.')) continue;
+
     storeNames.set(folder, name);
     moduleMap.packages.delete(key);
     if (!moduleMap.packages.has(name)) moduleMap.packages.set(name, { roots: new Set(), files: new Set(), byRoot: new Map() });
-    const to = moduleMap.packages.get(name);
-    for (const r of entry.roots) to.roots.add(r);
-    for (const f of entry.files) to.files.add(f);
-    for (const [r, fs] of entry.byRoot ?? []) { if (!to.byRoot.has(r)) to.byRoot.set(r, new Set()); for (const f of fs) to.byRoot.get(r).add(f); }
+    const target = moduleMap.packages.get(name);
+    for (const root of entry.roots) target.roots.add(root);
+    for (const file of entry.files) target.files.add(file);
+    for (const [root, files] of entry.byRoot ?? []) {
+      if (!target.byRoot.has(root)) target.byRoot.set(root, new Set());
+      for (const file of files) target.byRoot.get(root).add(file);
+    }
     if (moduleMap.whole?.delete(key)) moduleMap.whole.add(name);
   }
 }
@@ -68,11 +91,19 @@ function nameStorePackages(moduleMap, cwd, read) {
 function nameFromPackageJson(moduleMap, cwd, read) {
   moduleMap.rootNames = new Map();
   moduleMap.unverified = [];
+
   for (const [key, entry] of [...moduleMap.packages]) {
     if (key.startsWith('.')) continue; // an unnamed store folder, or a dot folder that is no package
+
     for (const root of [...entry.roots]) {
-      let pkg = null, unreadable = false;
-      try { pkg = read(join(cwd, root, 'package.json')); } catch (e) { unreadable = !isMissing(e); }
+      let pkg = null;
+      let unreadable = false;
+      try {
+        pkg = read(join(cwd, root, 'package.json'));
+      } catch (error) {
+        unreadable = !isMissing(error);
+      }
+
       if (unreadable) {
         // The folder has a package.json that can't be read: it is a package, and its name is unknown. Its files
         // stay under the folder's name, which the CLI accepts only when the lockfile has a package of that
@@ -80,28 +111,44 @@ function nameFromPackageJson(moduleMap, cwd, read) {
         moduleMap.unverified.push({ name: key, root });
         continue;
       }
+
       if (!pkg && existsSync(join(cwd, root))) {
         // The folder is there and is no package: a fixture inside another package's tests
         // (resolve/test/shadowed_core/node_modules/util). Its files belong to the package that holds it.
-        let dir = root, holder = null;
-        for (let i = 0; i < 8 && !holder; i++) {
-          const up = dir.slice(0, dir.lastIndexOf('/'));
-          if (!up || up === dir || !up.includes('node_modules/')) break;
-          dir = up;
-          try { const p = read(join(cwd, dir, 'package.json')); if (typeof p.name === 'string' && p.name) holder = { name: p.name, root: dir }; } catch { /* keep climbing */ }
+        let dir = root;
+        let holder = null;
+        for (let level = 0; level < 8 && !holder; level++) {
+          const parent = dir.slice(0, dir.lastIndexOf('/'));
+          if (!parent || parent === dir || !parent.includes('node_modules/')) break;
+
+          dir = parent;
+          try {
+            const parentPkg = read(join(cwd, dir, 'package.json'));
+            if (typeof parentPkg.name === 'string' && parentPkg.name) holder = { name: parentPkg.name, root: dir };
+          } catch {
+            /* keep climbing */
+          }
         }
+
         if (holder) {
-          const files = entry.byRoot?.get(root) ?? entry.files, prefix = root.slice(holder.root.length + 1);
-          if (!moduleMap.packages.has(holder.name)) moduleMap.packages.set(holder.name, { roots: new Set(), files: new Set(), byRoot: new Map() });
-          const to = moduleMap.packages.get(holder.name);
-          to.roots.add(holder.root);
-          if (!to.byRoot.has(holder.root)) to.byRoot.set(holder.root, new Set());
-          for (const f of files) { to.files.add(`${prefix}/${f}`); to.byRoot.get(holder.root).add(`${prefix}/${f}`); }
+          const files = entry.byRoot?.get(root) ?? entry.files;
+          const prefix = root.slice(holder.root.length + 1);
+          if (!moduleMap.packages.has(holder.name)) {
+            moduleMap.packages.set(holder.name, { roots: new Set(), files: new Set(), byRoot: new Map() });
+          }
+          const target = moduleMap.packages.get(holder.name);
+          target.roots.add(holder.root);
+          if (!target.byRoot.has(holder.root)) target.byRoot.set(holder.root, new Set());
+          for (const file of files) {
+            target.files.add(`${prefix}/${file}`);
+            target.byRoot.get(holder.root).add(`${prefix}/${file}`);
+          }
           entry.roots.delete(root);
           entry.byRoot?.delete(root);
           continue;
         }
       }
+
       if (!pkg) {
         // a package counted by name alone (a runtime load, the bundler's runtime) has no folder to read
         const files = entry.byRoot?.get(root);
@@ -109,107 +156,159 @@ function nameFromPackageJson(moduleMap, cwd, read) {
         if (!byName && versionFromStorePath(root, key) === undefined) moduleMap.unverified.push({ name: key, root });
         continue;
       }
+
       const name = pkg.name;
       if (typeof name !== 'string' || !name || name === key || name.startsWith('.')) continue;
+
       moduleMap.rootNames.set(root, name);
       if (!moduleMap.packages.has(name)) moduleMap.packages.set(name, { roots: new Set(), files: new Set(), byRoot: new Map() });
-      const to = moduleMap.packages.get(name), files = entry.byRoot?.get(root) ?? entry.files;
-      to.roots.add(root);
-      to.byRoot.set(root, new Set([...(to.byRoot.get(root) ?? []), ...files]));
-      for (const f of files) to.files.add(f);
+      const target = moduleMap.packages.get(name);
+      const files = entry.byRoot?.get(root) ?? entry.files;
+      target.roots.add(root);
+      target.byRoot.set(root, new Set([...(target.byRoot.get(root) ?? []), ...files]));
+      for (const file of files) target.files.add(file);
       entry.roots.delete(root);
       entry.byRoot?.delete(root);
       if (moduleMap.whole?.has(key)) moduleMap.whole.add(name);
     }
-    if (!entry.roots.size) { moduleMap.packages.delete(key); moduleMap.whole?.delete(key); }
-    else if (entry.byRoot?.size) entry.files = new Set([...entry.byRoot.values()].flatMap((s) => [...s]));
+
+    if (!entry.roots.size) {
+      moduleMap.packages.delete(key);
+      moduleMap.whole?.delete(key);
+    } else if (entry.byRoot?.size) {
+      entry.files = new Set([...entry.byRoot.values()].flatMap((rootFiles) => [...rootFiles]));
+    }
   }
 }
 
 /** splitNodeModulesPath, with the package named as attachVersions found it in the folder's package.json. */
 export function splitShipped(moduleMap, path) {
-  const s = splitNodeModulesPath(path);
-  const name = s && moduleMap?.rootNames?.get(s.root);
-  return name ? { ...s, name } : s;
+  const split = splitNodeModulesPath(path);
+  const name = split && moduleMap?.rootNames?.get(split.root);
+
+  return name ? { ...split, name } : split;
 }
 
 /** "./node_modules/a/node_modules/@s/pkg/lib/x.js" -> { name:"@s/pkg", root:"node_modules/a/node_modules/@s/pkg", file:"lib/x.js" } */
-export function splitNodeModulesPath(p) {
+export function splitNodeModulesPath(rawPath) {
   // drop webpack loader prefixes ("babel-loader!./x") and query strings first, then the leading "./"
-  const path = String(p).replace(/\\/g, '/').replace(/^.*!/, '').replace(/\?.*$/, '').replace(/^\.\//, '');
-  const idx = path.lastIndexOf('node_modules/');
-  if (idx < 0) return null;
-  const rest = path.slice(idx + 'node_modules/'.length).split('/');
+  const path = String(rawPath).replace(/\\/g, '/').replace(/^.*!/, '').replace(/\?.*$/, '').replace(/^\.\//, '');
+  const nodeModulesAt = path.lastIndexOf('node_modules/');
+  if (nodeModulesAt < 0) {
+    return null;
+  }
+
+  const rest = path.slice(nodeModulesAt + 'node_modules/'.length).split('/');
   // Two stores keep packages in a dot folder, where the folder after node_modules is not the package:
   //   Nitro  .nitro/<name>@<version>/<file>                              each version a server needs (Nuxt)
   //   Yarn   .store/<name>-<protocol>-<version>-<hash>/package/<file>    nodeLinker: pnpm
-  const before = path.slice(0, idx) + 'node_modules/';
+  const before = path.slice(0, nodeModulesAt) + 'node_modules/';
   if (rest[0] === '.nitro') {
-    const n = rest[1]?.startsWith('@') ? 2 : 1;
-    const at = (rest[n] ?? '').lastIndexOf('@');
-    const file = rest.slice(n + 1).join('/');
-    if (at > 0 && file) return { name: [...rest.slice(1, n), rest[n].slice(0, at)].join('/'), root: before + rest.slice(0, n + 1).join('/'), file };
+    const versionedAt = rest[1]?.startsWith('@') ? 2 : 1;
+    const atSign = (rest[versionedAt] ?? '').lastIndexOf('@');
+    const file = rest.slice(versionedAt + 1).join('/');
+    if (atSign > 0 && file) {
+      return {
+        name: [...rest.slice(1, versionedAt), rest[versionedAt].slice(0, atSign)].join('/'),
+        root: before + rest.slice(0, versionedAt + 1).join('/'),
+        file,
+      };
+    }
   }
+
   if (rest[0] === '.store' && rest[1] && rest[2] === 'package') {
     // the folder doesn't spell the name unambiguously; until attachVersions reads it, the folder stands in for it
     const file = rest.slice(3).join('/');
-    return file ? { name: storeNames.get(rest[1]) ?? `${UNNAMED}${rest[1]}`, root: before + rest.slice(0, 3).join('/'), file } : null;
+
+    return file
+      ? { name: storeNames.get(rest[1]) ?? `${UNNAMED}${rest[1]}`, root: before + rest.slice(0, 3).join('/'), file }
+      : null;
   }
+
   const nameParts = rest[0]?.startsWith('@') ? rest.slice(0, 2) : rest.slice(0, 1);
-  if (!nameParts.length || nameParts.some((s) => !s)) return null;
+  if (!nameParts.length || nameParts.some((part) => !part)) {
+    return null;
+  }
+
   const name = nameParts.join('/');
   const file = rest.slice(nameParts.length).join('/');
-  let root = path.slice(0, idx) + 'node_modules/' + name;
+  let root = path.slice(0, nodeModulesAt) + 'node_modules/' + name;
   // Yarn Plug'n'Play serves packages from zip archives in a cache that is often outside the project
   // (~/.yarn/berry/cache), sometimes via .yarn/__virtual__/ paths. Key the copy by its archive name:
   // stable across machines, no home directory in the evidence, and virtual paths collapse onto one copy.
-  const zip = /([^/]+\.zip)\/node_modules\/$/.exec(path.slice(0, idx + 'node_modules/'.length));
+  const zip = /([^/]+\.zip)\/node_modules\/$/.exec(path.slice(0, nodeModulesAt + 'node_modules/'.length));
   if (zip) root = `yarn-cache/${zip[1]}/node_modules/${name}`;
+
   return file ? { name, root, file } : null;
 }
 
 export function detectModuleFormat(json) {
-  if (json && json.vexproof === 1 && typeof json.outputs === 'object') return 'vite-modules';
-  if (json && typeof json.outputs === 'object' && typeof json.inputs === 'object') return 'esbuild-metafile';
-  if (json && Array.isArray(json.modules)) return 'webpack-stats';
-  if (json && Array.isArray(json.children) && json.children.some((c) => Array.isArray(c.modules))) return 'webpack-stats';
-  if (json && Array.isArray(json.chunks) && json.chunks.some((c) => Array.isArray(c.modules))) return 'webpack-stats'; // Angular's webpack-based builder
-  throw new Error('Unrecognised module map (expected vexproof-modules.json, an esbuild or bun build metafile, Angular stats.json, or webpack stats JSON)');
+  if (json && json.vexproof === 1 && typeof json.outputs === 'object') {
+    return 'vite-modules';
+  }
+  if (json && typeof json.outputs === 'object' && typeof json.inputs === 'object') {
+    return 'esbuild-metafile';
+  }
+  if (json && Array.isArray(json.modules)) {
+    return 'webpack-stats';
+  }
+  if (json && Array.isArray(json.children) && json.children.some((child) => Array.isArray(child.modules))) {
+    return 'webpack-stats';
+  }
+  if (json && Array.isArray(json.chunks) && json.chunks.some((chunk) => Array.isArray(chunk.modules))) {
+    return 'webpack-stats'; // Angular's webpack-based builder
+  }
+
+  throw new Error(
+    'Unrecognised module map (expected vexproof-modules.json, an esbuild or bun build metafile, Angular stats.json, or webpack stats JSON)'
+  );
 }
 
 /** Record one shipped file of an installed package in a module map's `packages`. Paths outside node_modules are skipped. */
 export function addToMap(map, path) {
-  const s = splitNodeModulesPath(path);
-  if (!s) return;
+  const split = splitNodeModulesPath(path);
+  if (!split) {
+    return;
+  }
+
   const put = ({ name, root, file }) => {
     if (!map.has(name)) map.set(name, { roots: new Set(), files: new Set(), byRoot: new Map() });
-    const e = map.get(name);
-    e.roots.add(root);
-    e.files.add(file);
-    if (!e.byRoot.has(root)) e.byRoot.set(root, new Set());
-    e.byRoot.get(root).add(file);
+    const entry = map.get(name);
+    entry.roots.add(root);
+    entry.files.add(file);
+    if (!entry.byRoot.has(root)) entry.byRoot.set(root, new Set());
+    entry.byRoot.get(root).add(file);
   };
-  put(s);
+  put(split);
+
   // "node_modules/ui-kit/dist/node_modules/tslib/x.js": a copy of tslib that ui-kit publishes inside its own
   // build (a preserveModules build does this). The file is tslib's code and it is ui-kit's file: both ship.
   // An installed nested dependency (node_modules/a/node_modules/b) sits directly under the outer package and
   // is b's alone.
-  const outer = splitNodeModulesPath(s.root.slice(0, s.root.lastIndexOf('node_modules/')).replace(/\/$/, ''));
-  if (outer && !outer.name.startsWith('.')) put({ ...outer, file: `${outer.file}/${s.root.slice(s.root.lastIndexOf('node_modules/'))}/${s.file}` });
+  const outer = splitNodeModulesPath(split.root.slice(0, split.root.lastIndexOf('node_modules/')).replace(/\/$/, ''));
+  if (outer && !outer.name.startsWith('.')) {
+    put({ ...outer, file: `${outer.file}/${split.root.slice(split.root.lastIndexOf('node_modules/'))}/${split.file}` });
+  }
 }
 const add = addToMap;
 
-const BUILTIN = new Set([...builtinModules, ...builtinModules.map((m) => `node:${m}`)]);
+const BUILTIN = new Set([...builtinModules, ...builtinModules.map((moduleName) => `node:${moduleName}`)]);
 /**
  * The npm package a bare import specifier names ("lodash/omit" is lodash, "@a/b/c" is @a/b), or null for a
  * relative or absolute path, a URL, a subpath import (#x) or a Node built-in.
  */
-export function packageOfSpecifier(spec) {
-  const s = String(spec ?? '');
-  if (!s || /^[./\\#]/.test(s) || /^[a-z][a-z0-9+.-]*:/i.test(s)) return null; // paths, URLs, node:fs
-  const parts = s.split('/');
-  const name = s.startsWith('@') ? parts.slice(0, 2).join('/') : parts[0];
-  if (BUILTIN.has(name)) return null;
+export function packageOfSpecifier(specifier) {
+  const text = String(specifier ?? '');
+  if (!text || /^[./\\#]/.test(text) || /^[a-z][a-z0-9+.-]*:/i.test(text)) {
+    return null; // paths, URLs, node:fs
+  }
+
+  const parts = text.split('/');
+  const name = text.startsWith('@') ? parts.slice(0, 2).join('/') : parts[0];
+  if (BUILTIN.has(name)) {
+    return null;
+  }
+
   return /^(@[^/@\s]+\/)?[^/@\s]+$/.test(name) ? name : null;
 }
 
@@ -218,9 +317,12 @@ export function packageOfSpecifier(spec) {
  * webpack external, also one read from a global as in `externals: { react: 'React' }`): the product uses it,
  * so it ships, whole. Which of its files run is recorded nowhere.
  */
-function addExternal(map, whole, spec) {
-  const name = packageOfSpecifier(spec);
-  if (!name) return;
+function addExternal(map, whole, specifier) {
+  const name = packageOfSpecifier(specifier);
+  if (!name) {
+    return;
+  }
+
   add(map, `node_modules/${name}/package.json`);
   whole.add(name);
 }
@@ -238,17 +340,28 @@ const outsideNodeModules = (path) => !/(^|\/)node_modules\//.test(String(path).r
  * The version is returned only when the name in the path matches the package.
  */
 export function versionFromStorePath(root, name) {
-  let m = /(?:^|\/)\.(?:pnpm|bun)\/((?:@[^/@]+\+)?[^/@]+)@([^/_(+]+)/.exec(root);
-  if (m && m[1].replace('+', '/') === name) return m[2];
-  m = /(?:^|\/)([^/]+)-npm-(.+?)-[0-9a-f]{10}-[0-9a-z]{1,8}\.zip\//.exec(root);
-  if (m && m[1] === name.replace('/', '-')) return m[2];
-  m = /(?:^|\/)\.nitro\/((?:@[^/@]+\/)?[^/@]+)@([^/]+)$/.exec(root);
-  if (m && m[1] === name) return m[2];
-  m = /(?:^|\/)\.store\/([^/]+)-npm-(\d[^/]*)-[0-9a-f]{10}\/package$/.exec(root);
-  if (m && m[1] === name.replace('/', '-')) return m[2];
+  let match = /(?:^|\/)\.(?:pnpm|bun)\/((?:@[^/@]+\+)?[^/@]+)@([^/_(+]+)/.exec(root);
+  if (match && match[1].replace('+', '/') === name) {
+    return match[2];
+  }
+
+  match = /(?:^|\/)([^/]+)-npm-(.+?)-[0-9a-f]{10}-[0-9a-z]{1,8}\.zip\//.exec(root);
+  if (match && match[1] === name.replace('/', '-')) {
+    return match[2];
+  }
+
+  match = /(?:^|\/)\.nitro\/((?:@[^/@]+\/)?[^/@]+)@([^/]+)$/.exec(root);
+  if (match && match[1] === name) {
+    return match[2];
+  }
+
+  match = /(?:^|\/)\.store\/([^/]+)-npm-(\d[^/]*)-[0-9a-f]{10}\/package$/.exec(root);
+  if (match && match[1] === name.replace('/', '-')) {
+    return match[2];
+  }
+
   return undefined;
 }
-export const versionFromPnpmPath = versionFromStorePath; // v0.6 name
 
 /**
  * Version of every shipped copy, from its installed package.json (under cwd) or, failing that, pnpm's
@@ -258,54 +371,85 @@ export function attachVersions(moduleMap, { cwd = process.cwd(), readJson } = {}
   const read = readJson ?? readInstalled;
   nameStorePackages(moduleMap, cwd, read);
   nameFromPackageJson(moduleMap, cwd, read);
+
   for (const [name, entry] of moduleMap.packages) {
     entry.versionByRoot = new Map();
     for (const root of entry.roots) {
       let version;
-      try { version = read(join(cwd, root, 'package.json')).version; } catch { /* not installed here */ }
+      try {
+        version = read(join(cwd, root, 'package.json')).version;
+      } catch {
+        /* not installed here */
+      }
       version ??= versionFromStorePath(root, name);
       entry.versionByRoot.set(root, version);
     }
   }
+
   return moduleMap;
 }
 
 /** The same file as bundlers name it in different places: no loader prefix, query, "./" or concatenation suffix. */
-export const moduleKey = (p) => String(p).replace(/\\/g, '/').replace(/^.*!/, '').replace(/\?.*$/, '').replace(/^\.\//, '').replace(/ \+ \d+ modules?$/, '');
+export const moduleKey = (path) => String(path)
+  .replace(/\\/g, '/')
+  .replace(/^.*!/, '')
+  .replace(/\?.*$/, '')
+  .replace(/^\.\//, '')
+  .replace(/ \+ \d+ modules?$/, '');
 
 /**
  * Who imports whom, when the module map records it: Map<key, Set<key of an importer>>, plus the keys that
  * shipped code. null when the file has no import data (older plugin output, slimmed or hand-made maps).
  */
 function graphFrom(edges, shipped) {
-  if (!edges.length) return null;
+  if (!edges.length) {
+    return null;
+  }
+
   const importers = new Map();
   for (const [from, to] of edges) {
-    const t = moduleKey(to), f = moduleKey(from);
-    if (!importers.has(t)) importers.set(t, new Set());
-    importers.get(t).add(f);
+    const importedKey = moduleKey(to);
+    const importerKey = moduleKey(from);
+    if (!importers.has(importedKey)) importers.set(importedKey, new Set());
+    importers.get(importedKey).add(importerKey);
   }
+
   return { importers, shipped: new Set([...shipped].map(moduleKey)) };
 }
 
-function fromEsbuild(meta) {
-  const map = new Map(), shipped = new Set(), edges = [], own = new Set(), whole = new Set();
-  for (const out of Object.values(meta.outputs ?? {})) {
-    for (const [path, info] of Object.entries(out.inputs ?? {})) {
+function fromEsbuild(metafile) {
+  const map = new Map();
+  const shipped = new Set();
+  const edges = [];
+  const own = new Set();
+  const whole = new Set();
+
+  for (const output of Object.values(metafile.outputs ?? {})) {
+    for (const [path, info] of Object.entries(output.inputs ?? {})) {
       // an input listed with no byte count is in the output for all the file says: only a stated 0 is "dropped"
       const bytes = typeof info?.bytesInOutput === 'number' ? info.bytesInOutput : 1;
       if (bytes <= 0) continue;
-      add(map, path); shipped.add(path);
+
+      add(map, path);
+      shipped.add(path);
       if (outsideNodeModules(path)) own.add(moduleKey(path));
       // Vite's own helpers (vite/preload-helper.js, vite/modulepreload-polyfill.js) are Vite's code in the
       // output, under a made-up id: the package counts by name.
-      if (/^\0?vite\/[\w.-]+$/.test(path)) { add(map, 'node_modules/vite/package.json'); whole.add('vite'); }
+      if (/^\0?vite\/[\w.-]+$/.test(path)) {
+        add(map, 'node_modules/vite/package.json');
+        whole.add('vite');
+      }
     }
-    for (const i of out.imports ?? []) if (i?.external) addExternal(map, whole, i.path);
+    for (const imported of output.imports ?? []) if (imported?.external) addExternal(map, whole, imported.path);
   }
-  for (const [path, info] of Object.entries(meta.inputs ?? {})) {
-    for (const i of info?.imports ?? []) { if (i.external) addExternal(map, whole, i.path); else edges.push([path, i.path]); }
+
+  for (const [path, info] of Object.entries(metafile.inputs ?? {})) {
+    for (const imported of info?.imports ?? []) {
+      if (imported.external) addExternal(map, whole, imported.path);
+      else edges.push([path, imported.path]);
+    }
   }
+
   return { map, graph: graphFrom(edges, shipped), own, whole };
 }
 
@@ -320,46 +464,89 @@ const EXTERNAL = /^external (?:[\w-]+ )?"/;
  * either inside a member list (concatenations don't nest) or an orphan in no chunk. A root whose members were
  * left out is neither, so it is still caught.
  */
-const mislabelled = (m, nested) => CONCATENATED.test(m.name ?? '') && !(m.modules?.length) && typeof m.nameForCondition === 'string'
-  && (nested || Boolean(m.orphan && !(m.chunks?.length)));
+const mislabelled = (module, nested) => CONCATENATED.test(module.name ?? '')
+  && !(module.modules?.length)
+  && typeof module.nameForCondition === 'string'
+  && (nested || Boolean(module.orphan && !(module.chunks?.length)));
 
-/** Module lists of a stats file: its own, per chunk (Angular's webpack-based builder keeps them only there), and the same for child compilations. */
 /**
  * webpack groups modules when asked to (stats.all, groupModulesByPath): a list then holds entries like
  * { type: "modules by path", children: [...] } with the modules inside. Put the modules back in the list, in
  * place; the emptied group stays, so that a group that left children out is still seen as a gap.
  */
 export function ungroupStats(stats) {
-  const isGroup = (m) => m && typeof m === 'object' && m.type !== undefined && m.type !== 'module' && Array.isArray(m.children);
-  const flat = (mods) => {
-    if (!Array.isArray(mods) || !mods.some(isGroup)) { for (const m of mods ?? []) if (m && Array.isArray(m.modules)) m.modules = flat(m.modules); return mods; }
-    const out = [];
-    for (const m of mods) {
-      if (isGroup(m)) { const kids = m.children; m.children = []; out.push(m, ...flat(kids)); }
-      else { if (m && Array.isArray(m.modules)) m.modules = flat(m.modules); out.push(m); }
+  const isGroup = (item) => item && typeof item === 'object'
+    && item.type !== undefined && item.type !== 'module' && Array.isArray(item.children);
+
+  const flat = (items) => {
+    if (!Array.isArray(items) || !items.some(isGroup)) {
+      for (const item of items ?? []) if (item && Array.isArray(item.modules)) item.modules = flat(item.modules);
+
+      return items;
     }
-    return out;
+
+    const flattened = [];
+    for (const item of items) {
+      if (isGroup(item)) {
+        const children = item.children;
+        item.children = [];
+        flattened.push(item, ...flat(children));
+      } else {
+        if (item && Array.isArray(item.modules)) item.modules = flat(item.modules);
+        flattened.push(item);
+      }
+    }
+
+    return flattened;
   };
-  const take = (s) => {
-    if (!s || typeof s !== 'object') return;
-    if (Array.isArray(s.modules)) s.modules = flat(s.modules);
-    for (const c of s.chunks ?? []) if (c && Array.isArray(c.modules)) c.modules = flat(c.modules);
+
+  const take = (compilation) => {
+    if (!compilation || typeof compilation !== 'object') {
+      return;
+    }
+
+    if (Array.isArray(compilation.modules)) compilation.modules = flat(compilation.modules);
+    for (const chunk of compilation.chunks ?? []) {
+      if (chunk && Array.isArray(chunk.modules)) chunk.modules = flat(chunk.modules);
+    }
   };
+
   // child compilations, and the configurations of a multi-compiler run with child compilations of their own
-  const all = (s) => { take(s); for (const c of s?.children ?? []) if (c && typeof c === 'object' && c.type === undefined) all(c); };
+  const all = (compilation) => {
+    take(compilation);
+    for (const child of compilation?.children ?? []) {
+      if (child && typeof child === 'object' && child.type === undefined) all(child);
+    }
+  };
+
   all(stats);
+
   return stats;
 }
 
+/** Module lists of a stats file: its own, per chunk (Angular's webpack-based builder keeps them only there), and the same for child compilations. */
 function moduleLists(stats) {
   const lists = [];
-  const take = (s, where) => {
-    if (Array.isArray(s.modules)) lists.push({ modules: s.modules, where });
-    for (const c of s.chunks ?? []) if (Array.isArray(c.modules)) lists.push({ modules: c.modules, where: `${where}, chunk ${c.names?.[0] ?? c.id}`, filtered: c.filteredModules });
+  const take = (compilation, where) => {
+    if (Array.isArray(compilation.modules)) lists.push({ modules: compilation.modules, where });
+    for (const chunk of compilation.chunks ?? []) {
+      if (Array.isArray(chunk.modules)) {
+        lists.push({ modules: chunk.modules, where: `${where}, chunk ${chunk.names?.[0] ?? chunk.id}`, filtered: chunk.filteredModules });
+      }
+    }
   };
   take(stats, 'modules');
-  const below = (s) => { for (const c of s.children ?? []) if (c && typeof c === 'object') { take(c, 'child'); below(c); } };
+
+  const below = (compilation) => {
+    for (const child of compilation.children ?? []) {
+      if (child && typeof child === 'object') {
+        take(child, 'child');
+        below(child);
+      }
+    }
+  };
   below(stats);
+
   return lists;
 }
 
@@ -370,29 +557,46 @@ function moduleLists(stats) {
  */
 export function webpackStatsGaps(stats) {
   const gaps = [];
-  const check = (mods, where, nested) => {
-    for (const m of mods ?? []) {
+  const check = (modules, where, nested) => {
+    for (const module of modules ?? []) {
       // the bundler's own runtime (chunk loading, module registry) never comes from node_modules
-      if ((m.filteredChildren ?? 0) > 0 && m.type !== 'runtime modules') gaps.push(`${where}: ${m.filteredChildren} modules filtered out of "${m.name ?? m.type}"`);
-      // an external whose stats name no request leaves the package it stands for unknown (stats without reasons)
-      if (EXTERNAL.test(String(m.name ?? '')) && !(m.reasons ?? []).some((r) => r.userRequest)) gaps.push(`"${m.name}" does not say which package it stands for (keep reasons in the stats)`);
-      const n = CONCATENATED.exec(m.name ?? '');
-      if (n && !mislabelled(m, nested)) {
-        const listed = (m.modules ?? []).filter((x) => x.name).length;
-        // "./x.js + 21 modules" is x.js and 21 more: its list holds all 22
-        const total = Number(n[1]) + 1;
-        if (listed < total) gaps.push(`"${m.name}" lists ${listed} of its ${total} concatenated modules`);
+      if ((module.filteredChildren ?? 0) > 0 && module.type !== 'runtime modules') {
+        gaps.push(`${where}: ${module.filteredChildren} modules filtered out of "${module.name ?? module.type}"`);
       }
-      check(m.modules, where, true);
+      // an external whose stats name no request leaves the package it stands for unknown (stats without reasons)
+      if (EXTERNAL.test(String(module.name ?? '')) && !(module.reasons ?? []).some((reason) => reason.userRequest)) {
+        gaps.push(`"${module.name}" does not say which package it stands for (keep reasons in the stats)`);
+      }
+
+      const concatenation = CONCATENATED.exec(module.name ?? '');
+      if (concatenation && !mislabelled(module, nested)) {
+        const listed = (module.modules ?? []).filter((member) => member.name).length;
+        // "./x.js + 21 modules" is x.js and 21 more: its list holds all 22
+        const total = Number(concatenation[1]) + 1;
+        if (listed < total) gaps.push(`"${module.name}" lists ${listed} of its ${total} concatenated modules`);
+      }
+
+      check(module.modules, where, true);
     }
   };
+
   if ((stats.filteredModules ?? 0) > 0) gaps.push(`${stats.filteredModules} modules filtered out (modulesSpace limit)`);
-  const below = (s) => { for (const c of s.children ?? []) if (c && typeof c === 'object') { if ((c.filteredModules ?? 0) > 0) gaps.push(`${c.filteredModules} modules filtered out of a child compilation`); below(c); } };
+
+  const below = (compilation) => {
+    for (const child of compilation.children ?? []) {
+      if (child && typeof child === 'object') {
+        if ((child.filteredModules ?? 0) > 0) gaps.push(`${child.filteredModules} modules filtered out of a child compilation`);
+        below(child);
+      }
+    }
+  };
   below(stats);
-  for (const l of moduleLists(stats)) {
-    if ((l.filtered ?? 0) > 0) gaps.push(`${l.filtered} modules filtered out of ${l.where}`);
-    check(l.modules, l.where, false);
+
+  for (const list of moduleLists(stats)) {
+    if ((list.filtered ?? 0) > 0) gaps.push(`${list.filtered} modules filtered out of ${list.where}`);
+    check(list.modules, list.where, false);
   }
+
   return gaps;
 }
 
@@ -408,67 +612,112 @@ function fromWebpack(stats) {
           `or set stats { modules, nestedModules, orphanModules: true, modulesSpace: Infinity, nestedModulesSpace: Infinity }.`)
     );
   }
+
   const lists = moduleLists(stats);
-  const map = new Map(), shipped = new Set(), edges = [], own = new Set();
+  const map = new Map();
+  const shipped = new Set();
+  const edges = [];
+  const own = new Set();
 
   // The project folder as the bundler saw it: what a relative module name leaves off its absolute path.
   let context;
-  const findContext = (mods) => {
-    for (const m of mods ?? []) {
-      const name = String(m.name ?? ''), abs = typeof m.nameForCondition === 'string' ? m.nameForCondition.replace(/\\/g, '/') : '';
-      if (name.startsWith('./') && !CONCATENATED.test(name) && abs.endsWith(name.slice(1))) return abs.slice(0, abs.length - name.length + 1);
-      const below = findContext(m.modules);
-      if (below) return below;
+  const findContext = (modules) => {
+    for (const module of modules ?? []) {
+      const name = String(module.name ?? '');
+      const absolutePath = typeof module.nameForCondition === 'string' ? module.nameForCondition.replace(/\\/g, '/') : '';
+      if (name.startsWith('./') && !CONCATENATED.test(name) && absolutePath.endsWith(name.slice(1))) {
+        return absolutePath.slice(0, absolutePath.length - name.length + 1);
+      }
+
+      const below = findContext(module.modules);
+      if (below) {
+        return below;
+      }
     }
+
     return null;
   };
-  const realName = (m) => {
-    const abs = m.nameForCondition.replace(/\\/g, '/');
-    if (context === undefined) { context = null; for (const l of lists) { context = findContext(l.modules); if (context) break; } }
-    if (!context) return abs;
-    const rel = posix.relative(context, abs);
-    return rel.startsWith('.') ? rel : `./${rel}`;
+  const realName = (module) => {
+    const absolutePath = module.nameForCondition.replace(/\\/g, '/');
+    if (context === undefined) {
+      context = null;
+      for (const list of lists) {
+        context = findContext(list.modules);
+        if (context) break;
+      }
+    }
+    if (!context) {
+      return absolutePath;
+    }
+
+    const relativePath = posix.relative(context, absolutePath);
+
+    return relativePath.startsWith('.') ? relativePath : `./${relativePath}`;
   };
 
   const whole = new Set();
-  const visit = (mods, parentIncluded) => {
-    for (const m of mods ?? []) {
-      const included = parentIncluded || (Array.isArray(m.chunks) && m.chunks.length > 0);
-      if (!included || m.orphan && !parentIncluded) { visit(m.modules, false); continue; }
-      // An external (external "React") is code the output gets at runtime, from a require() or from a global.
-      // The package is what the importing code asked for: each reason's userRequest.
-      if (EXTERNAL.test(String(m.name ?? m.identifier ?? ''))) {
-        for (const r of m.reasons ?? []) addExternal(map, whole, r.userRequest);
+  const visit = (modules, parentIncluded) => {
+    for (const module of modules ?? []) {
+      const included = parentIncluded || (Array.isArray(module.chunks) && module.chunks.length > 0);
+      if (!included || (module.orphan && !parentIncluded)) {
+        visit(module.modules, false);
         continue;
       }
-      // concatenated roots are named "./x.js + 12 modules"; their members arrive via m.modules
+
+      // An external (external "React") is code the output gets at runtime, from a require() or from a global.
+      // The package is what the importing code asked for: each reason's userRequest.
+      if (EXTERNAL.test(String(module.name ?? module.identifier ?? ''))) {
+        for (const reason of module.reasons ?? []) addExternal(map, whole, reason.userRequest);
+        continue;
+      }
+
+      // concatenated roots are named "./x.js + 12 modules"; their members arrive via module.modules
       // "delegated ./node_modules/lodash/lodash.js from dll-reference vendor": the module, as a DLL build names it
-      const name = parentIncluded && mislabelled(m, true) ? realName(m)
-        : String(m.name ?? m.identifier ?? '').replace(CONCATENATED, '').replace(/^delegated (.+) from dll-reference \S+$/, '$1');
+      const name = parentIncluded && mislabelled(module, true)
+        ? realName(module)
+        : String(module.name ?? module.identifier ?? '').replace(CONCATENATED, '').replace(/^delegated (.+) from dll-reference \S+$/, '$1');
       add(map, name);
       shipped.add(name);
       if (name && outsideNodeModules(name)) own.add(moduleKey(name));
-      for (const r of m.reasons ?? []) if (r.moduleName) edges.push([r.moduleName, name]);
-      visit(m.modules, true);
+      for (const reason of module.reasons ?? []) if (reason.moduleName) edges.push([reason.moduleName, name]);
+      visit(module.modules, true);
     }
   };
-  for (const l of lists) visit(l.modules, false);
+  for (const list of lists) visit(list.modules, false);
+
   // The bundler's runtime (chunk loading, the module registry, the public path) is the bundler's own code in
   // the output. No file of the bundler's package stands for it in the stats, so the package counts by name.
-  const hasRuntime = (mods) => (mods ?? []).some((m) => m && (m.moduleType === 'runtime' || /^webpack\/runtime\//.test(String(m.name ?? '')) || hasRuntime(m.modules)));
-  if (lists.some((l) => hasRuntime(l.modules))) {
+  const hasRuntime = (modules) => (modules ?? []).some((module) => module && (
+    module.moduleType === 'runtime'
+    || /^webpack\/runtime\//.test(String(module.name ?? ''))
+    || hasRuntime(module.modules)
+  ));
+  if (lists.some((list) => hasRuntime(list.modules))) {
     const bundlerPackage = /^rspack/i.test(String(stats.vexproofBundler ?? '')) ? '@rspack/core' : 'webpack';
     add(map, `node_modules/${bundlerPackage}/package.json`);
     whole.add(bundlerPackage);
   }
+
   return { map, graph: graphFrom(edges, shipped), own, whole };
 }
 
-/** Map<packageName, { roots:Set<string>, files:Set<string> }> */
+/**
+ * { format, packages: Map<packageName, { roots:Set<string>, files:Set<string> }>, graph, own, whole }, with
+ * `whole` only when a package ships whole.
+ */
 export function readModuleMap(json) {
-  const fmt = detectModuleFormat(json);
-  const { map, graph, own, whole } = fmt === 'webpack-stats' ? fromWebpack(json) : fromEsbuild(json); // the Vite plugin writes the metafile shape
-  const label = fmt === 'vite-modules' ? `vite-modules (${json.bundler ?? 'unknown bundler'})` : fmt === 'webpack-stats' && json.vexproofBundler ? `webpack-stats (${json.vexproofBundler})` : fmt;
+  const format = detectModuleFormat(json);
+  const { map, graph, own, whole } = format === 'webpack-stats'
+    ? fromWebpack(json)
+    : fromEsbuild(json); // the Vite plugin writes the metafile shape
+
+  let label = format;
+  if (format === 'vite-modules') {
+    label = `vite-modules (${json.bundler ?? 'unknown bundler'})`;
+  } else if (format === 'webpack-stats' && json.vexproofBundler) {
+    label = `webpack-stats (${json.vexproofBundler})`;
+  }
+
   return { format: label, packages: map, graph, own, ...(whole?.size ? { whole } : {}) };
 }
 
@@ -480,37 +729,70 @@ export function readModuleMap(json) {
 export function bundleSbomFromModules(moduleMap, { lockfileSbom = null, cwd = process.cwd(), readJson } = {}) {
   const read = readJson ?? readInstalled;
   const lockVersions = new Map(); // npmName → versions in the lockfile SBOM
-  for (const c of flatten(lockfileSbom?.components)) {
-    const m = /^pkg:npm\/(.+)@([^@?#]+)/.exec(c.purl ?? '');
-    if (!m) continue;
+  for (const component of flatten(lockfileSbom?.components)) {
+    const match = /^pkg:npm\/(.+)@([^@?#]+)/.exec(component.purl ?? '');
+    if (!match) continue;
+
     let name;
-    try { name = npmName(decodeURIComponent(m[1])); } catch { continue; }
+    try {
+      name = npmName(decodeURIComponent(match[1]));
+    } catch {
+      continue;
+    }
     if (!lockVersions.has(name)) lockVersions.set(name, new Set());
-    lockVersions.get(name).add(m[2]);
+    lockVersions.get(name).add(match[2]);
   }
+
   const unnamed = unnamedStorePackages(moduleMap);
-  if (unnamed.length) throw new Error(`Can't tell which package is in ${unnamed[0]}${unnamed.length > 1 ? ` (and ${unnamed.length - 1} more)` : ''}: its package.json could not be read`);
-  const components = [], seen = new Set();
+  if (unnamed.length) {
+    throw new Error(
+      `Can't tell which package is in ${unnamed[0]}${unnamed.length > 1 ? ` (and ${unnamed.length - 1} more)` : ''}: ` +
+      'its package.json could not be read'
+    );
+  }
+
+  const components = [];
+  const seen = new Set();
   for (const [name, entry] of moduleMap.packages) {
     // a dot folder in node_modules that is not a package store (.cache, .prisma): no npm package is named like that
     if (name.startsWith('.')) continue;
+
     for (const root of entry.roots) {
       let version = entry.versionByRoot?.get(root);
-      if (!version) try { version = read(join(cwd, root, 'package.json')).version; } catch { /* not installed here */ }
+      if (!version) {
+        try {
+          version = read(join(cwd, root, 'package.json')).version;
+        } catch {
+          /* not installed here */
+        }
+      }
       version ??= versionFromStorePath(root, name);
-      const inLock = lockVersions.get(npmName(name));
-      if (!version && inLock?.size === 1) version = [...inLock][0];
-      const enc = name.startsWith('@') ? `%40${name.slice(1)}` : name;
-      const purl = `pkg:npm/${enc}${version ? '@' + version : ''}`;
+      const lockedVersions = lockVersions.get(npmName(name));
+      if (!version && lockedVersions?.size === 1) version = [...lockedVersions][0];
+
+      const encodedName = name.startsWith('@') ? `%40${name.slice(1)}` : name;
+      const purl = `pkg:npm/${encodedName}${version ? '@' + version : ''}`;
       if (seen.has(purl)) continue; // one copy linked from two places, or two copies of one version
+
       seen.add(purl);
       components.push({ type: 'library', name, ...(version ? { version } : {}), purl });
     }
   }
-  return { bomFormat: 'CycloneDX', specVersion: '1.6', version: 1, metadata: { tools: { components: [{ type: 'application', name: 'vexproof', description: `derived from ${moduleMap.format}` }] } }, components };
+
+  return {
+    bomFormat: 'CycloneDX',
+    specVersion: '1.6',
+    version: 1,
+    metadata: { tools: { components: [{ type: 'application', name: 'vexproof', description: `derived from ${moduleMap.format}` }] } },
+    components,
+  };
 }
 
 function flatten(list, out = []) {
-  for (const c of list ?? []) { out.push(c); flatten(c.components, out); }
+  for (const component of list ?? []) {
+    out.push(component);
+    flatten(component.components, out);
+  }
+
   return out;
 }

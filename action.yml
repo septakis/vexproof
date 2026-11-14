@@ -21,6 +21,12 @@ inputs:
   deploy:
     description: Deployment folders for apps that also run on a server, comma-separated (Next.js .next/standalone,.next/static; Nuxt .output). Needs source maps on.
     required: false
+  root:
+    description: The folder the build ran in, where node_modules and the build output are (default the workspace). In a monorepo, the app's folder.
+    required: false
+  browser-only:
+    description: Set to true when the VEX covers the browser bundle only (an app that also has a server build); name that artifact with product.
+    default: 'false'
   product:
     description: The product's PURL. Defaults to the lockfile SBOM's own component.
     required: false
@@ -39,14 +45,33 @@ inputs:
   baseline:
     description: Previous release's CycloneDX VEX (Pro)
     required: false
+  review-max-age:
+    description: "(Pro) Reviews older than this many days need re-confirming (default 365; 0 turns it off)"
+    required: false
+  rules:
+    description: "(Pro) Extra module rules, e.g. from vexproof rules derive"
+    required: false
+  accept-derived:
+    description: "(Pro) Set to true to let derived rules settle findings, not only suggest"
+    default: 'false'
   fail-on:
-    description: "in_triage, new (needs baseline), or empty for no gate"
+    description: "in_triage, new (needs baseline), or empty for no gate. A finding reviewed exploitable trips either."
   csaf:
     description: "(Pro) CSAF 2.0 VEX output path. Needs csaf-namespace. Empty to skip."
   csaf-namespace:
     description: "(Pro) Your organization's namespace URL for CSAF, e.g. https://acme.example"
   csaf-url:
     description: "(Pro) Canonical URL the CSAF document will be published at"
+  csaf-publisher:
+    description: "(Pro) Publisher name for CSAF (default the license holder)"
+  csaf-id:
+    description: "(Pro) CSAF tracking id (default <PRODUCT>-<VERSION>-VEX)"
+  csaf-status:
+    description: "(Pro) CSAF document status: draft, interim or final (default final)"
+  csaf-tlp:
+    description: "(Pro) CSAF TLP label: WHITE, GREEN, AMBER or RED (default WHITE)"
+  csaf-previous:
+    description: "(Pro) The previous revision of the CSAF document, to carry its history forward"
   signing-key:
     description: "(Pro) PEM private key to sign every output with. Pass a secret, e.g. secrets.VEXPROOF_SIGNING_KEY. Ed25519 or ECDSA P-256; vexproof keygen makes one."
   signer:
@@ -62,10 +87,10 @@ inputs:
     description: A fine-grained token or GitHub App token with Dependabot alerts read and write access to this repository. The workflow's own GITHUB_TOKEN cannot change Dependabot alerts.
     required: false
   dependabot-manifest:
-    description: Manifest files or folders whose alerts to change, comma-separated (default the repository root)
+    description: The manifest file or folder whose alerts to change (default the repository root). One, since the action writes one VEX and an alert is judged only by the VEX of its own application.
     required: false
   version:
-    description: vexproof version to run. Default is the version of the action itself, so the tag or commit you pin is the code that runs.
+    description: vexproof version to run from npm. Default is the release this action's tag names (the version in its package.json); pinning a commit runs that release too, so it must be published.
     required: false
 
 outputs:
@@ -93,6 +118,16 @@ runs:
         IN_MODULES: ${{ inputs.modules }}
         IN_DEPLOY: ${{ inputs.deploy }}
         IN_PRODUCT: ${{ inputs.product }}
+        IN_ROOT: ${{ inputs.root }}
+        IN_BROWSER_ONLY: ${{ inputs.browser-only }}
+        IN_REVIEW_MAX_AGE: ${{ inputs.review-max-age }}
+        IN_RULES: ${{ inputs.rules }}
+        IN_ACCEPT_DERIVED: ${{ inputs.accept-derived }}
+        IN_CSAF_PUBLISHER: ${{ inputs.csaf-publisher }}
+        IN_CSAF_ID: ${{ inputs.csaf-id }}
+        IN_CSAF_STATUS: ${{ inputs.csaf-status }}
+        IN_CSAF_TLP: ${{ inputs.csaf-tlp }}
+        IN_CSAF_PREVIOUS: ${{ inputs.csaf-previous }}
         IN_OUT: ${{ inputs.out }}
         IN_OPENVEX: ${{ inputs.openvex }}
         IN_SPEC: ${{ inputs.spec-version }}
@@ -115,6 +150,11 @@ runs:
         [ -n "$IN_MODULES" ]  && args+=(--modules "$IN_MODULES")
         [ -n "$IN_DEPLOY" ]   && args+=(--deploy "$IN_DEPLOY")
         [ -n "$IN_PRODUCT" ]  && args+=(--product "$IN_PRODUCT")
+        [ -n "$IN_ROOT" ]     && args+=(--root "$IN_ROOT")
+        [ "$IN_BROWSER_ONLY" = "true" ] && args+=(--browser-only)
+        [ -n "$IN_REVIEW_MAX_AGE" ] && args+=(--review-max-age "$IN_REVIEW_MAX_AGE")
+        [ -n "$IN_RULES" ]    && args+=(--rules "$IN_RULES")
+        [ "$IN_ACCEPT_DERIVED" = "true" ] && args+=(--accept-derived)
         [ -n "$IN_OPENVEX" ]  && args+=(--openvex "$IN_OPENVEX")
         [ -n "$IN_SPEC" ]     && args+=(--spec-version "$IN_SPEC")
         [ -n "$IN_REPORT" ]   && args+=(--report "$IN_REPORT")
@@ -123,6 +163,11 @@ runs:
         [ -n "$IN_CSAF" ]     && args+=(--csaf "$IN_CSAF")
         [ -n "$IN_CSAF_NS" ]  && args+=(--csaf-namespace "$IN_CSAF_NS")
         [ -n "$IN_CSAF_URL" ] && args+=(--csaf-url "$IN_CSAF_URL")
+        [ -n "$IN_CSAF_PUBLISHER" ] && args+=(--csaf-publisher "$IN_CSAF_PUBLISHER")
+        [ -n "$IN_CSAF_ID" ]  && args+=(--csaf-id "$IN_CSAF_ID")
+        [ -n "$IN_CSAF_STATUS" ] && args+=(--csaf-status "$IN_CSAF_STATUS")
+        [ -n "$IN_CSAF_TLP" ] && args+=(--csaf-tlp "$IN_CSAF_TLP")
+        [ -n "$IN_CSAF_PREVIOUS" ] && args+=(--csaf-previous "$IN_CSAF_PREVIOUS")
         if [ -n "$IN_SIGNING_KEY" ]; then
           keyfile="$(mktemp)"; printf '%s\n' "$IN_SIGNING_KEY" > "$keyfile"; trap 'rm -f "$keyfile"' EXIT
           args+=(--sign "$keyfile")
@@ -133,9 +178,10 @@ runs:
         echo "status=${status}" >> "$GITHUB_OUTPUT"
         exit "$status"
 
-    # Runs when the VEX was written, including when --fail-on stopped the job (exit 1): that is when the alerts matter.
+    # Runs when the VEX was written, including when --fail-on stopped the job (exit 1): that is when the alerts
+    # matter. Not when the run was cancelled: alerts are not changed by a run someone stopped.
     - name: Apply the VEX to Dependabot alerts
-      if: ${{ always() && inputs.dependabot == 'true' && (steps.vexproof.outputs.status == '0' || steps.vexproof.outputs.status == '1') }}
+      if: ${{ !cancelled() && inputs.dependabot == 'true' && (steps.vexproof.outputs.status == '0' || steps.vexproof.outputs.status == '1') }}
       shell: bash
       env:
         VEXPROOF_LICENSE: ${{ inputs.license }}

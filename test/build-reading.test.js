@@ -14,8 +14,8 @@ import vexproof from '../src/vite.js';
 
 // A small package with a sentence of its own, which a minifier would keep; and an app that ships clsx.
 const VENDLIB = 'export function parse(v){if(typeof v!=="string")throw new TypeError("vendlib expected the input value to be a string");return v}\n';
-function app(t, files = {}) {
-  const root = project(t, {
+function app(testContext, files = {}) {
+  const root = project(testContext, {
     'node_modules/vendlib/package.json': pkg('vendlib', '1.2.3'),
     'node_modules/vendlib/dist/lib.js': VENDLIB,
     'node_modules/clsx/package.json': pkg('clsx', '2.1.1'),
@@ -26,53 +26,80 @@ function app(t, files = {}) {
   });
   lockfile(root, [['vendlib', '1.2.3'], ['clsx', '2.1.1']]);
   metafile(root, { 'dist/app.js': ['src/main.js', 'node_modules/clsx/index.js'] });
+
   return root;
 }
 
-test('a copy of a package file checked out with CRLF line endings is still that package', (t) => {
-  const root = app(t, { 'dist/vendor/lib.js': VENDLIB.replace(/\n/g, '\r\n') });
-  const r = run(root, ['--modules', 'meta.json']);
-  assert.equal(r.status, 0, r.stderr);
-  assert.equal(r.verdicts[idOf('vendlib')], 'in_triage');
-  assert.match(r.stderr, /1 copied from installed packages/);
+test('a copy of a package file checked out with CRLF line endings is still that package', (testContext) => {
+  const root = app(testContext, { 'dist/vendor/lib.js': VENDLIB.replace(/\n/g, '\r\n') });
+
+  const result = run(root, ['--modules', 'meta.json']);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.verdicts[idOf('vendlib')], 'in_triage');
+  assert.match(result.stderr, /1 copied from installed packages/);
 });
 
-test("a git-tracked file that is a near copy of a package can't explain away that package's strings", (t) => {
+test("a git-tracked file that is a near copy of a package can't explain away that package's strings", (testContext) => {
   const patched = `/* vendored and patched */\n${VENDLIB}`;
-  const root = app(t, { 'public/vendor/lib.js': patched, 'dist/vendor/lib.js': patched });
+  const root = app(testContext, { 'public/vendor/lib.js': patched, 'dist/vendor/lib.js': patched });
   assert.equal(git(root, 'init', '-q').status, 0);
   assert.equal(git(root, 'add', 'public/vendor/lib.js').status, 0);
-  const r = run(root, ['--modules', 'meta.json']);
-  assert.equal(r.status, 0, r.stderr);
-  assert.match(r.stderr, /1 the project's own/); // accepted as the project's own file...
-  assert.equal(r.verdicts[idOf('vendlib')], 'in_triage'); // ...but its strings still count against vendlib
-  assert.match(r.stderr, /vendlib is not in the build's records, but 1 string/);
+
+  const result = run(root, ['--modules', 'meta.json']);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stderr, /1 the project's own/); // accepted as the project's own file...
+  assert.equal(result.verdicts[idOf('vendlib')], 'in_triage'); // ...but its strings still count against vendlib
+  assert.match(result.stderr, /vendlib is not in the build's records, but 1 string/);
 });
 
-test('files in a linked folder of the build output are checked like the rest', (t) => {
-  const root = app(t);
-  try { symlinkSync(join(root, 'node_modules/vendlib/dist'), join(root, 'dist/vendor'), 'junction'); } catch (e) { t.skip(`can't make a link here: ${e.code}`); return; }
-  t.after(() => { try { unlinkSync(join(root, 'dist/vendor')); } catch { /* removed already */ } });
-  const r = run(root, ['--modules', 'meta.json']);
-  assert.equal(r.status, 0, r.stderr);
-  assert.equal(r.verdicts[idOf('vendlib')], 'in_triage');
+test('files in a linked folder of the build output are checked like the rest', (testContext) => {
+  const root = app(testContext);
+  try {
+    symlinkSync(join(root, 'node_modules/vendlib/dist'), join(root, 'dist/vendor'), 'junction');
+  } catch (error) {
+    // only a system that won't make the link skips; any other error is a failure
+    if (!['EPERM', 'EACCES', 'ENOTSUP'].includes(error.code)) {
+      throw error;
+    }
+
+    testContext.skip(`can't make a link here: ${error.code}`);
+    return;
+  }
+  testContext.after(() => {
+    try {
+      unlinkSync(join(root, 'dist/vendor'));
+    } catch {
+      /* removed already */
+    }
+  });
+
+  const result = run(root, ['--modules', 'meta.json']);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.verdicts[idOf('vendlib')], 'in_triage');
 });
 
-test('output files are found whatever the case of their extension', (t) => {
-  const root = app(t, { 'dist/vendor/B.JS': VENDLIB, 'dist/vendor/c.Mjs': VENDLIB });
+test('output files are found whatever the case of their extension', (testContext) => {
+  const root = app(testContext, { 'dist/vendor/B.JS': VENDLIB, 'dist/vendor/c.Mjs': VENDLIB });
   const meta = JSON.parse(readFileSync(join(root, 'meta.json'), 'utf8'));
+
   const { stray } = strayOutputs(meta, { root, file: join(root, 'meta.json') });
-  assert.deepEqual(stray.map((f) => f.slice(root.length + 1).replace(/\\/g, '/')), ['dist/vendor/B.JS', 'dist/vendor/c.Mjs']);
+
+  assert.deepEqual(stray.map((file) => file.slice(root.length + 1).replace(/\\/g, '/')), ['dist/vendor/B.JS', 'dist/vendor/c.Mjs']);
 });
 
-test('a file accounted for by its source map keeps the packages it loads by name', (t) => {
-  const root = app(t, {
+test('a file accounted for by its source map keeps the packages it loads by name', (testContext) => {
+  const root = app(testContext, {
     'src/worker.js': 'import "lodash/template.js";\n',
     // code of its own, so it is not glue: only its source map can account for it
     'dist/worker.js': 'import "lodash/template.js";\nexport function work(x){return x*2}\n//# sourceMappingURL=worker.js.map\n',
     'dist/worker.js.map': { version: 3, sources: ['../src/worker.js'], names: [], mappings: '' },
   });
+
   const { accounted, unknown } = accountFor([join(root, 'dist/worker.js')], { root, outDirs: [join(root, 'dist')] });
+
   assert.deepEqual(unknown, []);
   assert.equal(accounted[0].kind, 'mapped');
   assert.deepEqual(accounted[0].loads, ['lodash']);
@@ -80,19 +107,21 @@ test('a file accounted for by its source map keeps the packages it loads by name
 
 test('externals count as shipped, whole: webpack (also from a global), esbuild, and the Vite plugin', () => {
   // externals: { react: 'React' } reads a global; the stats name the module after it, and the reason says react
-  const wp = readModuleMap({ modules: [
+  const webpackMap = readModuleMap({ modules: [
     { name: './src/a.js', chunks: [1] },
     { name: 'external "React"', chunks: [1], reasons: [{ moduleName: './src/a.js', userRequest: 'react' }] },
     { name: 'external commonjs "fs"', chunks: [1], reasons: [{ userRequest: 'fs' }] },
   ] });
-  assert.ok(wp.packages.has('react') && wp.whole.has('react'));
-  assert.ok(!wp.packages.has('fs') && !wp.own.has('external "React"'));
+
+  assert.ok(webpackMap.packages.has('react') && webpackMap.whole.has('react'));
+  assert.ok(!webpackMap.packages.has('fs') && !webpackMap.own.has('external "React"'));
   // without reasons the package is unknown: that is a gap, and the stats are refused
   assert.match(webpackStatsGaps({ modules: [{ name: 'external "React"', chunks: [1] }] })[0], /does not say which package/);
 
-  const es = readModuleMap({ inputs: { 'src/a.js': { imports: [{ path: '@scope/ui/button', kind: 'import-statement', external: true }] } },
+  const esbuildMap = readModuleMap({ inputs: { 'src/a.js': { imports: [{ path: '@scope/ui/button', kind: 'import-statement', external: true }] } },
     outputs: { 'dist/a.js': { inputs: { 'src/a.js': { bytesInOutput: 9 } }, imports: [{ path: 'react', kind: 'import-statement', external: true }] } } });
-  assert.deepEqual([...es.whole].sort(), ['@scope/ui', 'react']);
+
+  assert.deepEqual([...esbuildMap.whole].sort(), ['@scope/ui', 'react']);
 
   // the Vite plugin marks an import Rollup kept external (also for iife/umd output, where it reads a global)
   const plugin = vexproof({ root: '/proj' });
@@ -102,17 +131,19 @@ test('externals count as shipped, whole: webpack (also from a global), esbuild, 
     getModuleIds: () => ids,
     getModuleInfo: (id) => (id === 'react' ? { isExternal: true } : { importedIds: ['react'], dynamicallyImportedIds: [] }),
   }, { dir: '/proj/dist' }, { 'a.js': { type: 'chunk', fileName: 'a.js', modules: { '/proj/src/a.js': { renderedLength: 9 } } } });
-  const rec = globalThis[Symbol.for('vexproof.vite.registry')].get(resolve('/proj', 'vexproof-modules.json'));
-  assert.deepEqual(rec.inputs['src/a.js'].imports, [{ path: 'react', external: true }]);
-  assert.ok(readModuleMap(rec).whole.has('react'));
+
+  const record = globalThis[Symbol.for('vexproof.vite.registry')].get(resolve('/proj', 'vexproof-modules.json'));
+
+  assert.deepEqual(record.inputs['src/a.js'].imports, [{ path: 'react', external: true }]);
+  assert.ok(readModuleMap(record).whole.has('react'));
   assert.equal(packageOfSpecifier('react/jsx-runtime'), 'react');
   assert.equal(packageOfSpecifier('node:fs'), null);
   assert.equal(packageOfSpecifier('./x.js'), null);
   assert.equal(packageOfSpecifier('fs/promises'), null);
 });
 
-test('a nested package whose package.json starts with a byte order mark is still its own package', (t) => {
-  const root = project(t, {
+test('a nested package whose package.json starts with a byte order mark is still its own package', (testContext) => {
+  const root = project(testContext, {
     'node_modules/a/package.json': pkg('a', '1.0.0'),
     'node_modules/a/index.js': 'module.exports = require("b");\n',
     'node_modules/a/node_modules/b/package.json': `﻿${JSON.stringify(pkg('b', '2.0.0'))}`,
@@ -120,26 +151,30 @@ test('a nested package whose package.json starts with a byte order mark is still
     'node_modules/c/package.json': '{ "name": "c", broken',
     'node_modules/c/index.js': 'module.exports = 3;\n',
   });
+
   assert.equal(readPackageJson(join(root, 'node_modules/a/node_modules/b')).pkg.name, 'b');
   assert.ok(readPackageJson(join(root, 'node_modules/c')).error);
   assert.ok(readPackageJson(join(root, 'node_modules/none')).missing);
-  const mm = attachVersions(readModuleMap({ inputs: {}, outputs: { 'dist/a.js': { inputs: {
+
+  const moduleMap = attachVersions(readModuleMap({ inputs: {}, outputs: { 'dist/a.js': { inputs: {
     'node_modules/a/index.js': { bytesInOutput: 9 },
     'node_modules/a/node_modules/b/index.js': { bytesInOutput: 9 },
     'node_modules/c/index.js': { bytesInOutput: 9 },
   } } } }), { cwd: root });
-  assert.deepEqual([...mm.packages.get('b').files], ['index.js']);
-  assert.deepEqual([...mm.packages.get('a').files], ['index.js']);
+
+  assert.deepEqual([...moduleMap.packages.get('b').files], ['index.js']);
+  assert.deepEqual([...moduleMap.packages.get('a').files], ['index.js']);
   // a package.json that can't be read leaves the folder's name standing, and says so
-  assert.deepEqual([...mm.packages.get('c').files], ['index.js']);
-  assert.deepEqual(mm.unverified.map((u) => u.name), ['c']);
+  assert.deepEqual([...moduleMap.packages.get('c').files], ['index.js']);
+  assert.deepEqual(moduleMap.unverified.map((unverified) => unverified.name), ['c']);
 });
 
-test('the content check finds a package spelled in another case than the lockfile spells it', (t) => {
-  const root = project(t, {
+test('the content check finds a package spelled in another case than the lockfile spells it', (testContext) => {
+  const root = project(testContext, {
     'node_modules/JSONStream/package.json': pkg('JSONStream', '1.3.5'),
     'node_modules/.pnpm/Some-Pkg@1.0.0/node_modules/Some-Pkg/package.json': pkg('Some-Pkg'),
   });
+
   assert.equal(installedDirs('jsonstream', [root]).length, 1);
   assert.equal(installedDirs('some-pkg', [root]).length, 1);
 });

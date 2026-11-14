@@ -18,12 +18,13 @@ export function readPackageJson(dir) {
   let text;
   try {
     text = readFileSync(join(dir, 'package.json'), 'utf8');
-  } catch (e) {
-    return e.code === 'ENOENT' || e.code === 'ENOTDIR' ? { missing: true } : { error: e };
+  } catch (error) {
+    return error.code === 'ENOENT' || error.code === 'ENOTDIR' ? { missing: true } : { error };
   }
+
   try {
     return { pkg: JSON.parse(text.charCodeAt(0) === 0xfeff ? text.slice(1) : text) };
-  } catch (e) {
-    return { error: e };
+  } catch (error) {
+    return { error };
   }
 }

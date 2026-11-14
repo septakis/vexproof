@@ -1,6 +1,7 @@
-# Runs the test suite on every supported Node LTS line. The suite validates every generated VEX file against the
-# CycloneDX schema and runs the webpack and Angular fixtures, so a schema failure or a regression on either fails
-# the build.
+# Runs the test suite on every supported Node LTS line, and on the oldest Node that package.json allows (22.0.0):
+# the newest 22.x has APIs an early 22.x lacks, and a release must not stop loading there. The suite validates
+# every generated VEX file against the CycloneDX schema and runs the webpack and Angular fixtures, so a schema
+# failure or a regression on either fails the build.
 name: Test
 
 on:
@@ -19,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [22, 24, 26]
+        node: ['22.0.0', 22, 24, 26]
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v5

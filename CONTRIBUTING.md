@@ -29,8 +29,8 @@ Two things to know:
 
 - `src/pro/` is under its own license ([src/pro/LICENSE.md](src/pro/LICENSE.md)), and MIT code reaches it only
   through one optional import in `src/cli.js`. A test enforces the line; keep new code on the right side of it.
-- Never run `npm run keygen` in a checkout you care about: it overwrites `src/pro/license-key.js`, the public
-  key every issued license is checked against.
+- `src/pro/license-key.js` is the public key every issued license is checked against: a pull request never
+  changes it.
 
 Keep pull requests to one change each, add a line under `Unreleased` in [CHANGELOG.md](CHANGELOG.md), and
 match the surrounding style. By contributing you agree your contribution is licensed under the license of the

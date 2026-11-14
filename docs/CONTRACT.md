@@ -76,7 +76,7 @@ Gates and reviews:
 
 | Option | Meaning |
 |---|---|
-| `--fail-on <mode>` | `in_triage` or `new`. Exit 1 when the gate trips; the VEX is still written. `new` needs `--baseline`; without it the run stops with exit 2 before anything is written. When no license covers `--baseline`, the gate does not run and the exit code is 0: a warning on standard error says so, and in GitHub Actions an annotation on the run. |
+| `--fail-on <mode>` | `in_triage` or `new`. `in_triage` trips on any open finding, `new` on an open finding that no valid review in `--baseline` covered; a finding reviewed `exploitable` trips both. Exit 1 when the gate trips; the VEX is still written. `new` needs `--baseline`; without it the run stops with exit 2 before anything is written. When no license covers `--baseline`, the gate does not run and the exit code is 0: a warning on standard error says so, and in GitHub Actions an annotation on the run. |
 | `--baseline <file>` | (Pro) The previous release's CycloneDX VEX. Reviews carry forward while their evidence is unchanged. |
 | `--review-max-age <days>` | Reviews older than this need re-confirming. Default 365; `0` turns it off. |
 
@@ -121,7 +121,7 @@ Pro:
 | `--vex <file>` | The VEX to apply. Repeatable. Required. |
 | `--lockfile <file>` | The lockfile SBOM the VEX was made from. Repeatable. Required. |
 | `--repo <owner/name>` | Default: `GITHUB_REPOSITORY`, then the git remote. |
-| `--manifest <path>` | Manifest file or folder whose alerts to change. Default: the current folder. Repeatable; with several, give one `--vex` for each, in the same order, and each alert is judged only by the VEX for its scope. |
+| `--manifest <path>` | Manifest file or folder whose alerts to change, relative to the repository root (`.` is the root). Default: the current folder. Repeatable; with several, give one `--vex` for each, in the same order, and each alert is judged only by the VEX for its scope. |
 | `--link <url>` | What the dismissal comment links to. Default: the current Actions run. |
 | `--token <token>` | A token that can write Dependabot alerts. |
 | `--dry-run` | Print what would change and change nothing. |
@@ -171,7 +171,7 @@ to identify the repository and the run. It never sets any.
 |---|---|
 | 0 | Success. The VEX was written (or, for other commands, the change was made). |
 | 1 | The `--fail-on` gate tripped. The VEX was still written. |
-| 2 | vexproof stopped: a missing or unknown option, an unreadable or unrecognised input, an incomplete module map, or a lookup that failed after retries. Nothing was written. |
+| 2 | vexproof stopped: a missing or unknown option, an unreadable or unrecognised input, an incomplete module map, or a lookup that failed after retries. Nothing was written. For `vexproof dependabot`, 2 also means that some alert updates failed after others were made; the summary lists each alert and what happened to it. |
 
 The summary goes to standard output; diagnostics, warnings and hints go to standard error.
 
@@ -195,7 +195,8 @@ With `--findings` and without `--enrich-aliases`, a run makes no network request
 never makes a network request. There is no telemetry.
 
 Every request times out after 30 seconds; 429 and 5xx responses are retried up to three times with backoff.
-A lookup that still fails stops the run with exit 2.
+A lookup that still fails stops the run with exit 2. Alias lookups are the exception: an advisory id OSV can't be
+reached for keeps only its own id, the run goes on, and a line on standard error says how many.
 
 ## Output
 
@@ -214,7 +215,7 @@ Document properties (`metadata.properties`):
 | `vexproof:lockfileSbomSerial` | Serial number of the lockfile SBOM, or `null`. |
 | `vexproof:bundleComponentCount` | Components in the bundle SBOM. |
 | `vexproof:lockfileComponentCount` | Components in the lockfile SBOM. |
-| `vexproof:input:<role>:sha256` | SHA-256 of each input file, by role (`lockfile-sbom`, `bundle-sbom`, `module-map`, `findings-<format>`, `rules`, `baseline-vex`, …). |
+| `vexproof:input:<role>:sha256` | SHA-256 of each input file, by role (`lockfile-sbom`, `bundle-sbom`, `module-map` and, for a second and later one, `module-map-2`, …, `deployment`, `findings-<format>`, `rules`, `baseline-vex`). A deployment's covers its code files and the source maps they were read with. |
 | `vexproof:licensee` | The organization a valid Pro license names. Absent without one. |
 | `vexproof:scope` | `browser-bundle` when `--browser-only` is set. Absent otherwise. |
 | `vexproof:rollup` | On a rollup: the number of applications combined. Their inputs are listed as `vexproof:input:rollup:<purl>:sha256`. |
@@ -230,9 +231,9 @@ lockfile SBOM when it has a serial number, else the package's purl) and `propert
 | `vexproof:level` | `package` or `module`. |
 | `vexproof:reviewed-by`, `vexproof:reviewed-at` | From `vexproof review`. |
 | `vexproof:rule-source`, `vexproof:rule-origin` | Which rules file settled the finding, and whether it was derived. |
-| `vexproof:surviving-files` | The vulnerable files that shipped, when the finding stays open at module level. |
+| `vexproof:surviving-files` | Every file of the package's copy at the finding's version that shipped, on a statement a module-level rule settled. |
 | `vexproof:copies-checked` | Every installed copy of the package that was checked. |
-| `vexproof:vulnerable-files`, `vexproof:importers`, `vexproof:evidence-files`, `vexproof:evidence-files-digest` | The evidence fingerprint a review is carried forward on. |
+| `vexproof:vulnerable-files`, `vexproof:importers`, `vexproof:evidence-files`, `vexproof:evidence-files-digest` | The evidence fingerprint a review is carried forward on. Lists are space-separated, `evidence-files` as `<file>=<hash>`; a space, `=` or `%` in a path is written `%20`, `%3D` or `%25`. |
 | `vexproof:carried-from` | The purl and review time a carried-forward review came from. |
 | `vexproof:alias-of` | On an alias entry, the id of the primary entry. |
 | `vexproof:application` | On a rollup statement: the purl of the application it is about (also its `affects` reference). |
