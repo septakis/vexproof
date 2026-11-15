@@ -77,6 +77,10 @@ When the config exports an array, add the plugin to every configuration that shi
 (`new VexproofPlugin({ output: 'vexproof-modules.admin.json' })`), all passed to `--modules`: a second run
 writing the same file replaces the first.
 
+One build may write inside another's output folder (`dist/sfe` inside `dist`): each map accounts for the files
+it records. Every map must name its files from the folder vexproof runs in. A build that runs in another folder
+takes that folder as the plugin's `root` option (`vexproof({ root: '../..' })`), or as webpack's `context`.
+
 The plugins come with TypeScript types. The folders this README names (`demo/`, `e2e-*/`, `interop/`) are in
 the [repository](https://github.com/septakis/vexproof), not in the npm package.
 
@@ -194,7 +198,7 @@ details, commented "CycloneDX VEX". Two things to know:
 ## GitHub Action
 
 ```yaml
-- uses: septakis/vexproof@v1.0.0-beta.11      # after your build and SBOM steps
+- uses: septakis/vexproof@v1.0.0-beta.12      # after your build and SBOM steps
   with:
     lockfile: bom.lockfile.json
     bundle: dist/bom.bundle.json
@@ -243,7 +247,7 @@ vexproof dependabot --vex vex.cdx.json --lockfile bom.lockfile.json --dry-run
 The Action does this after it writes the VEX, including when `fail-on` stops the job:
 
 ```yaml
-- uses: septakis/vexproof@v1.0.0-beta.11
+- uses: septakis/vexproof@v1.0.0-beta.12
   with:
     lockfile: bom.lockfile.json
     bundle: dist/bom.bundle.json
@@ -464,7 +468,7 @@ covers. Still no network calls. Help for open-source licenses is through GitHub 
 
 ## Tests
 
-`npm test` runs 324 tests, including schema validation of both output formats. Most fixtures are
+`npm test` runs 327 tests, including schema validation of both output formats. Most fixtures are
 real builds, slimmed down:
 
 - two Angular 20 apps, one using only `capitalize` and one also using `template` and `omit`,

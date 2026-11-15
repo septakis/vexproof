@@ -272,3 +272,86 @@ test('each module map is an input of its own in the VEX: module-map, module-map-
 
   assert.deepEqual(roles, ['vexproof:input:module-map:sha256', 'vexproof:input:module-map-2:sha256']);
 });
+
+// ---------- one build's output inside another's (found on authentik: esbuild into dist, Rollup into dist/sfe) ----------
+
+const SECOND_BUNDLE = '(()=>{function victim(value){return String(value).trim()}victim(" x ")})();\n';
+
+/**
+ * The app, plus a second bundle that a build of its own wrote inside the first build's output folder. Only the
+ * second bundle holds `victim`. `secondMap` is that build's esbuild metafile, written as second.meta.json.
+ */
+function twoBuilds(testContext, { files = {}, secondMap = {} } = {}) {
+  const root = app(testContext, {
+    'src/second.js': 'import victim from "victim"; victim();\n',
+    'dist/sub/second.js': SECOND_BUNDLE,
+    ...files,
+  });
+  const inputs = { 'src/second.js': { bytesInOutput: 10 }, 'node_modules/victim/index.js': { bytesInOutput: 10 } };
+  write(root, { 'second.meta.json': {
+    inputs: { 'src/second.js': { bytes: 10, imports: [] }, 'node_modules/victim/index.js': { bytes: 10, imports: [] } },
+    outputs: { 'dist/sub/second.js': { bytes: Buffer.byteLength(SECOND_BUNDLE), inputs, imports: [] } },
+    ...secondMap,
+  } });
+
+  return root;
+}
+
+test('a second build inside the first one\'s output folder is accounted for by its own module map', (testContext) => {
+  const root = twoBuilds(testContext);
+
+  // the first map alone: the second bundle is a file nothing accounts for, and the refusal names the way out
+  refuses(run(root, ['--modules', 'meta.json']), /dist\/sub\/second\.js[^]*pass that map too: --modules, once for each map/);
+
+  // with both maps the run goes through, in either order, and the package only the second bundle holds ships
+  shipsVictim(run(root, ['--modules', 'meta.json', '--modules', 'second.meta.json']));
+  shipsVictim(run(root, ['--modules', 'second.meta.json', '--modules', 'meta.json']));
+});
+
+test('refused: the second map does not record the file, or records another size for it', (testContext) => {
+  // a map that records some other file in that folder says nothing about second.js
+  const other = '(()=>{function other(value){return String(value).length}other("x")})();\n';
+  const elsewhere = twoBuilds(testContext, {
+    files: { 'dist/sub/other.js': other },
+    secondMap: { outputs: { 'dist/sub/other.js': { bytes: Buffer.byteLength(other), inputs: { 'src/second.js': { bytesInOutput: 10 } }, imports: [] } } },
+  });
+
+  refuses(run(elsewhere, ['--modules', 'meta.json', '--modules', 'second.meta.json']), /dist\/sub\/second\.js: no bundler recorded it/);
+
+  // a map that records the file at another size describes another build's file: its own check stops the run
+  const stale = twoBuilds(testContext, {
+    secondMap: { outputs: { 'dist/sub/second.js': { bytes: 5, inputs: { 'node_modules/victim/index.js': { bytesInOutput: 5 } }, imports: [] } } },
+  });
+
+  refuses(run(stale, ['--modules', 'meta.json', '--modules', 'second.meta.json']), /second\.meta\.json: [^]*not the ones this module map describes/);
+});
+
+test('a plugin map from a build in another folder: refused with what to set, and read once it names files from here', (testContext) => {
+  const bytes = Buffer.byteLength(SECOND_BUNDLE);
+  const pluginMap = (outDir, prefix) => ({
+    vexproof: 1,
+    bundler: 'rollup 4.62.2',
+    inputs: {},
+    outDirs: [outDir],
+    outputs: { [`${outDir}/second.js`]: { bytes, inputs: { [`${prefix}node_modules/victim/index.js`]: { bytesInOutput: 10 }, [`${prefix}packages/second/src/index.js`]: { bytesInOutput: 10 } } } },
+  });
+  const root = twoBuilds(testContext, {
+    files: {
+      'packages/second/src/index.js': 'import victim from "victim"; victim();\n',
+      // as the plugin writes it when the second build runs in packages/second: paths from that folder
+      'packages/second/vexproof-modules.json': pluginMap('../../dist/sub', '../../'),
+      // and with the plugin's root option set to the app's folder: paths from here
+      'second.modules.json': pluginMap('dist/sub', ''),
+    },
+  });
+
+  const misplaced = run(root, ['--modules', 'meta.json', '--modules', 'packages/second/vexproof-modules.json']);
+  refuses(misplaced, /records build output in "\.\.\/\.\.\/dist\/sub"[^]*With several --modules files, each must name its files from the folder vexproof runs in[^]*vexproof\(\{ root:/);
+
+  // alone, the same map gets the plain advice: there is no other build to line it up with
+  const alone = run(root, ['--modules', 'packages/second/vexproof-modules.json']);
+  refuses(alone, /records build output in "\.\.\/\.\.\/dist\/sub"/);
+  assert.doesNotMatch(alone.stderr, /With several --modules files/);
+
+  shipsVictim(run(root, ['--modules', 'meta.json', '--modules', 'second.modules.json']));
+});

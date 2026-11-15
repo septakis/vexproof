@@ -32,10 +32,20 @@ const posix = (path) => path.split(sep).join('/');
 // a plugin's virtual module, as esbuild names it: "<namespace>:<path>" (two letters or more, so not a Windows drive)
 const NAMESPACED = /^[a-z][a-z0-9+.-]+:/i;
 
-/** The build output can't be located or isn't described: the caller refuses with this message. */
-export class CoverageError extends Error {}
+/**
+ * The build output can't be located or isn't described: the caller refuses with this message. `misplaced` is true
+ * when the output was looked for and not found, which is what a map from a build in another folder looks like.
+ */
+export class CoverageError extends Error {
+  constructor(message, { misplaced = false } = {}) {
+    super(message);
+    this.misplaced = misplaced;
+  }
+}
 
 const WHERE = 'Run vexproof from the folder the build ran in, or pass --root, so the build output can be checked.';
+/** A CoverageError for output that is not where the map says it is, seen from the folder vexproof runs in. */
+const notFound = (message) => new CoverageError(`${message} ${WHERE}`, { misplaced: true });
 // A module map describes the files of one build. Signs that the files on disk are from another:
 const STALE_AFTER_MS = 120_000;
 const stale = (count) => `${count} output file(s) on disk are not the ones this module map describes:`;
@@ -164,7 +174,7 @@ export function recordedOutputs(json, { root = process.cwd(), file = null } = {}
 
       // a folder the build recorded chunks in must be here; one it wrote nothing to (a skipped pass) need not be
       if (keys.some((key) => recordedDir === '.' || key.startsWith(`${recordedDir}/`))) {
-        throw new CoverageError(`the module map records build output in "${recordedDir}", but ${posix(abs)} does not exist. ${WHERE}`);
+        throw notFound(`the module map records build output in "${recordedDir}", but ${posix(abs)} does not exist.`);
       }
     }
 
@@ -194,9 +204,7 @@ export function recordedOutputs(json, { root = process.cwd(), file = null } = {}
     const own = [...new Set(all.flatMap(shippedInputs))]
       .filter((inputPath) => !NAMESPACED.test(inputPath) && !/(^|\/)node_modules\//.test(inputPath) && !inputPath.startsWith('<'));
     if (own.length && !own.some((inputPath) => existsSync(resolve(here, inputPath)))) {
-      throw new CoverageError(
-        `none of the ${own.length} source files of the project that this module map names (${own[0]}, …) are under ${posix(here)}. ${WHERE}`
-      );
+      throw notFound(`none of the ${own.length} source files of the project that this module map names (${own[0]}, …) are under ${posix(here)}.`);
     }
 
     if (found(here)) {
@@ -246,9 +254,9 @@ export function recordedOutputs(json, { root = process.cwd(), file = null } = {}
       }
     }
 
-    throw new CoverageError(
+    throw notFound(
       `none of the ${keys.length} JavaScript files this module map lists as build output were found under ${posix(here)}` +
-      `${beside ? ` or beside the module map` : ''}. ${WHERE}`
+      `${beside ? ` or beside the module map` : ''}.`
     );
   }
 
@@ -279,7 +287,7 @@ export function recordedOutputs(json, { root = process.cwd(), file = null } = {}
   const outOf = (child) => (isAbsolute(child.outputPath) ? child.outputPath : resolve(here, child.outputPath));
   for (const outputFolder of multiCompiler ? configurations.map(outOf) : [outDir]) {
     if (!existsSync(outputFolder)) {
-      throw new CoverageError(`the module map records build output in ${posix(outputFolder)}, which does not exist. ${WHERE}`);
+      throw notFound(`the module map records build output in ${posix(outputFolder)}, which does not exist.`);
     }
   }
 
@@ -380,9 +388,15 @@ export function recordedOutputs(json, { root = process.cwd(), file = null } = {}
  * `stray` are the ones the module map does not record (absolute paths, to be accounted for one by one), `copied`
  * ([{ file, from }]) the ones whose origin the bundler recorded, `dirs` the output folders, `recorded` the files the
  * map does record, and `hints` the copied-from paths that name no package (see accountFor).
+ *
+ * Two options serve a run with several module maps. `outputs` is this map's recordedOutputs result, when the
+ * caller already has it. `coveredElsewhere(file)` says whether another of the maps records the file: one build
+ * can write inside another's output folder (dist/sfe inside dist), and such a file is the other map's to
+ * account for, so it is neither stray nor recorded here.
  */
 export function strayOutputs(json, options = {}) {
-  const { dirs, isCovered, copiedFrom = new Map(), hints = new Map() } = recordedOutputs(json, options);
+  const { outputs = recordedOutputs(json, options), coveredElsewhere = () => false } = options;
+  const { dirs, isCovered, copiedFrom = new Map(), hints = new Map() } = outputs;
   const seen = new Set();
   const copied = [];
   const recorded = new Set();
@@ -390,6 +404,9 @@ export function strayOutputs(json, options = {}) {
     for (const file of jsFiles(dir.abs, dir.recurse)) {
       if (isCovered(file)) {
         recorded.add(file);
+        continue;
+      }
+      if (coveredElsewhere(file)) {
         continue;
       }
 

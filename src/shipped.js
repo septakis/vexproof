@@ -5,7 +5,7 @@
 // writes a file or exits.
 import { resolve, dirname } from 'node:path';
 import { readModuleMap, bundleSbomFromModules, attachVersions, addToMap, splitNodeModulesPath, unnamedStorePackages } from './modules.js';
-import { strayOutputs, accountFor, addWorkspacePackages, runtimeLoads, binaryCopies, CoverageError } from './coverage.js';
+import { strayOutputs, recordedOutputs, accountFor, addWorkspacePackages, runtimeLoads, binaryCopies, CoverageError } from './coverage.js';
 import { readDeployment, mergeModuleMaps, defaultMapDirs, inlineMapPackages, deploymentDigest } from './deploy.js';
 import { normalizeFindings, parsePurl, indexSbom, NpmNameSet } from './index.js';
 import { readPackageJson } from './package-json.js';
@@ -33,27 +33,39 @@ function shipWhole(map, name) {
   map.whole.add(name);
 }
 
-/**
- * One module map, read and checked: every JavaScript file in the build output must be a chunk the map records,
- * or be accounted for on its own. Adds to `state` (shippedDirs, selfVouched, inputs). Returns the map.
- */
-function readOneModuleMap(file, { root, lockNames, state, readJson, sha256, log }) {
-  const mapJson = readJson(file, 'module map');
-  let map;
-  try {
-    map = readModuleMap(mapJson);
-  } catch (error) {
-    throw new Stop(`${file}: ${error.message}`);
-  }
+// What to do about a map whose output is not where it says, when it is one of several: its build ran elsewhere.
+const ONE_FOLDER = [
+  'With several --modules files, each must name its files from the folder vexproof runs in. A build that runs in',
+  "another folder needs that folder given to its plugin: vexproof({ root: '<the folder vexproof runs in>' }) for",
+  'Vite and Rollup, or `context` for webpack and Rspack. Then rebuild.',
+];
 
-  let coverage;
+/**
+ * One module map, read, with the output files it records located on disk: { file, mapJson, map, outputs }.
+ * Refuses a map that can't be read, or whose output isn't where it says (see recordedOutputs).
+ */
+function locateModuleMap(file, { root, readJson, mapCount }) {
+  const mapJson = readJson(file, 'module map');
   try {
-    coverage = strayOutputs(mapJson, { root, file });
+    const map = readModuleMap(mapJson);
+    const outputs = recordedOutputs(mapJson, { root, file });
+
+    return { file, mapJson, map, outputs };
   } catch (error) {
-    if (!(error instanceof CoverageError)) throw error;
+    if (error instanceof CoverageError && error.misplaced && mapCount > 1) {
+      throw new Stop([`${file}: ${error.message}`, ...ONE_FOLDER]);
+    }
     throw new Stop(`${file}: ${error.message}`);
   }
-  const { stray, copied, dirs: outDirs, recorded, hints } = coverage;
+}
+
+/**
+ * One located module map, checked: every JavaScript file in the build output must be a chunk the map records,
+ * be a file another of the given maps records (`coveredElsewhere`), or be accounted for on its own. Adds to
+ * `state` (shippedDirs, selfVouched, inputs). Returns the map.
+ */
+function readOneModuleMap({ file, mapJson, map, outputs }, { root, lockNames, state, sha256, log, coveredElsewhere }) {
+  const { stray, copied, dirs: outDirs, recorded, hints } = strayOutputs(mapJson, { root, file, outputs, coveredElsewhere });
 
   // files the bundler says it copied from somewhere: that origin shipped
   for (const copy of copied) {
@@ -68,6 +80,7 @@ function readOneModuleMap(file, { root, lockNames, state, readJson, sha256, log 
         `${unknown.length} JavaScript file(s) in the build output are not accounted for, so their packages could look absent:`,
         ...listed(unknown, (entry) => `${entry.file}: ${entry.why}`),
         'If a worker or a nested build() made them, add the vexproof plugin to that build (worker.plugins) and rebuild.',
+        'If another build with a module map of its own made them, pass that map too: --modules, once for each map.',
         'A file that is copied in must be an unmodified copy of an installed or project file, or have a source map',
         'beside it. For an app that cannot meet that, use --deploy <output folder> with source maps on.',
       ]);
@@ -315,7 +328,16 @@ export function whatShipped({
   const state = { shippedDirs: [], selfVouched: new Set(), inputs: [] };
   const context = { root, lockNames, state, readJson, sha256, log, progress };
 
-  const maps = modules.map((file) => readOneModuleMap(file, context));
+  // Every map's own record of its output is read first. One build can write inside another's output folder (a
+  // second bundle in dist/sfe, inside the first build's dist): such a file is accounted for by the map that
+  // records it, and that map's own checks (its recorded size, its age) hold for it.
+  const located = modules.map((file) => locateModuleMap(file, { root, readJson, mapCount: modules.length }));
+  const maps = located.map((entry) => {
+    const others = located.filter((other) => other !== entry);
+    const coveredElsewhere = (path) => others.some((other) => other.outputs.isCovered(path));
+
+    return readOneModuleMap(entry, { ...context, coveredElsewhere });
+  });
   const deployment = deploy ? readOneDeployment(deploy, { ...context, maps: mapDirs, browserOnly }) : null;
   if (deployment) maps.push(deployment);
 

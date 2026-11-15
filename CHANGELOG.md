@@ -6,6 +6,21 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+## [1.0.0-beta.12] - 2026-11-14
+
+Found by running the latest releases of three real apps: an app built by two bundlers, one writing inside the
+other's output folder, was refused.
+
+### Fixed
+- **A second build inside the first one's output folder.** With a module map for each build (an esbuild bundle
+  in `dist`, a Rollup bundle in `dist/sfe`), the run was refused: the first map's check called the second
+  bundle unaccounted for, and the message said to add the plugin, which was already there. A file that
+  another of the given maps records now counts as accounted for, and that map's own checks (its recorded
+  size, its age) still hold for it. A file no map records is refused as before.
+- A map whose build ran in another folder is refused with what to set: the plugin's `root` option, or webpack's
+  `context`, so that every map names its files from the folder vexproof runs in. The refusal for an
+  unaccounted file now also says to pass the other build's map.
+
 ### Changed
 - **The free Pro license is for community open-source projects.** It was offered to any public repository under
   an OSI-approved license. It now also asks that the project's owners sell no paid edition of it, hosting for it
@@ -497,7 +512,8 @@ module map; findings from npm, pnpm, yarn and bun audit, osv-scanner, Trivy, Gry
 directly; Vite, Rollup, webpack, Rspack, esbuild, bun and Angular inputs; `--deploy` for server-rendered apps;
 `vexproof review` and `vexproof rules derive`; Pro module-level analysis, baselines and the evidence report.
 
-[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.11...HEAD
+[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.12...HEAD
+[1.0.0-beta.12]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.12
 [1.0.0-beta.11]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.11
 [1.0.0-beta.10]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.10
 [1.0.0-beta.9]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.9
