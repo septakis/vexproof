@@ -451,8 +451,12 @@ a response within a few business days.
 
 ### Open-source projects
 
-Pro is free for open-source projects: public repositories under an OSI-approved license. An
-open-source license names its repositories (`github.com/owner/repo`) and unlocks Pro only when
+Pro is free for community open-source projects: public repositories under an OSI-approved license,
+where the project's owners sell no paid edition of it, hosting for it or support for it. A project
+under a foundation (CNCF, Apache, OWASP) counts. A company that sells its open-source product needs
+a paid license, at the same price.
+
+An open-source license names its repositories (`github.com/owner/repo`) and unlocks Pro only when
 vexproof runs in one of them. The repository comes from `GITHUB_REPOSITORY`, GitLab's
 `CI_PROJECT_PATH` or Bitbucket's `BITBUCKET_REPO_FULL_NAME`, else the `origin` remote in the
 nearest `.git/config`. Elsewhere the license runs free features and says which repositories it

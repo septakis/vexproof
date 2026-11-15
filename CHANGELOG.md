@@ -6,6 +6,12 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+### Changed
+- **The free Pro license is for community open-source projects.** It was offered to any public repository under
+  an OSI-approved license. It now also asks that the project's owners sell no paid edition of it, hosting for it
+  or support for it; a project under a foundation counts. A company that sells its open-source product needs a
+  paid license. The request form asks for this, and the free-tier hint says "community open-source projects".
+
 ## [1.0.0-beta.11] - 2026-11-14
 
 Polish from the beta smoke tests: a long run says what it is doing, and a VEX made from a deployment says so.

@@ -94,7 +94,7 @@ function printProHint(results, { summary, moduleMap }) {
     }
     const list = Object.entries(counts).map(([name, count]) => `${name} ${count}`).join(', ');
     log(`\nvexproof Pro would settle ${summary.proWouldSettle} of your ${summary.in_triage} open finding(s) by checking which files of each package shipped (${list}),`);
-    log(`and write an audit-ready report with the evidence. One yearly price per organization, free for open source: ${PRO_URL} (hide this with --quiet)`);
+    log(`and write an audit-ready report with the evidence. One yearly price per organization, free for community open-source projects: ${PRO_URL} (hide this with --quiet)`);
 
     return;
   }
