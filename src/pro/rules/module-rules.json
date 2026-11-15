@@ -1,8 +1,8 @@
 {
   "schema": 1,
-  "version": "2026.09.26",
+  "version": "2026.11.14",
   "license": "LicenseRef-vexproof-Pro (see src/pro/LICENSE.md)",
-  "note": "Each advisory lists every file that contains the vulnerable code or is the public entry to it. A finding is settled only when none of these files, and no monolith build of the package, survived into the output.",
+  "note": "Each advisory lists every file that contains the vulnerable code or is the public entry to it; an entry ending in \"/\" is a folder and covers every file in it. A finding is settled only when none of these files, and no monolith build of the package, survived into the output. A package with \"injected\" (a build tool) is settled only when nothing of it but those helpers, which it writes into a build under made-up names, is in the output.",
   "packages": {
     "lodash-es": {
       "monoliths": [
@@ -133,6 +133,236 @@
           "source": "https://github.com/advisories/GHSA-f23m-r3pf-42rh",
           "aliases": [
             "CVE-2026-2950"
+          ]
+        }
+      }
+    },
+    "vite": {
+      "injected": [
+        "preload-helper.js",
+        "dynamic-import-helper.js",
+        "modulepreload-polyfill.js",
+        "wasm-helper.js"
+      ],
+      "advisories": {
+        "GHSA-356w-63v5-8wf4": {
+          "files": [
+            "dist/node/"
+          ],
+          "affects": "the dev server's server.fs.deny check (bypass with an invalid request-target)",
+          "source": "https://github.com/advisories/GHSA-356w-63v5-8wf4",
+          "aliases": [
+            "CVE-2025-32395"
+          ]
+        },
+        "GHSA-4r4m-qw57-chr8": {
+          "files": [
+            "dist/node/"
+          ],
+          "affects": "the dev server's server.fs.deny check (bypass for ?inline and ?raw with ?import)",
+          "source": "https://github.com/advisories/GHSA-4r4m-qw57-chr8",
+          "aliases": [
+            "CVE-2025-31125"
+          ]
+        },
+        "GHSA-4w7w-66w2-5vf9": {
+          "files": [
+            "dist/node/"
+          ],
+          "affects": "the dev server's handling of .map requests for optimized dependencies (path traversal)",
+          "source": "https://github.com/advisories/GHSA-4w7w-66w2-5vf9",
+          "aliases": [
+            "CVE-2026-39365"
+          ]
+        },
+        "GHSA-587h-7wmj-h5pm": {
+          "files": [
+            "dist/node/"
+          ],
+          "affects": "launch-editor, which the dev server uses to open a file in an editor (its existence check can be bypassed on Windows)",
+          "source": "https://github.com/advisories/GHSA-587h-7wmj-h5pm",
+          "aliases": [
+            "CVE-2026-112942"
+          ]
+        },
+        "GHSA-698v-4r3x-3vcv": {
+          "files": [
+            "dist/node/"
+          ],
+          "affects": "launch-editor, which the dev server uses to open a file in an editor (no % escaping of arguments on Windows)",
+          "source": "https://github.com/advisories/GHSA-698v-4r3x-3vcv",
+          "aliases": [
+            "CVE-2026-112943"
+          ]
+        },
+        "GHSA-859w-5945-r5v3": {
+          "files": [
+            "dist/node/"
+          ],
+          "affects": "the dev server's server.fs.deny check (bypass with /. for files under the project root)",
+          "source": "https://github.com/advisories/GHSA-859w-5945-r5v3",
+          "aliases": [
+            "CVE-2025-46565"
+          ]
+        },
+        "GHSA-8jhw-289h-jh2g": {
+          "files": [
+            "dist/node/"
+          ],
+          "affects": "the dev server's server.fs.deny check (patterns with directories were not denied)",
+          "source": "https://github.com/advisories/GHSA-8jhw-289h-jh2g",
+          "aliases": [
+            "CVE-2024-31207"
+          ]
+        },
+        "GHSA-93m4-6634-74q7": {
+          "files": [
+            "dist/node/"
+          ],
+          "affects": "the dev server's server.fs.deny check (bypass with a backslash on Windows)",
+          "source": "https://github.com/advisories/GHSA-93m4-6634-74q7",
+          "aliases": [
+            "CVE-2025-62522"
+          ]
+        },
+        "GHSA-9cwx-2883-4wfx": {
+          "files": [
+            "dist/node/"
+          ],
+          "affects": "the dev server's server.fs.deny check (bypass with ?import&raw)",
+          "source": "https://github.com/advisories/GHSA-9cwx-2883-4wfx",
+          "aliases": [
+            "CVE-2024-45811"
+          ]
+        },
+        "GHSA-9jrq-w75r-8gcw": {
+          "files": [
+            "dist/node/"
+          ],
+          "affects": "the dev server's transformIndexHtml when given an unchanged request URL, as in middleware mode (cross-origin script execution)",
+          "source": "https://github.com/advisories/GHSA-9jrq-w75r-8gcw",
+          "aliases": [
+            "CVE-2026-112945"
+          ]
+        },
+        "GHSA-c27g-q93r-2cwf": {
+          "files": [
+            "dist/node/"
+          ],
+          "affects": "launch-editor, which the dev server uses to open a file in an editor (command injection from a crafted request on Windows)",
+          "source": "https://github.com/advisories/GHSA-c27g-q93r-2cwf",
+          "aliases": [
+            "CVE-2024-52011"
+          ]
+        },
+        "GHSA-fx2h-pf6j-xcff": {
+          "files": [
+            "dist/node/"
+          ],
+          "affects": "the dev server's server.fs.deny check (bypass with Windows alternate paths)",
+          "source": "https://github.com/advisories/GHSA-fx2h-pf6j-xcff",
+          "aliases": [
+            "CVE-2026-53571"
+          ]
+        },
+        "GHSA-g4jq-h2w9-997c": {
+          "files": [
+            "dist/node/"
+          ],
+          "affects": "the dev server's public-directory middleware (serves files whose names start with the public directory's)",
+          "source": "https://github.com/advisories/GHSA-g4jq-h2w9-997c",
+          "aliases": [
+            "CVE-2025-58751"
+          ]
+        },
+        "GHSA-jqfw-vq24-v9c3": {
+          "files": [
+            "dist/node/"
+          ],
+          "affects": "the dev and preview servers' static file middleware (server.fs settings were not applied to HTML files)",
+          "source": "https://github.com/advisories/GHSA-jqfw-vq24-v9c3",
+          "aliases": [
+            "CVE-2025-58752"
+          ]
+        },
+        "GHSA-p9ff-h696-f583": {
+          "files": [
+            "dist/node/"
+          ],
+          "affects": "the dev server's WebSocket (arbitrary file read)",
+          "source": "https://github.com/advisories/GHSA-p9ff-h696-f583",
+          "aliases": [
+            "CVE-2026-39363"
+          ]
+        },
+        "GHSA-r825-w8mm-5pxw": {
+          "files": [
+            "dist/node/"
+          ],
+          "affects": "launch-editor, which the dev server uses to open a file in an editor (an editor CLI flag misread, letting a request run commands with some editors)",
+          "source": "https://github.com/advisories/GHSA-r825-w8mm-5pxw",
+          "aliases": [
+            "CVE-2026-112944"
+          ]
+        },
+        "GHSA-rq7h-c2jc-7f22": {
+          "files": [
+            "dist/node/"
+          ],
+          "affects": "the dev server's server.fs.allow check (files outside it served when project paths match system paths)",
+          "source": "https://github.com/advisories/GHSA-rq7h-c2jc-7f22",
+          "aliases": [
+            "CVE-2026-112946"
+          ]
+        },
+        "GHSA-v6wh-96g9-6wx3": {
+          "files": [
+            "dist/node/"
+          ],
+          "affects": "launch-editor, which the dev server uses to open a file in an editor (NTLMv2 hash disclosure through UNC paths on Windows)",
+          "source": "https://github.com/advisories/GHSA-v6wh-96g9-6wx3",
+          "aliases": [
+            "CVE-2026-53632"
+          ]
+        },
+        "GHSA-vfpm-58rq-9qcg": {
+          "files": [
+            "dist/node/"
+          ],
+          "affects": "the dev server's WebAssembly loading for ?vite-wasm-instance requests (server.fs settings not applied)",
+          "source": "https://github.com/advisories/GHSA-vfpm-58rq-9qcg",
+          "aliases": [
+            "CVE-2026-112947"
+          ]
+        },
+        "GHSA-vg6x-rcgg-rjx6": {
+          "files": [
+            "dist/node/"
+          ],
+          "affects": "the dev server's origin checks for requests and its WebSocket (other websites can read its responses)",
+          "source": "https://github.com/advisories/GHSA-vg6x-rcgg-rjx6",
+          "aliases": [
+            "CVE-2025-24010"
+          ]
+        },
+        "GHSA-x574-m823-4x7w": {
+          "files": [
+            "dist/node/"
+          ],
+          "affects": "the dev server's server.fs.deny check (bypass with ?raw??)",
+          "source": "https://github.com/advisories/GHSA-x574-m823-4x7w",
+          "aliases": [
+            "CVE-2025-30208"
+          ]
+        },
+        "GHSA-xcj6-pq6g-qj4x": {
+          "files": [
+            "dist/node/"
+          ],
+          "affects": "the dev server's server.fs.deny check (bypass with .svg or relative paths)",
+          "source": "https://github.com/advisories/GHSA-xcj6-pq6g-qj4x",
+          "aliases": [
+            "CVE-2025-31486"
           ]
         }
       }

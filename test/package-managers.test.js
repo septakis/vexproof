@@ -82,8 +82,8 @@ test('Yarn 4 Plug\'n\'Play (Vite 8): zip-cache ids fold to one copy with a known
   assert.equal(entry.roots.size, 1);
   assert.deepEqual([...entry.versionByRoot.values()], ['4.17.21']);
   assert.deepEqual(files(moduleMap, 'lodash'), npm);
-  assert.equal(moduleMap.packages.size, 26); // 25 bundled packages, and vite for its preload helper in the output
-  assert.ok(moduleMap.whole.has('vite'));
+  assert.equal(moduleMap.packages.size, 26); // 25 bundled packages, and vite for the module preload polyfill it writes into the output
+  assert.deepEqual(files(moduleMap, 'vite'), ['modulepreload-polyfill.js']);
   for (const packageEntry of moduleMap.packages.values()) {
     assert.equal(packageEntry.roots.size, 1, 'no phantom copies from __virtual__ ids');
   }

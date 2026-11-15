@@ -36,7 +36,9 @@ test('module names: an input with no byte count ships, a DLL-delegated module is
   } } } });
 
   assert.deepEqual(files(moduleMap, 'lodash'), ['template.js']);
-  assert.ok(moduleMap.packages.has('vite') && moduleMap.whole.has('vite'));
+  // Vite's helper ships as a file of vite named after it, so module rules can tell it from Vite's own files
+  assert.deepEqual(files(moduleMap, 'vite'), ['preload-helper.js']);
+  assert.equal(moduleMap.whole, undefined);
 
   const dll = readModuleMap({ modules: [{ name: 'delegated ./node_modules/lodash/lodash.js from dll-reference vendor_lib', chunks: [1] }] });
 

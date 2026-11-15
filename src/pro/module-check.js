@@ -3,10 +3,12 @@
 // Module-level analysis: a package is in the bundle, but did the files holding the vulnerable code ship?
 // Rules (hand-checked in ./rules/module-rules.json, or derived from an advisory's fix) name those files.
 
+import { ruleFilesShipped } from '../modules.js';
+
 /**
  * A rules file as vexproof can use it, or a thrown Error naming what is wrong. Every advisory rule must list the
- * files that hold the code (a rule with none would claim every build); monoliths and monolithDirs, when given,
- * are lists of paths.
+ * files that hold the code (a rule with none would claim every build); monoliths, monolithDirs and injected,
+ * when given, are lists of paths.
  */
 export function validateRules(rules, where = 'the rules file') {
   const fail = (what) => {
@@ -16,7 +18,7 @@ export function validateRules(rules, where = 'the rules file') {
 
   const paths = (value) => Array.isArray(value) && value.every((item) => typeof item === 'string' && item);
   for (const [name, pkg] of Object.entries(rules.packages)) {
-    for (const field of ['monoliths', 'monolithDirs']) {
+    for (const field of ['monoliths', 'monolithDirs', 'injected']) {
       if (pkg?.[field] !== undefined && !paths(pkg[field])) fail(`${name}.${field} must be a list of paths`);
     }
     for (const [key, advisory] of Object.entries(pkg?.advisories ?? {})) {
@@ -31,8 +33,9 @@ export function validateRules(rules, where = 'the rules file') {
 
 /**
  * Hand-checked rules plus extra ones (derived, or a --rules file). A hand-checked rule for the same package and
- * advisory always wins. A package's full-build guards (monoliths, monolithDirs) are kept from every file: a
- * file that adds rules for a package must not lose the guard that keeps them from applying to a full build.
+ * advisory always wins. A package's guards are kept from every file: a file that adds rules for a package must
+ * not lose the guard that keeps them from applying to a full build. Full-build guards (monoliths, monolithDirs)
+ * add up; `injected` lists narrow to the names every file allows.
  */
 export function mergeRules(base, ...extra) {
   const merged = { ...base, packages: structuredClone(base?.packages ?? {}) };
@@ -44,6 +47,13 @@ export function mergeRules(base, ...extra) {
 
       for (const field of ['monoliths', 'monolithDirs']) {
         if (Array.isArray(pkg[field]) && pkg[field].length) into[field] = [...new Set([...(into[field] ?? []), ...pkg[field]])];
+      }
+
+      if (Array.isArray(pkg.injected)) {
+        const allowed = new Set(pkg.injected);
+        into.injected = into.injected
+          ? into.injected.filter((file) => allowed.has(file))
+          : [...pkg.injected];
       }
 
       const handIds = new Set(Object.entries(into.advisories)
@@ -150,15 +160,39 @@ export function evaluateModuleRule({ key, parsed, id, aliases = [], bundleVersio
   // File names are compared without regard to case: Windows and macOS load `Template.js` for 'template.js',
   // and a bundler records the spelling the import used. Matching too much can only keep a finding open.
   const lower = (file) => String(file).toLowerCase();
-  const shippedLower = new Set(files.map(lower));
   const monolith = files.find((file) => (pkgRules.monoliths ?? []).some((monolithFile) => lower(monolithFile) === lower(file))
     || (pkgRules.monolithDirs ?? []).some((monolithDir) => lower(file).startsWith(lower(monolithDir))));
   if (monolith) {
     return { ok: false, reason: `the full build (${monolith}) is bundled` };
   }
 
-  const hit = rule.files.filter((file) => shippedLower.has(lower(file)));
   const list = (items) => (items.length > 5 ? `${items.slice(0, 5).join(', ')} and ${items.length - 5} more` : items.join(', '));
+
+  // A build tool (Vite) writes helper code into the output, recorded under made-up names, and its rules hold only
+  // for a bundle that has nothing else of it. Its bugs can also reach the output as code it generates, which no
+  // file list shows, so a rule derived from the files a fix changed says nothing about it: only hand-checked ones
+  // apply. The helpers' names are the bundler's own ids and are compared exactly: unlike a rule's files, a looser
+  // match here would allow more, not less.
+  const injected = pkgRules.injected ? new Set(pkgRules.injected) : null;
+  if (injected) {
+    if (derived) {
+      return {
+        ok: false,
+        derived,
+        reason: `${parsed.name} writes code into the build that no file list shows, so only hand-checked rules apply to it, and ${ruleId} has none`,
+      };
+    }
+
+    const ownFiles = files.filter((file) => !injected.has(file));
+    if (ownFiles.length) {
+      return {
+        ok: false,
+        reason: `the bundle has more of ${parsed.name} than the helpers it writes into a build (${list(ownFiles)}), so its rules don't apply`,
+      };
+    }
+  }
+
+  const hit = ruleFilesShipped(rule.files, files);
   // a derived rule names the release it was derived from; a rule file without that is described without it
   const fixedIn = rule.derivedFrom?.fixed ? ` → ${rule.derivedFrom.fixed}` : '';
   if (hit.length) {
@@ -175,9 +209,17 @@ export function evaluateModuleRule({ key, parsed, id, aliases = [], bundleVersio
   const otherCopies = others
     ? `(counting only the ${parsed.version} copy; ${others} other cop${others > 1 ? 'ies are' : 'y is'} a different version) `
     : '';
-  const lead = `${key}@${parsed.version} is in the bundle, but only ${files.length} of its files survived the production build ` +
-    otherCopies +
-    `(${moduleMap.format}). `;
+  const lead = injected
+    ? `${key}@${parsed.version} is in the bundle only as the helper code it writes into a build: ${list(files)} ` +
+      otherCopies +
+      `(${moduleMap.format}). `
+    : `${key}@${parsed.version} is in the bundle, but only ${files.length} of its files survived the production build ` +
+      otherCopies +
+      `(${moduleMap.format}). `;
+  // a rule entry ending in "/" is a folder: none of its files may ship
+  const absent = rule.files.some((file) => file.endsWith('/'))
+    ? '; nothing from there is in the shipped output.'
+    : ', none of which are present in the shipped output.';
 
   return {
     ok: true,
@@ -186,8 +228,7 @@ export function evaluateModuleRule({ key, parsed, id, aliases = [], bundleVersio
       ? lead + `The fix for ${ruleId} (${rule.affects}) changed ${rule.files.length} runtime file(s)` +
         `${rule.derivedFrom?.fixed ? ` between ${parsed.version} and ${rule.derivedFrom.fixed}` : ''}: ${list(rule.files)}. ` +
         'None of them are present in the shipped output.'
-      : lead + `The code affected by ${ruleId} — ${rule.affects} — lives in ${rule.files.join(', ')}, ` +
-        'none of which are present in the shipped output.',
+      : lead + `The code affected by ${ruleId} — ${rule.affects} — lives in ${rule.files.join(', ')}${absent}`,
     evidence: {
       survivingFiles: files,
       checkedFiles: rule.files,

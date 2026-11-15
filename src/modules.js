@@ -327,6 +327,25 @@ function addExternal(map, whole, specifier) {
   whole.add(name);
 }
 
+/**
+ * Which of a module rule's files are among a copy's shipped files: an entry naming a file as the rule spells it,
+ * an entry ending in "/" (a folder) as every shipped file under it. Names are compared without regard to case:
+ * Windows and macOS load `Template.js` for 'template.js', and a bundler records the spelling the import used.
+ * Matching too much can only keep a finding open.
+ */
+export function ruleFilesShipped(ruleFiles, shippedFiles) {
+  const lower = (file) => String(file).toLowerCase();
+  const shippedLower = new Set(shippedFiles.map(lower));
+
+  return ruleFiles.flatMap((ruleFile) => {
+    if (!ruleFile.endsWith('/')) {
+      return shippedLower.has(lower(ruleFile)) ? [ruleFile] : [];
+    }
+
+    return shippedFiles.filter((file) => lower(file).startsWith(lower(ruleFile)));
+  });
+}
+
 /** A shipped module that is not in node_modules: the app's own source, or a workspace package bundled from source. */
 const outsideNodeModules = (path) => !/(^|\/)node_modules\//.test(String(path).replace(/\\/g, '/'));
 
@@ -433,11 +452,13 @@ function fromEsbuild(metafile) {
       add(map, path);
       shipped.add(path);
       if (outsideNodeModules(path)) own.add(moduleKey(path));
-      // Vite's own helpers (vite/preload-helper.js, vite/modulepreload-polyfill.js) are Vite's code in the
-      // output, under a made-up id: the package counts by name.
-      if (/^\0?vite\/[\w.-]+$/.test(path)) {
-        add(map, 'node_modules/vite/package.json');
-        whole.add('vite');
+
+      // Vite writes its own helpers into the output under made-up ids ("\0vite/preload-helper.js", which the
+      // plugin records as vite/preload-helper.js). They are Vite's code, so vite ships, as a file named after
+      // the helper: module rules can then tell a bundle with only the helpers from one with Vite's own files.
+      const viteHelper = /^\0?vite\/([\w.-]+)$/.exec(path);
+      if (viteHelper) {
+        add(map, `node_modules/vite/${viteHelper[1]}`);
       }
     }
     for (const imported of output.imports ?? []) if (imported?.external) addExternal(map, whole, imported.path);

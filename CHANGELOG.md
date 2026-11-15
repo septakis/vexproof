@@ -6,6 +6,28 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+## [1.0.0-beta.13] - 2026-11-15
+
+Pro settles Vite's dev-server advisories, which every Vite build kept open.
+
+### Added
+- **Hand-checked rules for Vite's dev-server advisories (Pro).** Vite writes helpers into every production
+  build (`preload-helper`, `dynamic-import-helper`, `modulepreload-polyfill`, `wasm-helper`), so `vite` counts
+  as shipped and its advisories all stayed open: 8 of Open WebUI's 14 open findings. 22 advisories about the dev
+  server, the preview server and the launch-editor code they use now settle at module level when nothing of
+  Vite but those helpers is in the bundle. Any other Vite file in the bundle, or Vite loaded at runtime, keeps
+  them open. The advisory about code Vite generates into `cjs`, `iife` and `umd` output (GHSA-64vr-g452-qvp3)
+  has no rule, and derived rules don't apply to Vite. On Open WebUI v0.13.3 Pro now settles 14 of 20 findings,
+  against 6 on the free tier; on Excalidraw, 86 of 211 against 67.
+- Module rules take two new forms. A package can list `injected`, the names a build tool writes its helpers
+  under; its rules then apply only to a bundle that has nothing else of it, and only hand-checked ones apply.
+  A `--rules` file can narrow that list, not widen it. A rule's `files` entry ending in `/` covers every file
+  in that folder.
+
+### Changed
+- Vite's helpers are recorded as files of `vite` named after the helper (`preload-helper.js`), not as Vite
+  shipped whole. The free tier's verdicts are unchanged: `vite` is in the bundle either way.
+
 ## [1.0.0-beta.12] - 2026-11-14
 
 Found by running the latest releases of three real apps: an app built by two bundlers, one writing inside the
@@ -512,7 +534,8 @@ module map; findings from npm, pnpm, yarn and bun audit, osv-scanner, Trivy, Gry
 directly; Vite, Rollup, webpack, Rspack, esbuild, bun and Angular inputs; `--deploy` for server-rendered apps;
 `vexproof review` and `vexproof rules derive`; Pro module-level analysis, baselines and the evidence report.
 
-[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.12...HEAD
+[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.13...HEAD
+[1.0.0-beta.13]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.13
 [1.0.0-beta.12]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.12
 [1.0.0-beta.11]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.11
 [1.0.0-beta.10]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.10

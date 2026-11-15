@@ -198,7 +198,7 @@ details, commented "CycloneDX VEX". Two things to know:
 ## GitHub Action
 
 ```yaml
-- uses: septakis/vexproof@v1.0.0-beta.12      # after your build and SBOM steps
+- uses: septakis/vexproof@v1.0.0-beta.13      # after your build and SBOM steps
   with:
     lockfile: bom.lockfile.json
     bundle: dist/bom.bundle.json
@@ -247,7 +247,7 @@ vexproof dependabot --vex vex.cdx.json --lockfile bom.lockfile.json --dry-run
 The Action does this after it writes the VEX, including when `fail-on` stops the job:
 
 ```yaml
-- uses: septakis/vexproof@v1.0.0-beta.12
+- uses: septakis/vexproof@v1.0.0-beta.13
   with:
     lockfile: bom.lockfile.json
     bundle: dist/bom.bundle.json
@@ -285,12 +285,21 @@ Module-level claims are deliberately narrow. vexproof makes no claim when:
 - several copies ship and any copy's version can't be read,
 - no shipped copy is at the vulnerable version, or the bundle SBOM disagrees with the copies,
 - the module map and bundle SBOM disagree,
-- a full build (`lodash.js`, `lodash.default.js`, `fp/`…) is bundled, or
+- a full build (`lodash.js`, `lodash.default.js`, `fp/`…) is bundled,
+- a build tool's package ships anything besides the helpers it writes into a build, or
 - there is no rule for that advisory.
 
 Rules live in `src/pro/rules/module-rules.json`. Each lists the files holding the vulnerable code, the
 advisory it came from, and what it affects. They currently cover the five current lodash and
-lodash-es advisories. Every rule is checked against the package source before it ships.
+lodash-es advisories, and 22 Vite advisories about its dev server, preview server and the
+launch-editor code they use. Every rule is checked against the package source before it ships.
+
+Vite writes a few helpers into every production build (module preload, dynamic import, WebAssembly
+loading), so `vite` is in the bundle, and before this rule every Vite advisory stayed open. None of those
+helpers holds dev-server code. A Vite dev-server advisory is settled only when nothing of Vite but those
+helpers shipped. The advisory about code Vite generates into `cjs`, `iife` and `umd` output
+(GHSA-64vr-g452-qvp3) has no rule and stays open, and derived rules never apply to Vite: a bug in what a
+build tool generates reaches the output without any of its own files shipping.
 
 ### Derived rules (Pro)
 
@@ -468,7 +477,7 @@ covers. Still no network calls. Help for open-source licenses is through GitHub 
 
 ## Tests
 
-`npm test` runs 327 tests, including schema validation of both output formats. Most fixtures are
+`npm test` runs 335 tests, including schema validation of both output formats. Most fixtures are
 real builds, slimmed down:
 
 - two Angular 20 apps, one using only `capitalize` and one also using `template` and `omit`,

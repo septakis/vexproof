@@ -12,7 +12,7 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { splitNodeModulesPath, splitShipped } from './modules.js';
+import { splitNodeModulesPath, splitShipped, ruleFilesShipped } from './modules.js';
 import { parsePurl } from './index.js';
 
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
@@ -82,9 +82,10 @@ export function attachFingerprints(results, {
 
     const rule = ruleFor(rules, parsed.name, result.id, result.aliases, parsed.version);
     const pairs = roots.flatMap((root) => [...(entry.byRoot?.get(root) ?? [])].map((file) => ({ root, file })));
-    // file names compared without case, as the module check compares them (a bundler records the import's spelling)
-    const ruleFiles = new Set((rule?.files ?? []).map((file) => String(file).toLowerCase()));
-    const vulnerable = rule ? pairs.filter((pair) => ruleFiles.has(pair.file.toLowerCase())) : pairs;
+    // the rule's files matched as the module check matches them (without case, a folder entry covering its files)
+    const vulnerable = rule
+      ? pairs.filter((pair) => ruleFilesShipped(rule.files ?? [], [pair.file]).length > 0)
+      : pairs;
     if (!vulnerable.length) {
       continue;
     }
