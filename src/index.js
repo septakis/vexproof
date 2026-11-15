@@ -253,11 +253,29 @@ export function applyRuleAliases(findings, rules) {
 /** The package version, read from package.json so a release cannot ship with a stale constant. */
 export const VERSION = createRequire(import.meta.url)('../package.json').version;
 
+// What a package's absence was read from, as a not_affected detail names it: the bundle SBOM (--bundle), the
+// production build's module map (--modules), or the deployment (--deploy).
+const ABSENCE_EVIDENCE = {
+  'bundle-sbom': (name) => `the bundle SBOM of the production build lists no component named ${name}`,
+  'module-map': (name) => `the production build's module map holds no file of ${name}`,
+  deployment: (name) => `the deployment holds no file of ${name}, and its source maps name none`,
+};
+
+/** The detail of a package-level not_affected statement, naming each kind of evidence in `shippedFrom`. */
+function absenceDetail(name, version, shippedFrom) {
+  const known = shippedFrom.filter((kind) => ABSENCE_EVIDENCE[kind]);
+  const reasons = (known.length ? known : ['bundle-sbom']).map((kind) => ABSENCE_EVIDENCE[kind](name));
+
+  return `${name}@${version ?? '?'} is in the lockfile SBOM, but ${reasons.join('; ')}. ` +
+    'The package\'s code is not present in the shipped artifact.';
+}
+
 /**
  * `moduleCheck` decides whether a package that IS in the bundle still doesn't ship the vulnerable code. It is not
  * part of this file: vexproof Pro supplies one (src/pro/module-check.js, under its own license). Without it,
  * every finding on a bundled package stays in_triage. `pro` says whether its answers may settle findings;
- * when false they are only counted (proWouldSettle).
+ * when false they are only counted (proWouldSettle). `shippedFrom` names what the bundle SBOM was read from
+ * ('bundle-sbom', 'module-map', 'deployment'), for the wording of a not_affected detail.
  */
 export function triage({
   lockfileSbom,
@@ -268,6 +286,7 @@ export function triage({
   moduleCheck = null,
   pro = false,
   acceptDerived = false,
+  shippedFrom = ['bundle-sbom'],
 }) {
   const lock = indexSbom(lockfileSbom);
   const bundle = indexSbom(bundleSbom, { withoutPurl: true });
@@ -333,10 +352,7 @@ export function triage({
       state = 'not_affected';
       justification = 'code_not_present';
       level = 'package';
-      detail =
-        `${key}@${parsed.version ?? '?'} appears in the lockfile SBOM but no component named ` +
-        `${key} appears in the bundle SBOM generated from the production build. ` +
-        `The package's code is not present in the shipped artifact.`;
+      detail = absenceDetail(parsed.name, parsed.version, shippedFrom);
     }
 
     results.push({ ...finding, key, state, justification, detail, level, evidence, proWouldSettle, moduleReason, origin: 'auto' });
@@ -414,14 +430,17 @@ export function toCycloneDxVex({
     throw new Error(`CycloneDX ${specVersion} is not supported; use ${CYCLONEDX_VERSIONS.join(' or ')}`);
   }
 
-  // the component counts are of components with a purl: the ones a finding can be matched against
+  // The component counts are of components with a purl: the ones a finding can be matched against. A serial
+  // number the SBOM doesn't have (a bundle SBOM vexproof made from a module map or a deployment) is left out.
   const evidence = {
     bundleSbomSerial: bundleSbom?.serialNumber ?? null,
     lockfileSbomSerial: lockfileSbom?.serialNumber ?? null,
     bundleComponentCount: sbomPurls(bundleSbom).length,
     lockfileComponentCount: sbomPurls(lockfileSbom).length,
   };
-  const metadataProperties = Object.entries(evidence).map(([name, value]) => ({ name: `vexproof:${name}`, value: String(value) }));
+  const metadataProperties = Object.entries(evidence)
+    .filter(([, value]) => value !== null)
+    .map(([name, value]) => ({ name: `vexproof:${name}`, value: String(value) }));
   for (const input of inputs) metadataProperties.push({ name: `vexproof:input:${input.role}:sha256`, value: input.sha256 });
   if (licensee) metadataProperties.push({ name: 'vexproof:licensee', value: licensee });
   if (scope) metadataProperties.push({ name: 'vexproof:scope', value: scope });

@@ -11,6 +11,7 @@ import { whatShipped } from '../../shipped.js';
 import { Stop, UsageError, EXIT } from '../../stop.js';
 import { pro, readJson, readText, sha256, log, loadLicense, licensedFor } from '../common.js';
 import { writeAll } from '../output.js';
+import { progressReporter } from '../../progress.js';
 
 const PRO_URL = 'https://vexproof.dev/#pricing';
 const DEFAULT_REVIEW_MAX_AGE_DAYS = 365;
@@ -41,7 +42,7 @@ async function readFindings(options, lockfileSbom, inputs) {
 }
 
 /** Keep open every package-level verdict whose package has its own strings in what ships (see content-check.js). */
-function checkContent(results, { moduleMap, shippedDirs, selfVouched, root }) {
+function checkContent(results, { moduleMap, shippedDirs, selfVouched, root, progress }) {
   if (!shippedDirs.length) {
     return;
   }
@@ -57,7 +58,7 @@ function checkContent(results, { moduleMap, shippedDirs, selfVouched, root }) {
     return files.filter((file) => !selfVouched.has(file));
   };
 
-  const check = contentCheck(results, { root, bases: installBases(root), shippedDirs, recorded });
+  const check = contentCheck(results, { root, bases: installBases(root), shippedDirs, recorded, progress });
   for (const kept of check.kept) {
     log(`vexproof: ${kept.name} is not in the build's records, but ${kept.hits.length} string(s) from its own files are in the shipped output (e.g. "${kept.hits[0].text}" in ${kept.hits[0].file}): its findings stay open`);
   }
@@ -121,9 +122,11 @@ export async function vex({ options, now, argv, env = process.env }) {
   const has = (feature) => licensedFor(license, feature);
   const findings = await readFindings(options, lockfileSbom, inputs);
 
+  // a large deployment takes minutes to read: its slow stages say how far they are
+  const progress = progressReporter(log);
   const shipped = whatShipped({
     lockfileSbom, findings, bundleSbom: givenBundle, modules: options.modules ?? [], deploy: options.deploy ?? null, maps: options.maps ?? null,
-    root, browserOnly: Boolean(options['browser-only']), readJson, sha256, log,
+    root, browserOnly: Boolean(options['browser-only']), readJson, sha256, log, progress,
   });
   inputs.push(...shipped.inputs);
   const { moduleMap, bundleSbom } = shipped;
@@ -141,13 +144,19 @@ export async function vex({ options, now, argv, env = process.env }) {
     } else log('vexproof: --rules is a Pro feature; ignoring it');
   }
 
+  // what each package's absence is read from, as its not_affected detail says
+  const shippedFrom = [
+    ...(givenBundle ? ['bundle-sbom'] : []),
+    ...(options.modules?.length ? ['module-map'] : []),
+    ...(options.deploy?.length ? ['deployment'] : []),
+  ];
   const results = triage({
     lockfileSbom, bundleSbom, findings, moduleMap, rules, moduleCheck: pro?.evaluateModuleRule ?? null,
-    pro: has('modules'), acceptDerived: Boolean(options['accept-derived']) && has('modules'),
+    pro: has('modules'), acceptDerived: Boolean(options['accept-derived']) && has('modules'), shippedFrom,
   });
 
   // Independent of the maps: a package about to be called absent must not have its own strings in what ships.
-  checkContent(results, { moduleMap, shippedDirs: shipped.shippedDirs, selfVouched: shipped.selfVouched, root });
+  checkContent(results, { moduleMap, shippedDirs: shipped.shippedDirs, selfVouched: shipped.selfVouched, root, progress });
   attachFingerprints(results, { moduleMap, rules, cwd: root });
 
   let gateSkipped = null;

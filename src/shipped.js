@@ -10,6 +10,7 @@ import { readDeployment, mergeModuleMaps, defaultMapDirs, inlineMapPackages, dep
 import { normalizeFindings, parsePurl, indexSbom, NpmNameSet } from './index.js';
 import { readPackageJson } from './package-json.js';
 import { Stop } from './stop.js';
+import { NO_PROGRESS } from './progress.js';
 
 // Frameworks whose apps also run code on a server. Their packages can be missing from the browser bundle and
 // still run in production, so a browser module map cannot stand for the whole product.
@@ -121,9 +122,9 @@ function readOneModuleMap(file, { root, lockNames, state, readJson, sha256, log 
 }
 
 /** The deployment folders, read and checked. Adds to `state`. Returns the deployment's module map. */
-function readOneDeployment(dirs, { root, maps: mapOption, lockNames, browserOnly, state, log }) {
+function readOneDeployment(dirs, { root, maps: mapOption, lockNames, browserOnly, state, log, progress }) {
   const mapDirs = mapOption ?? defaultMapDirs(dirs, root);
-  const deployment = readDeployment(dirs, { root, mapDirs, lockNames });
+  const deployment = readDeployment(dirs, { root, mapDirs, lockNames, progress });
 
   if (deployment.missingDirs.length) {
     throw new Stop(`--deploy ${deployment.missingDirs.join(', ')}: no such folder under ${root}. A folder that is not read can't be vouched for.`);
@@ -188,7 +189,7 @@ function readOneDeployment(dirs, { root, maps: mapOption, lockNames, browserOnly
 
   for (const path of deployment.selfVouched) state.selfVouched.add(resolve(root, path));
   for (const dir of dirs) state.shippedDirs.push(resolve(root, dir));
-  const digest = deploymentDigest(dirs, root, { mapsRead: deployment.mapsRead });
+  const digest = deploymentDigest(dirs, root, { mapsRead: deployment.mapsRead, progress });
   state.inputs.push({ role: 'deployment', path: dirs.join(','), sha256: digest });
 
   return deployment;
@@ -302,14 +303,17 @@ function checkServer({ maps, deployment, lockfileSbom, root, browserOnly }) {
  * moduleMap is null when only a bundle SBOM was given; inputs are the module maps and deployment read, for the
  * VEX's evidence. Throws a Stop when a check fails.
  */
-export function whatShipped({ lockfileSbom, findings, bundleSbom, modules = [], deploy = null, maps: mapDirs = null, root, browserOnly = false, readJson, sha256, log }) {
+export function whatShipped({
+  lockfileSbom, findings, bundleSbom, modules = [], deploy = null, maps: mapDirs = null, root, browserOnly = false, readJson, sha256, log,
+  progress = NO_PROGRESS,
+}) {
   // the lockfile's npm package names, matched without regard to case (see src/names.js)
   const lockNames = new NpmNameSet([...indexSbom(lockfileSbom).keys()].filter((key) => key.startsWith('npm/')).map((key) => key.slice(4)));
   // Project files that vouch for an output file only by being its git-tracked original (public/vendor/x.js). They
   // are not records of what a bundler put in: a vendored package's file passes this way too. So the content check
   // must not count their strings as explained, or the shipped copy would explain itself away.
   const state = { shippedDirs: [], selfVouched: new Set(), inputs: [] };
-  const context = { root, lockNames, state, readJson, sha256, log };
+  const context = { root, lockNames, state, readJson, sha256, log, progress };
 
   const maps = modules.map((file) => readOneModuleMap(file, context));
   const deployment = deploy ? readOneDeployment(deploy, { ...context, maps: mapDirs, browserOnly }) : null;

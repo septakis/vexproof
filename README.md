@@ -194,7 +194,7 @@ details, commented "CycloneDX VEX". Two things to know:
 ## GitHub Action
 
 ```yaml
-- uses: septakis/vexproof@v1.0.0-beta.10      # after your build and SBOM steps
+- uses: septakis/vexproof@v1.0.0-beta.11      # after your build and SBOM steps
   with:
     lockfile: bom.lockfile.json
     bundle: dist/bom.bundle.json
@@ -243,7 +243,7 @@ vexproof dependabot --vex vex.cdx.json --lockfile bom.lockfile.json --dry-run
 The Action does this after it writes the VEX, including when `fail-on` stops the job:
 
 ```yaml
-- uses: septakis/vexproof@v1.0.0-beta.10
+- uses: septakis/vexproof@v1.0.0-beta.11
   with:
     lockfile: bom.lockfile.json
     bundle: dist/bom.bundle.json
@@ -460,7 +460,7 @@ covers. Still no network calls. Help for open-source licenses is through GitHub 
 
 ## Tests
 
-`npm test` runs 318 tests, including schema validation of both output formats. Most fixtures are
+`npm test` runs 324 tests, including schema validation of both output formats. Most fixtures are
 real builds, slimmed down:
 
 - two Angular 20 apps, one using only `capitalize` and one also using `template` and `omit`,

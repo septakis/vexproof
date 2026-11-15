@@ -30,6 +30,7 @@ import { npmName } from './names.js';
 import { readPackageJson } from './package-json.js';
 import { listFiles } from './walk.js';
 import { copyFinder } from './copies.js';
+import { NO_PROGRESS } from './progress.js';
 
 const JS = /\.(m|c)?js$/;
 // TypeScript that Node 22.18+ and 24 run as it is (type stripping); declaration files hold no code
@@ -432,7 +433,7 @@ export function mapSources(map, mapFile, root, bases = [root]) {
  * runs through a node_modules folder that was never published (@formatjs's maps name files under its build
  * tool's `node_modules/.aspect_rules_js/`).
  */
-function packageMapIndex(root, bases) {
+function packageMapIndex(root, bases, progress = NO_PROGRESS) {
   // every package that names a source, not the first: two packages can publish maps that point at the same
   // place ("../../../src/index.ts"), and crediting both can only add to what counts as shipped
   const index = new Map();
@@ -446,7 +447,10 @@ function packageMapIndex(root, bases) {
     }
   };
 
-  for (const file of bases.flatMap((base) => walk(resolve(base, 'node_modules')))) {
+  const installedFiles = bases.flatMap((base) => walk(resolve(base, 'node_modules')));
+  const stage = progress.stage('indexing the source maps installed packages publish', installedFiles.length);
+  for (const [position, file] of installedFiles.entries()) {
+    stage.step(position + 1);
     if (!file.endsWith('.map')) {
       continue;
     }
@@ -471,6 +475,7 @@ function packageMapIndex(root, bases) {
       }
     }
   }
+  stage.end();
 
   return index;
 }
@@ -917,7 +922,7 @@ export function defaultMapDirs(dirs, root = process.cwd()) {
  *   missingDirs, missingHalves, hasServer
  * `lockNames` (Set of npm package names in the lockfile SBOM) limits the runtime-import check to real dependencies.
  */
-export function readDeployment(dirs, { root = process.cwd(), mapDirs = [], lockNames = null } = {}) {
+export function readDeployment(dirs, { root = process.cwd(), mapDirs = [], lockNames = null, progress = NO_PROGRESS } = {}) {
   const packages = new Map();
   const whole = new Set();
   const own = new Set();
@@ -1051,7 +1056,9 @@ export function readDeployment(dirs, { root = process.cwd(), mapDirs = [], lockN
   let mapped = 0;
   let copied = 0;
   let serverCode = 0;
-  for (const file of files) {
+  const reading = progress.stage('reading the deployment', files.length);
+  for (const [position, file] of files.entries()) {
+    reading.step(position + 1);
     if (!JS.test(file) && !file.endsWith('.json') && !file.endsWith('.node') && !isTs(file)) {
       continue;
     }
@@ -1186,7 +1193,7 @@ export function readDeployment(dirs, { root = process.cwd(), mapDirs = [], lockN
           continue;
         }
 
-        packageMaps ??= packageMapIndex(root, bases);
+        packageMaps ??= packageMapIndex(root, bases, progress);
         const owners = packageMaps.get(source.path) ?? packageMaps.get(source.literal) ?? packageMaps.raw.get(source.raw);
         if (owners) {
           for (const owner of owners) {
@@ -1270,6 +1277,7 @@ export function readDeployment(dirs, { root = process.cwd(), mapDirs = [], lockN
 
     unmapped.push(relativePath);
   }
+  reading.end();
 
   // compiled code outside node_modules (a .node addon or .wasm file a bundler copied): whose it is, if it is a copy
   for (const file of files) {
@@ -1329,7 +1337,9 @@ export function readDeployment(dirs, { root = process.cwd(), mapDirs = [], lockN
     // require("x") and its bundled spellings (__require, nodeRequire), import/from "x", and a call on a call,
     // createRequire(import.meta.url)("x"); loadedSpecifiers then says which of these really are loads
     const LOADS = /(?:require\d*|import|from)\s*\(?\s*["']([^"'./][^"']*)["']|\)\s*\(\s*["']([^"'./][^"']*)["']/gi;
-    for (const file of files) {
+    const loadsStage = progress.stage('checking what deployed packages load', files.length);
+    for (const [position, file] of files.entries()) {
+      loadsStage.step(position + 1);
       if (!JS.test(file) || !/[\\/]node_modules[\\/]/.test(file)) {
         continue;
       }
@@ -1365,6 +1375,7 @@ export function readDeployment(dirs, { root = process.cwd(), mapDirs = [], lockN
         }
       }
     }
+    loadsStage.end();
 
     for (const name of outside.keys()) {
       add(`node_modules/${name}/package.json`);
@@ -1408,7 +1419,7 @@ export function readDeployment(dirs, { root = process.cwd(), mapDirs = [], lockN
  * content, in path order. Other maps, and files under no code extension, are left out. Two deployments with
  * the same digest got the same verdicts from the same evidence.
  */
-export function deploymentDigest(dirs, root = process.cwd(), { mapsRead = [] } = {}) {
+export function deploymentDigest(dirs, root = process.cwd(), { mapsRead = [], progress = NO_PROGRESS } = {}) {
   const hash = createHash('sha256');
   const byPath = (first, second) => {
     if (first[0] < second[0]) {
@@ -1423,7 +1434,9 @@ export function deploymentDigest(dirs, root = process.cwd(), { mapsRead = [] } =
     .map((file) => [posix(relative(root, file)), file])
     .sort(byPath);
 
-  for (const [relativePath, file] of files) {
+  const stage = progress.stage('computing the deployment digest', files.length);
+  for (const [position, [relativePath, file]] of files.entries()) {
+    stage.step(position + 1);
     let buffer;
     try {
       buffer = readFileSync(file);
@@ -1433,6 +1446,7 @@ export function deploymentDigest(dirs, root = process.cwd(), { mapsRead = [] } =
 
     hash.update(`${relativePath}\0${buffer.length}\0`).update(buffer);
   }
+  stage.end();
 
   return hash.digest('hex');
 }

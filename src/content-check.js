@@ -14,6 +14,7 @@ import { join, resolve, relative, sep } from 'node:path';
 import { npmName } from './names.js';
 import { readPackageJson } from './package-json.js';
 import { listFiles } from './walk.js';
+import { NO_PROGRESS } from './progress.js';
 
 const JAVASCRIPT = /\.(m|c)?js$/;
 const SHIPPED = /\.(m|c)?js$|\.html?$/i;
@@ -186,7 +187,7 @@ function shippedFiles(directories) {
  * `recorded()` returns the absolute paths of the files the build's records name as shipped (package files and
  * the project's own). It is called only when something was found.
  */
-export function findPackageText(absent, { root, bases, shippedDirs, recorded = () => [] }) {
+export function findPackageText(absent, { root, bases, shippedDirs, recorded = () => [], progress = NO_PROGRESS }) {
   const out = new Map();
   const wanted = [...new Set(absent)];
   if (!wanted.length || !shippedDirs.length) {
@@ -227,7 +228,10 @@ export function findPackageText(absent, { root, bases, shippedDirs, recorded = (
   }
 
   const found = new Map(); // marker -> file
-  for (const file of shippedFiles(shippedDirs)) {
+  const files = shippedFiles(shippedDirs);
+  const stage = progress.stage(`content check of ${wanted.length} absent package(s)`, files.length);
+  for (const [position, file] of files.entries()) {
+    stage.step(position + 1);
     let text;
     try {
       if (statSync(file).size > 64 * 1024 * 1024) {
@@ -264,6 +268,8 @@ export function findPackageText(absent, { root, bases, shippedDirs, recorded = (
       }
     }
   }
+  stage.end();
+
   if (!found.size) {
     return out;
   }

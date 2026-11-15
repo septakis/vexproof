@@ -6,6 +6,23 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+## [1.0.0-beta.11] - 2026-11-14
+
+Polish from the beta smoke tests: a long run says what it is doing, and a VEX made from a deployment says so.
+
+### Changed
+- **A slow stage says how far it is.** Reading a large deployment took minutes with nothing printed after its first
+  line, which looked like a hang. Each slow stage (reading the deployment, indexing the source maps installed
+  packages publish, checking what deployed packages load, the digest, the content check) now says how far it is
+  once it has run for 5 seconds, at most every 20 seconds, and its time when it ends. A quick run prints nothing
+  new.
+- **A `not_affected` detail names its evidence.** A package missing from a deployment was said to be missing from
+  "the bundle SBOM generated from the production build", which a `--deploy` run doesn't have. The detail now names
+  what was read: the bundle SBOM, the production build's module map, or the deployment and its source maps. It
+  names the package as npm does (`webpack@5.97.1`, not `npm/webpack@5.97.1`).
+- `vexproof:bundleSbomSerial` and `vexproof:lockfileSbomSerial` are left out when the SBOM has no serial number
+  (vexproof made the bundle SBOM from a module map or a deployment); they were written as the string `null`.
+
 ## [1.0.0-beta.10] - 2026-11-14
 
 A code audit of 1.0.0-beta.9 (five independent reviews, each finding reproduced) found about twenty more ways to
@@ -474,7 +491,8 @@ module map; findings from npm, pnpm, yarn and bun audit, osv-scanner, Trivy, Gry
 directly; Vite, Rollup, webpack, Rspack, esbuild, bun and Angular inputs; `--deploy` for server-rendered apps;
 `vexproof review` and `vexproof rules derive`; Pro module-level analysis, baselines and the evidence report.
 
-[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.10...HEAD
+[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.11...HEAD
+[1.0.0-beta.11]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.11
 [1.0.0-beta.10]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.10
 [1.0.0-beta.9]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.9
 [1.0.0-beta.8]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.8

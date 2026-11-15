@@ -3,7 +3,7 @@
 // of 1.0.0-beta.9. Each one gave not_affected for a package that ships.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { triage, indexSbom, packageKey, parsePurl, NpmNameSet } from '../src/index.js';
+import { triage, toCycloneDxVex, indexSbom, packageKey, parsePurl, NpmNameSet } from '../src/index.js';
 
 const bom = (components) => ({ bomFormat: 'CycloneDX', specVersion: '1.6', serialNumber: 'urn:uuid:11111111-1111-4111-8111-111111111111', components });
 const lib = (purl, extra = {}) => ({ type: 'library', purl, ...extra });
@@ -74,4 +74,36 @@ test('a purl with a broken %-escape is left open, not fatal', () => {
 
   assert.equal(result.state, 'in_triage');
   assert.match(result.detail, /Could not parse purl/);
+});
+
+test('a not_affected detail names the evidence the package is absent from', () => {
+  const lock = bom([lib('pkg:npm/webpack@5.97.1'), lib('pkg:npm/react@18.3.1')]);
+  const bundle = bom([lib('pkg:npm/react@18.3.1')]);
+  const findings = [{ purl: 'pkg:npm/webpack@5.97.1', ids: ['GHSA-gone-0001'] }];
+  const detail = (shippedFrom) => triage({ lockfileSbom: lock, bundleSbom: bundle, findings, ...(shippedFrom ? { shippedFrom } : {}) })[0].detail;
+
+  // the library default: a bundle SBOM
+  assert.match(detail(), /^webpack@5\.97\.1 is in the lockfile SBOM, but the bundle SBOM of the production build lists no component named webpack\. /);
+
+  assert.match(detail(['module-map']), /but the production build's module map holds no file of webpack\. /);
+
+  // a deployment has no bundle SBOM, and its detail says none
+  const fromDeployment = detail(['deployment']);
+  assert.match(fromDeployment, /but the deployment holds no file of webpack, and its source maps name none\. /);
+  assert.doesNotMatch(fromDeployment, /bundle SBOM/);
+
+  assert.match(detail(['module-map', 'deployment']), /module map holds no file of webpack; the deployment holds no file of webpack/);
+});
+
+test('a serial number an SBOM does not have is left out of the VEX, not written as "null"', () => {
+  const lock = bom([lib('pkg:npm/react@18.3.1')]);
+  const madeFromModules = { components: [lib('pkg:npm/react@18.3.1')] }; // vexproof's own, from a module map: no serial
+  const results = triage({ lockfileSbom: lock, bundleSbom: madeFromModules, findings: [] });
+  const property = (vex, name) => vex.metadata.properties.find((entry) => entry.name === name);
+
+  const vex = toCycloneDxVex({ results, bundleSbom: madeFromModules, lockfileSbom: lock, productPurl: 'pkg:npm/app@1.0.0' });
+
+  assert.equal(property(vex, 'vexproof:bundleSbomSerial'), undefined);
+  assert.equal(property(vex, 'vexproof:lockfileSbomSerial').value, lock.serialNumber);
+  assert.ok(!vex.metadata.properties.some((entry) => entry.value === 'null'));
 });

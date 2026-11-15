@@ -41,6 +41,8 @@ export interface TriageOptions {
   moduleCheck?: ((input: Record<string, unknown>) => { ok: boolean; reason?: string | null; detail?: string; evidence?: unknown; derived?: boolean }) | null;
   pro?: boolean;
   acceptDerived?: boolean;
+  /** What the bundle SBOM was read from, named in a not_affected detail. Default: `['bundle-sbom']`. */
+  shippedFrom?: Array<'bundle-sbom' | 'module-map' | 'deployment'>;
 }
 
 export interface VexOptions {

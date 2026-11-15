@@ -173,7 +173,7 @@ to identify the repository and the run. It never sets any.
 | 1 | The `--fail-on` gate tripped. The VEX was still written. |
 | 2 | vexproof stopped: a missing or unknown option, an unreadable or unrecognised input, an incomplete module map, or a lookup that failed after retries. Nothing was written. For `vexproof dependabot`, 2 also means that some alert updates failed after others were made; the summary lists each alert and what happened to it. |
 
-The summary goes to standard output; diagnostics, warnings and hints go to standard error.
+The summary goes to standard output; diagnostics, warnings and hints go to standard error, and so does progress: a stage that runs longer than a few seconds (reading a large deployment, its digest, the content check) says how far it is.
 
 ## Inputs
 
@@ -211,8 +211,8 @@ Document properties (`metadata.properties`):
 
 | Name | Value |
 |---|---|
-| `vexproof:bundleSbomSerial` | Serial number of the bundle SBOM, or `null`. |
-| `vexproof:lockfileSbomSerial` | Serial number of the lockfile SBOM, or `null`. |
+| `vexproof:bundleSbomSerial` | Serial number of the bundle SBOM; left out when it has none (vexproof made it from a module map or a deployment). |
+| `vexproof:lockfileSbomSerial` | Serial number of the lockfile SBOM; left out when it has none. |
 | `vexproof:bundleComponentCount` | Components in the bundle SBOM. |
 | `vexproof:lockfileComponentCount` | Components in the lockfile SBOM. |
 | `vexproof:input:<role>:sha256` | SHA-256 of each input file, by role (`lockfile-sbom`, `bundle-sbom`, `module-map` and, for a second and later one, `module-map-2`, …, `deployment`, `findings-<format>`, `rules`, `baseline-vex`). A deployment's covers its code files and the source maps they were read with. |

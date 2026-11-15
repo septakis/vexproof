@@ -268,6 +268,30 @@ test('CLI: a whole-app deployment satisfies the server check; a browser-only fol
   assert.match(whole.stdout, /in_triage\s+GHSA-rrrm-qjm4-v8hf/); // marked is deployed on the server
 });
 
+test('CLI: a package absent from a deployment is said to be absent from the deployment, not from a bundle SBOM', () => {
+  const root = app();
+  const sbom = {
+    serialNumber: 'urn:uuid:11111111-2222-3333-4444-555555555555',
+    version: 1,
+    components: ['lodash@4.17.21', 'marked@4.0.9', 'left-pad@1.3.0'].map((component) => ({ purl: `pkg:npm/${component}`, 'bom-ref': component })),
+  };
+  writeFileSync(join(root, 'bom.json'), JSON.stringify(sbom));
+  writeFileSync(join(root, 'findings.json'), JSON.stringify([{ purl: 'pkg:npm/left-pad@1.3.0', ids: ['GHSA-left-0001'] }]));
+
+  const result = spawnSync(
+    process.execPath,
+    [CLI, '--lockfile', 'bom.json', '--findings', 'findings.json', '--out', 'vex.json', '--quiet', '--deploy', 'out/server'],
+    { cwd: root, encoding: 'utf8', env: { ...process.env, VEXPROOF_LICENSE: '' } },
+  );
+
+  assert.equal(result.status, 0, result.stderr);
+  const vex = JSON.parse(readFileSync(join(root, 'vex.json'), 'utf8'));
+  const statement = vex.vulnerabilities.find((vulnerability) => vulnerability.id === 'GHSA-left-0001');
+  assert.equal(statement.analysis.state, 'not_affected');
+  assert.match(statement.analysis.detail, /^left-pad@1\.3\.0 is in the lockfile SBOM, but the deployment holds no file of left-pad, and its source maps name none\./);
+  assert.ok(!vex.metadata.properties.some((property) => property.name === 'vexproof:bundleSbomSerial'));
+});
+
 test('CLI: the VEX records a deployment digest that covers the source maps read from a --maps folder', () => {
   const root = app({
     'out/static/app.js': 'function a(){}\n//# sourceMappingURL=app.js.map',
