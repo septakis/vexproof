@@ -57,12 +57,12 @@ Output:
   --out <file>            CycloneDX VEX (default vex.cdx.json)
   --spec-version <v>      CycloneDX 1.6 (default) or 1.7. Trivy reads 1.7 from
                           0.71, Dependency-Track from 4.14
-  --openvex <file>        also write OpenVEX (Trivy and Grype apply it to any
-                          scan)
+  --openvex <file>        also write OpenVEX (Trivy applies it to a scan of the
+                          lockfile SBOM)
   --openvex-package-products
                           add package-as-product statements, which Grype needs
-                          for directory and SBOM scans; use that file only for
-                          this app
+                          for directory and SBOM scans and Trivy for directory
+                          scans (trivy fs); use that file only for this app
   --browser-only          the VEX covers the browser bundle only (required when
                           the app also has a server build; name that artifact
                           with --product)

@@ -176,8 +176,9 @@ carries both on every statement (from OSV and its own rules), so one VEX file ma
 
 | Scanner | Give it | Command | Notes |
 |---|---|---|---|
-| Trivy, any target | `--openvex vex.openvex.json` | `trivy fs . --vex vex.openvex.json` | Product = the app PURL, subcomponent = the package. The app PURL must be what Trivy sees as the project root (default: the lockfile SBOM's own component). |
-| Trivy, SBOM scan | `--out vex.cdx.json` | `trivy sbom bom.lockfile.json --vex vex.cdx.json` | `affects` are BOM-Links into that exact lockfile SBOM (serial + version). Trivy keeps one CycloneDX statement per ID, so prefer OpenVEX when two packages share an advisory. |
+| Trivy, SBOM scan with OpenVEX | `--openvex vex.openvex.json` | `trivy sbom bom.lockfile.json --vex vex.openvex.json` | Product = the app PURL, subcomponent = the package. The app PURL must be the SBOM's own component (the default). |
+| Trivy, directory scan | `--openvex vex.openvex.json --openvex-package-products` | `trivy fs . --vex vex.openvex.json` | Trivy reads no root package from an npm, pnpm or Yarn lockfile, so on `trivy fs` a statement about the app matches nothing. The flag adds the package's own PURL as a product. Use that file only for this app. |
+| Trivy, SBOM scan with CycloneDX | `--out vex.cdx.json` | `trivy sbom bom.lockfile.json --vex vex.cdx.json` | `affects` are BOM-Links into that exact lockfile SBOM (serial + version). Trivy keeps one CycloneDX statement per ID, so prefer OpenVEX when two packages share an advisory. |
 | Grype, SBOM or directory scan | `--openvex vex.openvex.json --openvex-package-products` | `grype sbom:bom.lockfile.json --vex vex.openvex.json` | Grype only matches the package's own PURL as the product on these scans, so the flag adds that form. Use that file only for this app. |
 | Dependency-Track | `--out vex.cdx.json` | upload after the lockfile SBOM has been analysed ([below](#dependency-track)) | Each entry names its source (`GITHUB` for GHSA, `NVD` for CVE), which Dependency-Track 4.x needs. Applies to every component with the finding. |
 | Anchore, other CycloneDX tools | `--out vex.cdx.json` | upload beside the lockfile SBOM | CycloneDX 1.6, or 1.7 with `--spec-version 1.7`, validated against the official schema. |

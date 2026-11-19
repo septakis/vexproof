@@ -47,7 +47,7 @@ vx() { "$vexproof" --lockfile bom.lockfile.json --modules dist/meta.json --quiet
 vx --out vex.osv.cdx.json --openvex vex.osv.openvex.json
 vx --out vex.osv17.cdx.json --spec-version 1.7
 vx --out vex.osv.pp.cdx.json --openvex vex.osv.pp.openvex.json --openvex-package-products
-vx --findings trivy.fs.json --out vex.trivy.cdx.json --openvex vex.trivy.openvex.json
+vx --findings trivy.fs.json --out vex.trivy.cdx.json --openvex vex.trivy.openvex.json --openvex-package-products
 vx --findings grype.sbom.json --out vex.grype.cdx.json --openvex vex.grype.openvex.json --openvex-package-products
 
 # 5. The same scans with the VEX applied, each checked against the CycloneDX VEX from the same run.
@@ -55,8 +55,9 @@ failed=0; ran=0
 check() { ran=$((ran + 1)); node "$here/live-check.mjs" "$@" || failed=$((failed + 1)); }
 newer() { [ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | head -1)" = "$2" ]; }  # $1 >= $2
 
-trivy fs --quiet --scanners vuln --format json --output t1.json --vex vex.osv.openvex.json .
-check --scanner trivy --label "Trivy fs, OpenVEX" --baseline trivy.fs.json --with t1.json --vex vex.osv.cdx.json
+# Trivy reads no root package from a lockfile, so a directory scan needs the package-as-product statements.
+trivy fs --quiet --scanners vuln --format json --output t1.json --vex vex.osv.pp.openvex.json .
+check --scanner trivy --label "Trivy fs, OpenVEX" --baseline trivy.fs.json --with t1.json --vex vex.osv.pp.cdx.json
 trivy sbom --quiet --format json --output t2.json --vex vex.osv.openvex.json bom.lockfile.json
 check --scanner trivy --label "Trivy sbom, OpenVEX" --baseline trivy.sbom.json --with t2.json --vex vex.osv.cdx.json
 trivy sbom --quiet --format json --output t3.json --vex vex.osv.cdx.json bom.lockfile.json

@@ -11,6 +11,16 @@ public API, so a breaking change to either is a major release.
   site does: $1,200 per year for an organization of up to 500 employees.
 - The demo installs minimist without importing it, so a run without a license settles a finding.
 
+### Fixed
+- The README and `--help` said Trivy applies the default OpenVEX file to any scan. On a directory scan
+  (`trivy fs`) it applied nothing: Trivy reads no root package from an npm, pnpm or Yarn lockfile, so a
+  statement whose product is the app matches no package. A directory scan needs
+  `--openvex-package-products`, as Grype does; a scan of the lockfile SBOM (`trivy sbom`) works with the
+  default file. Checked with Trivy 0.76.2.
+- `interop/live.sh` reported every check as passed on Windows without comparing anything, because
+  `live-check.mjs` did not recognise itself as the script being run. Its two `trivy fs` checks now use the
+  package-product file.
+
 ## [1.0.0-beta.13] - 2026-11-15
 
 Pro settles Vite's dev-server advisories, which every Vite build kept open.

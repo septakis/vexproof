@@ -5,6 +5,7 @@
 //   node live-check.mjs --scanner trivy|grype --label "…" --baseline a.json --with b.json --vex vex.cdx.json
 // Prints one line (PASS or FAIL, with counts) and the differences on failure. Exit 0 on PASS, 1 on FAIL.
 import { readFileSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
 
 const argv = process.argv.slice(2);
 const opt = (k) => { const i = argv.indexOf(`--${k}`); return i >= 0 ? argv[i + 1] : undefined; };
@@ -56,7 +57,7 @@ export function compare({ baseline, withVex, vex }) {
   };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const scanner = opt('scanner');
   const r = compare({ baseline: findings(read(opt('baseline')), scanner), withVex: findings(read(opt('with')), scanner), vex: read(opt('vex')) });
   const label = (opt('label') ?? scanner).padEnd(46);
