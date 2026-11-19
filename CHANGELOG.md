@@ -6,6 +6,11 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+### Added
+- The GitHub Action has an `openvex-package-products` input, for the command's flag of the same name. Until
+  now the OpenVEX file the Action wrote could not carry the statements Grype and `trivy fs` need, so those
+  scans applied nothing from it.
+
 ### Changed
 - The Pro License (version 1.1) says a paid key bought at the listed price covers an organization of up to 500
   employees, counted on the day of purchase and of each renewal. Larger organizations need a key at a quoted

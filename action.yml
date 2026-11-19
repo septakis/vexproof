@@ -39,6 +39,9 @@ inputs:
   openvex:
     description: OpenVEX output path (what Trivy and Grype apply). Empty to skip.
     default: vex.openvex.json
+  openvex-package-products:
+    description: Set to true when Grype, or a Trivy directory scan (trivy fs), will apply the OpenVEX file. Adds each package as a product; use that file only for this app.
+    default: 'false'
   report:
     description: HTML evidence report path (Pro). Empty to skip.
     required: false
@@ -130,6 +133,7 @@ runs:
         IN_CSAF_PREVIOUS: ${{ inputs.csaf-previous }}
         IN_OUT: ${{ inputs.out }}
         IN_OPENVEX: ${{ inputs.openvex }}
+        IN_OPENVEX_PACKAGE_PRODUCTS: ${{ inputs.openvex-package-products }}
         IN_SPEC: ${{ inputs.spec-version }}
         IN_REPORT: ${{ inputs.report }}
         IN_BASELINE: ${{ inputs.baseline }}
@@ -156,6 +160,7 @@ runs:
         [ -n "$IN_RULES" ]    && args+=(--rules "$IN_RULES")
         [ "$IN_ACCEPT_DERIVED" = "true" ] && args+=(--accept-derived)
         [ -n "$IN_OPENVEX" ]  && args+=(--openvex "$IN_OPENVEX")
+        [ "$IN_OPENVEX_PACKAGE_PRODUCTS" = "true" ] && args+=(--openvex-package-products)
         [ -n "$IN_SPEC" ]     && args+=(--spec-version "$IN_SPEC")
         [ -n "$IN_REPORT" ]   && args+=(--report "$IN_REPORT")
         [ -n "$IN_BASELINE" ] && args+=(--baseline "$IN_BASELINE")

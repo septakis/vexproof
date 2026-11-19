@@ -231,6 +231,8 @@ details, commented "CycloneDX VEX". Two things to know:
 The Action runs the vexproof release its tag names (pinning a commit runs that release too, from npm). Set
 `version:` to run another release. It needs Node.js 22 or later on the runner. Every option of the command
 is an input of the same name (`root`, `browser-only`, `rules`, `csaf-status`, …); see `action.yml`.
+If Grype or `trivy fs` will apply the OpenVEX file, set `openvex-package-products: true`
+([why](#works-with-your-scanner)).
 
 ## Dependabot (Pro)
 
