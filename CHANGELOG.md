@@ -6,6 +6,10 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+## [1.0.0-beta.15] - 2026-11-19
+
+The GitHub Action can write OpenVEX for Grype and `trivy fs`, and the package carries Pro License 1.1.
+
 ### Added
 - The GitHub Action has an `openvex-package-products` input, for the command's flag of the same name. Until
   now the OpenVEX file the Action wrote could not carry the statements Grype and `trivy fs` need, so those
@@ -564,7 +568,8 @@ module map; findings from npm, pnpm, yarn and bun audit, osv-scanner, Trivy, Gry
 directly; Vite, Rollup, webpack, Rspack, esbuild, bun and Angular inputs; `--deploy` for server-rendered apps;
 `vexproof review` and `vexproof rules derive`; Pro module-level analysis, baselines and the evidence report.
 
-[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.14...HEAD
+[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.15...HEAD
+[1.0.0-beta.15]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.15
 [1.0.0-beta.14]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.14
 [1.0.0-beta.13]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.13
 [1.0.0-beta.12]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.12
