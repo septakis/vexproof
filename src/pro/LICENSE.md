@@ -1,6 +1,6 @@
 # vexproof Pro License
 
-Version 1.0, October 2026
+Version 1.1, November 2026
 
 Copyright (c) 2026 Brad Stevenson, who publishes vexproof under the name Septakis ("we", "us").
 
@@ -42,7 +42,10 @@ While you hold a License Key that has not expired:
 
 - **Paid key.** The Organization may use the Pro Features on any number of products,
   repositories, machines and build runners, by any number of its people, for software it keeps
-  internal and for software it ships to others.
+  internal and for software it ships to others. A paid key bought at a price we list for
+  Organizations up to a stated size (today, up to 500 employees) covers an Organization only if it
+  was no larger than that on the day it bought the key and on the day of each renewal. A larger
+  Organization needs a key bought at the price we quote for its size.
 - **Open-source key.** Anyone may use the Pro Features on the repositories named in the key, for
   as long as those repositories are public.
 
