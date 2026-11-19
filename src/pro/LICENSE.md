@@ -45,7 +45,8 @@ While you hold a License Key that has not expired:
   internal and for software it ships to others. A paid key bought at a price we list for
   Organizations up to a stated size (today, up to 500 employees) covers an Organization only if it
   was no larger than that on the day it bought the key and on the day of each renewal. A larger
-  Organization needs a key bought at the price we quote for its size.
+  Organization needs a key bought at the price we quote for its size. This size condition does
+  not apply where we quoted or agreed the price for that Organization in writing.
 - **Open-source key.** Anyone may use the Pro Features on the repositories named in the key, for
   as long as those repositories are public.
 

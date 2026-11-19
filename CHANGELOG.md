@@ -9,7 +9,8 @@ public API, so a breaking change to either is a major release.
 ### Changed
 - The Pro License (version 1.1) says a paid key bought at the listed price covers an organization of up to 500
   employees, counted on the day of purchase and of each renewal. Larger organizations need a key at a quoted
-  price. Nothing in the software changes.
+  price, and the size condition does not apply where we quoted or agreed the price in writing. Nothing in the
+  software changes.
 
 ## [1.0.0-beta.14] - 2026-11-18
 
