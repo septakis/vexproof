@@ -23,26 +23,10 @@
           "range": ">=4.0.0 <=4.17.23"
         },
         {
-          "source": 1115810,
+          "source": 1244531,
           "name": "lodash",
           "dependency": "lodash",
-          "title": "lodash vulnerable to Prototype Pollution via array path bypass in `_.unset` and `_.omit`",
-          "url": "https://github.com/advisories/GHSA-f23m-r3pf-42rh",
-          "severity": "moderate",
-          "cwe": [
-            "CWE-1321"
-          ],
-          "cvss": {
-            "score": 6.5,
-            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:L"
-          },
-          "range": "<=4.17.23"
-        },
-        {
-          "source": 1120370,
-          "name": "lodash",
-          "dependency": "lodash",
-          "title": "Lodash has Prototype Pollution Vulnerability in `_.unset` and `_.omit` functions",
+          "title": "Lodash has Prototype Pollution Vulnerability in `_.unset`, `_.omit`, and `_.pullAt` functions",
           "url": "https://github.com/advisories/GHSA-xxjr-mmjv-4gpg",
           "severity": "moderate",
           "cwe": [
@@ -55,10 +39,59 @@
           "range": ">=4.0.0 <=4.17.22"
         }
       ],
-      "effects": [],
-      "range": "<=4.17.23",
+      "effects": [
+        "recharts"
+      ],
+      "range": "4.0.0 - 4.17.23",
       "nodes": [
         "node_modules/lodash"
+      ],
+      "fixAvailable": true
+    },
+    "minimist": {
+      "name": "minimist",
+      "severity": "critical",
+      "isDirect": true,
+      "via": [
+        {
+          "source": 1097678,
+          "name": "minimist",
+          "dependency": "minimist",
+          "title": "Prototype Pollution in minimist",
+          "url": "https://github.com/advisories/GHSA-xvch-5gv4-984h",
+          "severity": "critical",
+          "cwe": [
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 9.8,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+          },
+          "range": ">=1.0.0 <1.2.6"
+        }
+      ],
+      "effects": [],
+      "range": "1.0.0 - 1.2.5",
+      "nodes": [
+        "node_modules/minimist"
+      ],
+      "fixAvailable": {
+        "name": "minimist",
+        "version": "1.2.8",
+        "isSemVerMajor": false
+      }
+    },
+    "recharts": {
+      "name": "recharts",
+      "severity": "high",
+      "isDirect": true,
+      "via": [
+        "lodash"
+      ],
+      "effects": [],
+      "range": "0.8.1 - 0.15.3 || 0.20.3 - 1.5.0",
+      "nodes": [
+        "node_modules/recharts"
       ],
       "fixAvailable": true
     }
@@ -68,14 +101,14 @@
       "info": 0,
       "low": 0,
       "moderate": 0,
-      "high": 1,
-      "critical": 0,
-      "total": 1
+      "high": 2,
+      "critical": 1,
+      "total": 3
     },
     "dependencies": {
-      "prod": 45,
-      "dev": 204,
-      "optional": 180,
+      "prod": 46,
+      "dev": 203,
+      "optional": 179,
       "peer": 0,
       "peerOptional": 0,
       "total": 248

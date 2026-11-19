@@ -6,6 +6,11 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+### Changed
+- The README opens with a quickstart for Vite and `npm audit`, says how to buy Pro, and gives the price as the
+  site does: $1,200 per year for an organization of up to 500 employees.
+- The demo installs minimist without importing it, so a run without a license settles a finding.
+
 ## [1.0.0-beta.13] - 2026-11-15
 
 Pro settles Vite's dev-server advisories, which every Vite build kept open.

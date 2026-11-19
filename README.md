@@ -9,7 +9,25 @@ Runs in your own CI, and your code never leaves it. Without a findings file, vex
 advisories by sending the package names and versions in your lockfile to OSV, and `rules derive`
 downloads public packages from the npm registry.
 
-Full guides and reference: [vexproof.dev/docs](https://vexproof.dev/docs/) (source in [septakis/vexproof-site](https://github.com/septakis/vexproof-site)).
+Full guides and reference: [vexproof.dev/docs](https://vexproof.dev/docs/).
+
+## Quickstart: Vite and `npm audit`
+
+Add the plugin to `vite.config.js` (`import vexproof from 'vexproof/vite'`, then `plugins: [vexproof()]`), and run:
+
+```bash
+npm install -D vexproof
+npm run build                                                     # writes vexproof-modules.json
+npx @cyclonedx/cyclonedx-npm --omit dev -o bom.lockfile.json      # what the lockfile installs
+npm audit --omit dev --json > audit.json                          # what the scanner reports
+npx vexproof --lockfile bom.lockfile.json --findings audit.json --modules vexproof-modules.json \
+  --out vex.cdx.json --openvex vex.openvex.json
+```
+
+Each finding is printed with its verdict: `not_affected` when the package never reached the bundle,
+`in_triage` when vexproof can't prove it. This needs Node.js 22 or later and no license key. Other
+bundlers, package managers and scanners are under [Pipeline](#pipeline); feeding the VEX to your scanner
+is under [Works with your scanner](#works-with-your-scanner).
 
 ## Free and Pro
 
@@ -260,8 +278,9 @@ The Action does this after it writes the VEX, including when `fail-on` stops the
 
 `demo/` is a dashboard that uses recharts and never imports lodash. recharts' `Treemap` does, and
 the shipped bundle contains `omit.js` and `_baseUnset.js`. An import-only analysis calls all three
-lodash advisories safe; vexproof settles one and keeps the two whose code ships open. See
-`demo/README.md`.
+lodash advisories safe; vexproof Pro settles one and keeps the two whose code ships open. The demo
+also installs minimist and never imports it, so a run without a license settles that advisory:
+the package is not in the bundle. See `demo/README.md`.
 
 ## What each verdict means
 
@@ -459,8 +478,14 @@ A license key is a signed token, verified locally. Provide it with `--license <t
   (`src/pro/revoked.json`), so a revocation applies once a user is on a version that includes it.
 - `--quiet` or `VEXPROOF_QUIET=1` hides the free-tier hint.
 
-Pro is $1,200 per organization per year, with no seats. A paid license includes email support, with
-a response within a few business days.
+Pro is $1,200 per year for an organization of up to 500 employees, for every developer and
+repository in it, with no seats. Larger organizations get the same software at a yearly price set
+by organization size; write to hello@septakis.io for a quote. A paid license includes email
+support, with a response within a few business days.
+
+To buy, use **Buy Pro** at [vexproof.dev/#pricing](https://vexproof.dev/#pricing), or write to
+hello@septakis.io. Licenses are sold through Paddle, the merchant of record, which handles billing,
+taxes and refunds. The key that comes back goes in a CI secret named `VEXPROOF_LICENSE`.
 
 ### Open-source projects
 

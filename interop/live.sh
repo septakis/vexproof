@@ -6,7 +6,7 @@
 #   interop/live.sh vexproof@0.13.0     the published package
 #
 # Needs Node 20+, npm, trivy and grype on PATH, and network access for npm, OSV and the scanners' databases.
-# The app is demo/ plus two dependencies it never imports (minimist, @xmldom/xmldom), so the free tier has
+# The app is demo/, which never imports its minimist dependency, plus @xmldom/xmldom, so the free tier has
 # package-level statements to check, one of them on a scoped package. Set VEXPROOF_LICENSE to also check
 # lodash's module-level statement. KEEP=1 keeps the working folder.
 set -euo pipefail

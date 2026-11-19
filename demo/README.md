@@ -23,6 +23,24 @@ lodash advisory as not reachable. That is a false "not affected" for two of the 
 kind of statement that fails an audit. vexproof reads what the bundler actually emitted, so it settles
 the one it can prove and leaves the two it cannot.
 
+The table is a run with a Pro license. `npm audit` lists what npm's advisory feed holds on the day
+you run it, so the count can differ: on 2026-11-18 it listed two of the three lodash advisories.
+
+## What a run without a license shows
+
+The demo also depends on minimist 1.2.5 and never imports it, the way most apps carry a dependency
+that nothing ships. `npm audit` reports a critical advisory on it (GHSA-xvch-5gv4-984h).
+
+```
+not_affected   GHSA-xvch-5gv4-984h   pkg:npm/minimist@1.2.5
+in_triage      GHSA-r5fr-rjxr-66jc   pkg:npm/lodash@4.17.21
+in_triage      GHSA-xxjr-mmjv-4gpg   pkg:npm/lodash@4.17.21  ← vulnerable file(s) bundled: _baseUnset.js, omit.js
+```
+
+The free tier settles the minimist advisory: the package is in the lockfile and nowhere in the
+bundle. lodash is in the bundle, so its advisories stay open; telling `template.js` (not shipped)
+from `omit.js` (shipped) is the file-level check, which is Pro.
+
 Whether `omit` can be reached with attacker-controlled input through a treemap is a question for a
 person; vexproof's job is not to answer it for them. Record the answer with `vexproof review`.
 
@@ -32,7 +50,7 @@ person; vexproof's job is not to answer it for them. Record the answer with `vex
 ./run.sh
 ```
 
-`out/` holds the files from the run in this repo:
+It writes `out/vex.cdx.json` and `out/vex.openvex.json`. `out/` also holds files kept in this repo:
 
 - `vex.trivy.cdx.json`, `vex.trivy.openvex.json` from Trivy-format findings (CVE ids)
 - `vex.grype.openvex.json` from Grype-format findings (GHSA ids), written with `--openvex-package-products`
