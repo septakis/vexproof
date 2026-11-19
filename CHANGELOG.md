@@ -6,6 +6,10 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+## [1.0.0-beta.14] - 2026-11-18
+
+Trivy directory scans: the docs and `--help` now name the flag they need.
+
 ### Changed
 - The README opens with a quickstart for Vite and `npm audit`, says how to buy Pro, and gives the price as the
   site does: $1,200 per year for an organization of up to 500 employees.
@@ -549,7 +553,8 @@ module map; findings from npm, pnpm, yarn and bun audit, osv-scanner, Trivy, Gry
 directly; Vite, Rollup, webpack, Rspack, esbuild, bun and Angular inputs; `--deploy` for server-rendered apps;
 `vexproof review` and `vexproof rules derive`; Pro module-level analysis, baselines and the evidence report.
 
-[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.13...HEAD
+[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.14...HEAD
+[1.0.0-beta.14]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.14
 [1.0.0-beta.13]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.13
 [1.0.0-beta.12]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.12
 [1.0.0-beta.11]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.11
