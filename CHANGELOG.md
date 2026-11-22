@@ -6,6 +6,11 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+### Changed
+- **A maintainer's paid consulting doesn't disqualify a project from a free open-source key.** The README and the
+  request form say so, call it an "open-source key" throughout, and the README links to the request form. A key
+  runs for a year and is renewed on request.
+
 ## [1.0.0-beta.15] - 2026-11-19
 
 The GitHub Action can write OpenVEX for Grype and `trivy fs`, and the package carries Pro License 1.1.

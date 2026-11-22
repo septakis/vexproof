@@ -1,14 +1,14 @@
-name: Open-source license request
+name: Open-source key request
 description: A free vexproof Pro key for a community open-source project
-title: "Open-source license: <owner/repo>"
+title: "Open-source key: <owner/repo>"
 labels: [license]
 body:
   - type: markdown
     attributes:
       value: |
-        Pro is free for community open-source projects: public repositories under an OSI-approved license, where the project's owners sell no paid edition of it, hosting for it or support for it. A project under a foundation (CNCF, Apache, OWASP) counts. A company that sells its open-source product needs a [paid license](https://vexproof.dev/#pricing).
+        Pro is free for community open-source projects: public repositories under an OSI-approved license, where the project's owners sell no paid edition of it, hosting for it or support for it. A project under a foundation (CNCF, Apache, OWASP) counts, and a maintainer's paid consulting doesn't disqualify a project. A company that sells its open-source product needs a [paid license](https://vexproof.dev/#pricing).
 
-        The key names your repositories and unlocks Pro only when vexproof runs in one of them (checked on the runner from `GITHUB_REPOSITORY`, GitLab's `CI_PROJECT_PATH`, Bitbucket's `BITBUCKET_REPO_FULL_NAME`, or the `origin` remote). It makes no network calls and expires after a year; open a new request to renew.
+        The key names your repositories and unlocks Pro only when vexproof runs in one of them (checked on the runner from `GITHUB_REPOSITORY`, GitLab's `CI_PROJECT_PATH`, Bitbucket's `BITBUCKET_REPO_FULL_NAME`, or the `origin` remote). It makes no network calls and runs for a year and is renewed on request: open a new request here.
 
         We reply in this issue with the key. It is safe in public: it only works in the repositories it names.
   - type: textarea

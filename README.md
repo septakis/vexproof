@@ -494,14 +494,18 @@ taxes and refunds. The key that comes back goes in a CI secret named `VEXPROOF_L
 
 Pro is free for community open-source projects: public repositories under an OSI-approved license,
 where the project's owners sell no paid edition of it, hosting for it or support for it. A project
-under a foundation (CNCF, Apache, OWASP) counts. A company that sells its open-source product needs
-a paid license, at the same price.
+under a foundation (CNCF, Apache, OWASP) counts, and a maintainer's paid consulting doesn't
+disqualify a project. A company that sells its open-source product needs a paid license, at the
+same price.
 
-An open-source license names its repositories (`github.com/owner/repo`) and unlocks Pro only when
+[Request an open-source key](https://github.com/septakis/vexproof/issues/new?template=oss_license.yml)
+with the repository URLs. A key runs for a year and is renewed on request.
+
+An open-source key names its repositories (`github.com/owner/repo`) and unlocks Pro only when
 vexproof runs in one of them. The repository comes from `GITHUB_REPOSITORY`, GitLab's
 `CI_PROJECT_PATH` or Bitbucket's `BITBUCKET_REPO_FULL_NAME`, else the `origin` remote in the
-nearest `.git/config`. Elsewhere the license runs free features and says which repositories it
-covers. Still no network calls. Help for open-source licenses is through GitHub issues.
+nearest `.git/config`. Elsewhere the key runs free features and says which repositories it
+covers. Still no network calls. Help for open-source keys is through GitHub issues.
 
 ## Tests
 
