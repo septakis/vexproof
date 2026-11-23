@@ -28,6 +28,8 @@ export interface TriageResult extends Finding {
   evidence: unknown;
   proWouldSettle: boolean;
   moduleReason: string | null;
+  /** The listed advisory this finding is, when it is about what the package writes into a build's output. */
+  generatedCode: string | null;
   origin: 'auto' | 'reviewed';
   [extra: string]: unknown;
 }
@@ -43,7 +45,24 @@ export interface TriageOptions {
   acceptDerived?: boolean;
   /** What the bundle SBOM was read from, named in a not_affected detail. Default: `['bundle-sbom']`. */
   shippedFrom?: Array<'bundle-sbom' | 'module-map' | 'deployment'>;
+  /**
+   * Packages that write into a build's output, with the advisories that are about what they write. A listed
+   * advisory is never settled automatically. Default: the list vexproof ships (`GENERATED_CODE`).
+   */
+  generatedCode?: GeneratedCode;
 }
+
+export interface GeneratedCode {
+  schema: number;
+  version: string;
+  packages: Record<string, {
+    writes: string;
+    advisories: Record<string, { aliases?: string[]; affects: string; source: string }>;
+  }>;
+}
+
+/** The list of packages that write into a build's output that this version of vexproof ships. */
+export const GENERATED_CODE: GeneratedCode;
 
 export interface VexOptions {
   results: TriageResult[];

@@ -166,7 +166,8 @@ export function diffForRule({ installedFiles, fixedFiles, versions = null }) {
     return { reason: `the package was reorganised before the fix (${goneRuntime} of ${runtime.length} files moved)` };
   }
 
-  return { files: [...changed, ...gone].sort(), runtimeFiles: runtime.length };
+  // the rule's files come from every JavaScript file of the installed version, so that is what they are counted against
+  return { files: [...changed, ...gone].sort(), javascriptFiles: code.length };
 }
 
 // ---------- registry ----------
@@ -306,7 +307,7 @@ export async function deriveRules(findings, { fetchImpl = globalThis.fetch, now 
         derivedFrom: { installed: finding.version, fixed: boundary.fixed },
         aliases: [...new Set(names.filter((name) => name !== ghsa))],
       };
-      Object.assign(row, { rule: key, files: diff.files, runtimeFiles: diff.runtimeFiles, ...boundary });
+      Object.assign(row, { rule: key, files: diff.files, javascriptFiles: diff.javascriptFiles, ...boundary });
     } catch (error) {
       row.reason = error.message;
     }

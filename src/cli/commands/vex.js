@@ -78,7 +78,7 @@ function printSummary(results, { summary, moduleMap, written, signedBy }) {
 
   for (const result of results) {
     const tag = result.origin === 'reviewed' ? `${result.state} (${result.carriedFrom ? 'carried' : 'reviewed'})` : result.state + (result.level === 'module' ? ' (module)' : '');
-    const why = result.state === 'in_triage' && result.moduleReason && (moduleMap || result.reReview) ? `  ← ${result.moduleReason}` : '';
+    const why = result.state === 'in_triage' && result.moduleReason && (moduleMap || result.reReview || result.generatedCode) ? `  ← ${result.moduleReason}` : '';
     console.log(`  ${tag.padEnd(24)} ${String(result.id).padEnd(22)} ${result.purl}${result.isNew ? '  [new]' : ''}${why}`);
   }
 }

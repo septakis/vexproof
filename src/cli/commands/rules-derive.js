@@ -29,7 +29,7 @@ export async function rulesDerive({ options, now }) {
   writeAll([{ path: out, text: JSON.stringify(rules, null, 2) }]);
 
   for (const row of report) {
-    const what = row.files ? `${row.files.length} of ${row.runtimeFiles} files changed by ${row.version} → ${row.fixed}` : `no rule: ${row.reason}`;
+    const what = row.files ? `${row.files.length} of ${row.javascriptFiles} JavaScript files changed by ${row.version} → ${row.fixed}` : `no rule: ${row.reason}`;
     console.log(`  ${String(row.id).padEnd(22)} ${`${row.name}@${row.version}`.padEnd(28)} ${what}`);
   }
   console.log(`vexproof: ${report.filter((row) => row.files).length} of ${report.length} rule(s) → ${out}`);

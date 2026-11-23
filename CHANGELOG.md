@@ -6,6 +6,29 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+## [1.0.0-beta.16] - 2026-11-22
+
+An advisory about code a build tool writes into the output is no longer settled because the tool itself is not
+in the bundle. Rerun vexproof if your build uses Angular, Rollup, webpack, Babel or another listed tool.
+
+### Fixed
+- **An advisory about code a build tool writes into the output is no longer settled because the tool is not in
+  the bundle.** A bundler's runtime code, a compiler's compiled templates and an adapter's generated config are
+  in the build whether or not the tool's own files are, so the package's absence proves nothing about them.
+  Until now vexproof wrote `not_affected` (`code_not_present`) for such a finding whenever the tool's own files
+  were not in the bundle, which is the usual case for a build-time dependency: the Angular template compiler
+  advisories on `@angular/compiler` in an ahead-of-time build, Rollup's DOM clobbering advisory, and Vite's in a
+  build without Vite's helpers. These advisories are now listed in `src/generated-code.json` (18 advisories on
+  12 packages, each read at its source: Vite, Rollup, webpack, Rspack, tsup, Babel's helpers, uglify-js, the
+  Angular compiler, SvelteKit and two of its adapters, Astro) and stay `in_triage` with
+  the reason, in the free version and in Pro. No module rule settles one either, and a rule derived from a fix's
+  changed files never applies to a listed package (Svelte and SvelteKit are listed for that). A review still can.
+  **If you ran an earlier version on a build made with one of these tools, rerun it: a statement for one of
+  these advisories may change from `not_affected` to `in_triage`.** The library's `triage()` takes the list as
+  `generatedCode`, and each result names the listed advisory in `generatedCode`.
+- `vexproof rules derive` counted a rule's files against the package's runtime files only, so it could print
+  "6 of 4 files changed". It now counts them against the JavaScript files they are taken from.
+
 ### Changed
 - **A maintainer's paid consulting doesn't disqualify a project from a free open-source key.** The README and the
   request form say so, call it an "open-source key" throughout, and the README links to the request form. A key
@@ -573,7 +596,8 @@ module map; findings from npm, pnpm, yarn and bun audit, osv-scanner, Trivy, Gry
 directly; Vite, Rollup, webpack, Rspack, esbuild, bun and Angular inputs; `--deploy` for server-rendered apps;
 `vexproof review` and `vexproof rules derive`; Pro module-level analysis, baselines and the evidence report.
 
-[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.15...HEAD
+[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.16...HEAD
+[1.0.0-beta.16]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.16
 [1.0.0-beta.15]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.15
 [1.0.0-beta.14]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.14
 [1.0.0-beta.13]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.13

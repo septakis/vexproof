@@ -42,7 +42,7 @@ test('rule files = JavaScript files of the installed version that the fixed rele
   ]);
 
   // test/t.js is named too: a file that never ships costs nothing, and some "test" or "doc" folders are code
-  assert.deepEqual(diffForRule({ installedFiles, fixedFiles }), { files: ['template.js', 'test/t.js', 'trim.js'], runtimeFiles: 3 });
+  assert.deepEqual(diffForRule({ installedFiles, fixedFiles }), { files: ['template.js', 'test/t.js', 'trim.js'], javascriptFiles: 4 });
   assert.match(diffForRule({ installedFiles, fixedFiles: installedFiles }).reason, /no runtime JavaScript/);
   assert.match(diffForRule({ installedFiles, fixedFiles: new Map([['lib/other.js', bytes('')]]) }).reason, /reorganised/);
 

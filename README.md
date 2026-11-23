@@ -217,7 +217,7 @@ details, commented "CycloneDX VEX". Two things to know:
 ## GitHub Action
 
 ```yaml
-- uses: septakis/vexproof@v1.0.0-beta.15      # after your build and SBOM steps
+- uses: septakis/vexproof@v1.0.0-beta.16      # after your build and SBOM steps
   with:
     lockfile: bom.lockfile.json
     bundle: dist/bom.bundle.json
@@ -268,7 +268,7 @@ vexproof dependabot --vex vex.cdx.json --lockfile bom.lockfile.json --dry-run
 The Action does this after it writes the VEX, including when `fail-on` stops the job:
 
 ```yaml
-- uses: septakis/vexproof@v1.0.0-beta.15
+- uses: septakis/vexproof@v1.0.0-beta.16
   with:
     lockfile: bom.lockfile.json
     bundle: dist/bom.bundle.json
@@ -296,6 +296,29 @@ the package is not in the bundle. See `demo/README.md`.
 - **Open (`in_triage`).** Anything vexproof can't prove. With `--modules`, the VEX and report
   say why, e.g. `vulnerable file(s) bundled: template.js`.
 
+### Code a build tool writes into the output
+
+Some advisories are about what a build tool writes, not about the tool's own files: the runtime code a
+bundler adds, the templates a compiler compiles, a config an adapter generates. That code is in your build
+whether or not the tool is, so "the package is not in the bundle" proves nothing about it. vexproof keeps
+a list of these advisories in `src/generated-code.json` and never settles one by itself, in the free
+version or in Pro. Such a finding stays `in_triage` and says so:
+
+```
+in_triage   GHSA-gcx4-mw62-g8wm   pkg:npm/rollup@4.20.0  ← GHSA-gcx4-mw62-g8wm is about what rollup
+                                                           writes into a build, which its own files don't show
+```
+
+The list holds the DOM clobbering advisories of Vite, Rollup, webpack, Rspack and tsup, Babel's
+`.replace` helper, seven Angular template compiler advisories, and the SvelteKit, adapter and Astro
+advisories about what a build writes. Each entry names its source. A person can still settle one with
+`vexproof review`, for instance because the build writes ES modules only.
+
+The list is hand-kept, so an advisory published after a release is not on it until the next one. If you
+find one that is missing, [open an issue](https://github.com/septakis/vexproof/issues) or write to
+security@septakis.io: a missing entry can make vexproof say `not_affected` wrongly, and we treat it as
+a security bug.
+
 When a package ships more than once (pnpm stores and npm nested installs both do this), vexproof reads
 each copy's version from its installed `package.json`, or from the store path (pnpm `.pnpm/`, Bun
 `.bun/`, Yarn's cache zip under Plug'n'Play or its `.store/` folder, Nitro's `.nitro/`), and checks a finding
@@ -320,8 +343,9 @@ Vite writes a few helpers into every production build (module preload, dynamic i
 loading), so `vite` is in the bundle, and before this rule every Vite advisory stayed open. None of those
 helpers holds dev-server code. A Vite dev-server advisory is settled only when nothing of Vite but those
 helpers shipped. The advisory about code Vite generates into `cjs`, `iife` and `umd` output
-(GHSA-64vr-g452-qvp3) has no rule and stays open, and derived rules never apply to Vite: a bug in what a
-build tool generates reaches the output without any of its own files shipping.
+(GHSA-64vr-g452-qvp3) is on the list above and stays open, and derived rules never apply to Vite or to any
+other package on that list (Svelte and SvelteKit among them): a bug in what a build tool generates reaches
+the output without any of its own files shipping.
 
 ### Derived rules (Pro)
 
@@ -509,7 +533,7 @@ covers. Still no network calls. Help for open-source keys is through GitHub issu
 
 ## Tests
 
-`npm test` runs 335 tests, including schema validation of both output formats. Most fixtures are
+`npm test` runs 345 tests, including schema validation of both output formats. Most fixtures are
 real builds, slimmed down:
 
 - two Angular 20 apps, one using only `capitalize` and one also using `template` and `omit`,
@@ -550,6 +574,9 @@ VEX there validates against the CycloneDX 1.6 JSON schema.
 
 - Hand-checked module rules cover lodash and lodash-es; derived rules cover the rest, less precisely.
   Single-file packages like DOMPurify or moment can only be settled at package level.
+- Advisories about code a build tool writes into the output are kept open from a hand-kept list
+  (`src/generated-code.json`). One that is not on the list yet, on a tool that is not in the bundle, is
+  settled like any other absent package.
 - For apps that also run on a server, vexproof needs the deployment (`--deploy`), with source maps on.
 - `npm audit` and `bun audit` don't report installed versions; vexproof takes every version of the
   package in the lockfile SBOM that falls inside each advisory's range.

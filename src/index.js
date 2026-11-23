@@ -271,11 +271,35 @@ function absenceDetail(name, version, shippedFrom) {
 }
 
 /**
+ * Packages that write into a build's output, and the advisories that are about what they write (a bundler's
+ * runtime code, a compiler's output, a generated config). See the note in the file.
+ */
+export const GENERATED_CODE = createRequire(import.meta.url)('./generated-code.json');
+
+/** The listed advisory a finding on this package is, as { id, affects }, or null. */
+function generatedCodeAdvisory(generatedCode, packageName, finding) {
+  const findingNames = [finding.id, ...(finding.aliases ?? [])];
+
+  for (const [advisoryId, advisory] of Object.entries(generatedCode?.packages?.[packageName]?.advisories ?? {})) {
+    if ([advisoryId, ...(advisory.aliases ?? [])].some((name) => findingNames.includes(name))) {
+      return { id: advisoryId, affects: advisory.affects };
+    }
+  }
+
+  return null;
+}
+
+/**
  * `moduleCheck` decides whether a package that IS in the bundle still doesn't ship the vulnerable code. It is not
  * part of this file: vexproof Pro supplies one (src/pro/module-check.js, under its own license). Without it,
  * every finding on a bundled package stays in_triage. `pro` says whether its answers may settle findings;
  * when false they are only counted (proWouldSettle). `shippedFrom` names what the bundle SBOM was read from
  * ('bundle-sbom', 'module-map', 'deployment'), for the wording of a not_affected detail.
+ *
+ * `generatedCode` lists the packages that write into a build's output. An advisory listed there is about what the
+ * package wrote, so neither its absence from the bundle nor a module rule settles it: it stays in_triage for a
+ * person to review. For any other advisory on such a package, a rule derived from the files a fix changed does
+ * not apply either: the fix may be to what the package writes, which no file list shows.
  */
 export function triage({
   lockfileSbom,
@@ -287,6 +311,7 @@ export function triage({
   pro = false,
   acceptDerived = false,
   shippedFrom = ['bundle-sbom'],
+  generatedCode = GENERATED_CODE,
 }) {
   const lock = indexSbom(lockfileSbom);
   const bundle = indexSbom(bundleSbom, { withoutPurl: true });
@@ -310,6 +335,9 @@ export function triage({
     let proWouldSettle = false;
     let moduleReason = null;
 
+    const writesIntoBuilds = parsed?.type === 'npm' && Boolean(generatedCode?.packages?.[parsed.name]);
+    const generated = writesIntoBuilds ? generatedCodeAdvisory(generatedCode, parsed.name, finding) : null;
+
     if (!key) {
       detail = `Could not parse purl "${finding.purl}".`;
     } else if (!bundleUsable) {
@@ -320,13 +348,26 @@ export function triage({
     } else if (!lock.has(key)) {
       // finding refers to a package we don't even claim to depend on; don't guess
       detail = `${key} is not listed in the lockfile SBOM; no claim made.`;
+    } else if (generated) {
+      // what the package wrote is in the build whether or not the package is, so its files prove nothing
+      moduleReason = `${generated.id} is about what ${parsed.name} writes into a build, which its own files don't show`;
+      detail = `${generated.id} is about what ${parsed.name} writes into a build's output (${generated.affects}), ` +
+        `so whether ${parsed.name}'s own files shipped says nothing about it; requires manual review.`;
     } else if (bundle.has(key)) {
       const versions = [...bundle.get(key)].join(', ') || 'unknown version';
       detail = `${key} (${versions}) is present in the shipped bundle; requires manual review.`;
 
-      const moduleVerdict = moduleCheck
+      let moduleVerdict = moduleCheck
         ? moduleCheck({ key, parsed, id: finding.id, aliases: finding.aliases, bundleVersions: bundle.get(key), moduleMap, rules })
         : { ok: false, reason: null };
+
+      if (moduleVerdict.ok && moduleVerdict.derived && writesIntoBuilds) {
+        moduleVerdict = {
+          ok: false,
+          reason: `${parsed.name} writes code into the build that no file list shows, so only hand-checked rules apply to it, ` +
+            `and ${finding.id} has none`,
+        };
+      }
 
       if (moduleVerdict.ok && moduleVerdict.derived && !acceptDerived) {
         // a derived rule only suggests: someone accepts it, per run (--accept-derived) or per finding (review)
@@ -355,7 +396,11 @@ export function triage({
       detail = absenceDetail(parsed.name, parsed.version, shippedFrom);
     }
 
-    results.push({ ...finding, key, state, justification, detail, level, evidence, proWouldSettle, moduleReason, origin: 'auto' });
+    results.push({
+      ...finding, key, state, justification, detail, level, evidence, proWouldSettle, moduleReason,
+      generatedCode: generated?.id ?? null,
+      origin: 'auto',
+    });
   }
 
   return results;
