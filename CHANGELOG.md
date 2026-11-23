@@ -6,6 +6,19 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+### Changed
+- **What a run prints reads in a terminal.** Until now it was one line per finding, in the order the scanner
+  gave them, with the reason appended to the right: on a real build that was hundreds of lines, a third of them
+  wider than 80 columns, with the totals scrolled off the top. Now the open findings come first, grouped by
+  package, and advisories that stay open for the same reason share one block; every open finding has a reason.
+  Findings on packages the lockfile SBOM doesn't list are counted in a section of their own, and settled findings
+  are a count per package. Packages are written `@scope/name@1.2.3`, not as escaped purls. The totals line is
+  the same as before and is now the last line. On Excalidraw's 211 findings this is 59 lines where it was 221.
+  Nothing in the VEX files changes; a script that read the per-finding lines from standard output should read
+  the VEX file instead.
+- The Pro hint is wrapped at 80 columns. When standard error is a terminal, long messages and refusals are broken
+  at spaces to its width (100 columns at most); in a pipe, a file or a CI log each message is still one line.
+
 ## [1.0.0-beta.17] - 2026-11-22
 
 Three more ways a package could be called absent while it runs in production, closed: loaded from a CDN, used

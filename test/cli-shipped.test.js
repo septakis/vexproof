@@ -216,12 +216,13 @@ test('Pro: a derived rule only suggests a verdict until --accept-derived', (test
   let result = pro.run([...base, '--out', 'a.json'], { cwd: root });
 
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, new RegExp(`in_triage\\s+${idOf('victim')}.*derived rule suggests not affected`));
+  assert.match(result.stdout, new RegExp(`\\n {2}victim@1\\.0\\.0\\n {4}${idOf('victim')}\\n {6}a derived rule suggests not affected`));
 
   result = pro.run([...base, '--out', 'b.json', '--accept-derived'], { cwd: root });
 
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, new RegExp(`not_affected \\(module\\)\\s+${idOf('victim')}`));
+  assert.match(result.stdout, /Not affected, vulnerable files not in the build: 1 finding in 1 package\n {2}victim@1\.0\.0\n/);
+  assert.match(result.stdout, /2 finding\(s\) → 1 not_affected \(1 at module level\), 1 in_triage/);
 });
 
 test('Pro: --baseline carries forward, and --fail-on new trips only on new open findings', (testContext) => {

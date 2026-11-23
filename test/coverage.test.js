@@ -260,8 +260,8 @@ test('CLI: a copied package file counts as shipped; the same map read from anoth
 
   assert.equal(here.status, 0, here.stderr);
   assert.match(here.stderr, /1 output file\(s\) outside the module map accounted for: 1 copied from installed packages/);
-  assert.match(here.stdout, /in_triage\s+GHSA-aaaa-bbbb-cccc/);    // left ships, in the copied file only
-  assert.match(here.stdout, /not_affected\s+GHSA-dddd-eeee-ffff/); // right is nowhere in the output
+  assert.match(here.stdout, /Open: 1 finding in 1 package\n {2}left@\S+\n {4}GHSA-aaaa-bbbb-cccc\n/);    // left ships, in the copied file only
+  assert.match(here.stdout, /Not affected, package not in the build: 1 finding in 1 package\n {2}right@/); // right is nowhere in the output
 
   const elsewhere = run(project(), join(root, 'vexproof-modules.json'));
 

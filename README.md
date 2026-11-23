@@ -166,6 +166,11 @@ vexproof --lockfile bom.lockfile.json --bundle bom.bundle.json \
 `grype … -o json`, `snyk test --json`, or `[{purl, ids}]`. Without it, vexproof queries OSV directly
 (and looks up GHSA ↔ CVE aliases there; `--enrich-aliases` does the same for a findings file).
 
+When it is done, the run prints what it found, in lines no wider than 80 columns: the open findings
+first, by package, each with the reason it stays open; then the settled ones as a count per package;
+and the totals on the last line, where a CI log is read. Every statement, settled or open, is in the
+VEX file.
+
 The same inputs write the same files: statements come in a fixed order, and each file's serial number
 is derived from its content. Only the timestamps change from run to run. Set `SOURCE_DATE_EPOCH`
 (seconds since 1970, the [reproducible-builds](https://reproducible-builds.org/specs/source-date-epoch/)
@@ -309,8 +314,11 @@ a list of these advisories in `src/generated-code.json` and never settles one by
 version or in Pro. Such a finding stays `in_triage` and says so:
 
 ```
-in_triage   GHSA-gcx4-mw62-g8wm   pkg:npm/rollup@4.20.0  ← GHSA-gcx4-mw62-g8wm is about what rollup
-                                                           writes into a build, which its own files don't show
+Open: 1 finding in 1 package
+  rollup@4.20.0
+    GHSA-gcx4-mw62-g8wm
+      it is about what rollup writes into a build, which its own files don't
+      show
 ```
 
 The list holds 29 advisories on 16 packages: the DOM clobbering advisories of Vite, Rollup, webpack,
@@ -541,7 +549,7 @@ covers. Still no network calls. Help for open-source keys is through GitHub issu
 
 ## Tests
 
-`npm test` runs 348 tests, including schema validation of both output formats. Most fixtures are
+`npm test` runs 357 tests, including schema validation of both output formats. Most fixtures are
 real builds, slimmed down:
 
 - two Angular 20 apps, one using only `capitalize` and one also using `template` and `omit`,

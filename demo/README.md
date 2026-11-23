@@ -32,9 +32,17 @@ The demo also depends on minimist 1.2.5 and never imports it, the way most apps 
 that nothing ships. `npm audit` reports a critical advisory on it (GHSA-xvch-5gv4-984h).
 
 ```
-not_affected   GHSA-xvch-5gv4-984h   pkg:npm/minimist@1.2.5
-in_triage      GHSA-r5fr-rjxr-66jc   pkg:npm/lodash@4.17.21
-in_triage      GHSA-xxjr-mmjv-4gpg   pkg:npm/lodash@4.17.21  ← vulnerable file(s) bundled: _baseUnset.js, omit.js
+Open: 2 findings in 1 package
+  lodash@4.17.21
+    GHSA-r5fr-rjxr-66jc
+      the package is in the build; Pro's file-level check would settle this
+    GHSA-xxjr-mmjv-4gpg
+      vulnerable file(s) bundled: _baseUnset.js, omit.js
+
+Not affected, package not in the build: 1 finding in 1 package
+  minimist@1.2.5
+
+vexproof: 3 finding(s) → 1 not_affected, 2 in_triage → out/vex.cdx.json
 ```
 
 The free tier settles the minimist advisory: the package is in the lockfile and nowhere in the

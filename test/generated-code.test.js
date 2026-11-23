@@ -203,7 +203,8 @@ test('the command says why such a finding stays open, with no module map, and wr
 
   assert.equal(run.status, 0, run.stderr);
   assert.match(run.stdout, /2 finding\(s\) → 1 not_affected, 1 in_triage/);
-  assert.match(run.stdout, /in_triage +GHSA-gcx4-mw62-g8wm +pkg:npm\/rollup@4\.20\.0 {2}← GHSA-gcx4-mw62-g8wm is about what rollup writes into a build, which its own files don't show/);
+  assert.match(run.stdout, /Open: 1 finding in 1 package\n {2}rollup@4\.20\.0\n {4}GHSA-gcx4-mw62-g8wm\n {6}it is about what rollup writes into a build, which its own files don't\n {6}show\n/);
+  assert.match(run.stdout, /Not affected, package not in the build: 1 finding in 1 package\n {2}rollup@4\.20\.0\n/);
 
   const statements = JSON.parse(readFileSync(join(folder, 'vex.json'), 'utf8')).vulnerabilities;
   const generated = statements.find((statement) => statement.id === 'GHSA-gcx4-mw62-g8wm');

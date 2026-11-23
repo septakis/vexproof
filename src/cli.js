@@ -12,14 +12,18 @@ if (Number(process.versions.node.split('.')[0]) < MINIMUM_NODE) {
 
 // Exit 1 means only "the --fail-on gate tripped" (or, for verify, "the signature does not check"). Anything else
 // that stops a run (unreadable or unrecognised input, a network failure, a bug) exits 2 with a message.
+// set once the commands are loaded: breaks a long message at spaces when standard error is a terminal
+let forTerminal = (message) => message;
+
 const stop = (error) => {
   const lines = error?.lines ?? [error?.message ?? String(error)];
-  console.error(`vexproof: ${lines[0]}`);
-  for (const line of lines.slice(1)) console.error(line);
+  console.error(forTerminal(`vexproof: ${lines[0]}`));
+  for (const line of lines.slice(1)) console.error(forTerminal(line));
   process.exit(error?.code ?? 2);
 };
 process.on('uncaughtException', stop);
 process.on('unhandledRejection', stop);
 
 const { main } = await import('./cli/main.js');
+({ forTerminal } = await import('./cli/common.js'));
 process.exitCode = await main(process.argv.slice(2));

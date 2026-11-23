@@ -12,6 +12,7 @@ import { Stop, UsageError, EXIT } from '../../stop.js';
 import { pro, readJson, readText, sha256, log, loadLicense, licensedFor } from '../common.js';
 import { writeAll } from '../output.js';
 import { progressReporter } from '../../progress.js';
+import { summaryLines, proHintLines, wrap } from '../summary.js';
 
 const PRO_URL = 'https://vexproof.dev/#pricing';
 const DEFAULT_REVIEW_MAX_AGE_DAYS = 365;
@@ -72,38 +73,29 @@ function checkContent(results, { moduleMap, shippedDirs, selfVouched, root, prog
   }
 }
 
-/** The run's summary line and one line per statement, on standard output. */
-function printSummary(results, { summary, moduleMap, written, signedBy }) {
-  const parts = [`${summary.not_affected} not_affected${summary.module ? ` (${summary.module} at module level)` : ''}`];
-  if (summary.reviewed) parts.push(`${summary.reviewed} reviewed`);
-  parts.push(`${summary.in_triage} in_triage`);
-  console.log(`vexproof: ${results.length} finding(s) → ${parts.join(', ')} → ${written.join(' + ')}${signedBy ? ` (signed by ${signedBy})` : ''}`);
-
-  for (const result of results) {
-    const tag = result.origin === 'reviewed' ? `${result.state} (${result.carriedFrom ? 'carried' : 'reviewed'})` : result.state + (result.level === 'module' ? ' (module)' : '');
-    const why = result.state === 'in_triage' && result.moduleReason && (moduleMap || result.reReview || result.generatedCode) ? `  ← ${result.moduleReason}` : '';
-    console.log(`  ${tag.padEnd(24)} ${String(result.id).padEnd(22)} ${result.purl}${result.isNew ? '  [new]' : ''}${why}`);
+/** What the run found, on standard output: open findings with their reasons, the settled ones counted, totals last. */
+function printSummary(results, { summary, written, signedBy }) {
+  for (const line of summaryLines(results, { summary, written, signedBy })) {
+    console.log(line);
   }
 }
 
-/** The Pro hint for free users: never more than two lines, never with --quiet. */
+/** The Pro hint for free users, never with --quiet. */
 function printProHint(results, { summary, moduleMap }) {
   if (summary.proWouldSettle > 0) {
-    const counts = {};
-    for (const result of results) {
-      if (!result.proWouldSettle) continue;
-      const name = result.key.replace(/^npm\//, '');
-      counts[name] = (counts[name] ?? 0) + 1;
+    log('');
+    for (const line of proHintLines(results, { summary, url: PRO_URL })) {
+      log(line);
     }
-    const list = Object.entries(counts).map(([name, count]) => `${name} ${count}`).join(', ');
-    log(`\nvexproof Pro would settle ${summary.proWouldSettle} of your ${summary.in_triage} open finding(s) by checking which files of each package shipped (${list}),`);
-    log(`and write an audit-ready report with the evidence. One yearly price per organization, free for community open-source projects: ${PRO_URL} (hide this with --quiet)`);
 
     return;
   }
 
   if (!moduleMap && summary.in_triage > 0) {
-    log(`\nTip: add --modules <stats.json> to see how many of the ${summary.in_triage} open finding(s) module-level analysis could settle.`);
+    log('');
+    for (const line of wrap(`Tip: add --modules <stats.json> to see how many of the ${summary.in_triage} open finding(s) module-level analysis could settle.`)) {
+      log(line);
+    }
   }
 }
 
@@ -253,7 +245,7 @@ export async function vex({ options, now, argv, env = process.env }) {
 
   // ---------- what was written, and what it says ----------
   const written = [out, options.openvex, csaf ? options.csaf : null].filter(Boolean);
-  printSummary(results, { summary, moduleMap, written, signedBy: signingKey ? document.signature.keyId : null });
+  printSummary(results, { summary, written, signedBy: signingKey ? document.signature.keyId : null });
   if (csaf) {
     const fileName = pro.csaf.csafFileName(csaf.document.tracking.id);
     log(`vexproof: CSAF tracking id ${csaf.document.tracking.id}, version ${csaf.document.tracking.version}; publish it as ${fileName}`);

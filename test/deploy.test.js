@@ -265,7 +265,7 @@ test('CLI: a whole-app deployment satisfies the server check; a browser-only fol
   const whole = run('--deploy', 'out/server', '--deploy', 'out/static');
 
   assert.equal(whole.status, 0, whole.stderr);
-  assert.match(whole.stdout, /in_triage\s+GHSA-rrrm-qjm4-v8hf/); // marked is deployed on the server
+  assert.match(whole.stdout, /Open: [^\n]*\n(?: {2,}[^\n]*\n)*? {2}marked@\S+\n {4}GHSA-rrrm-qjm4-v8hf/); // marked is deployed on the server
 });
 
 test('CLI: a package absent from a deployment is said to be absent from the deployment, not from a bundle SBOM', () => {

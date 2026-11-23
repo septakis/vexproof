@@ -78,5 +78,5 @@ test('Pro, --deploy: a package with source maps inlined in its files counts whol
   const result = pro.run(['--lockfile', 'bom.json', '--findings', 'findings.json', '--deploy', 'out', '--rules', 'rules.json', '--out', 'vex.json', '--quiet'], { cwd: root });
 
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, new RegExp(`in_triage\\s+${idOf('inl')}.*counts as shipped whole`));
+  assert.match(result.stdout, new RegExp(`\\n {4}${idOf('inl')}\\n {6}inl counts as shipped whole`));
 });

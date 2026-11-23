@@ -80,7 +80,7 @@ test('with src/pro removed, the CLI still writes package-level VEX and offers no
     '--license', 'vxp1.x.y',
   );
   assert.equal(withMap.status, 0, withMap.stderr);
-  assert.doesNotMatch(withMap.stdout, /\(module\)/);
+  assert.doesNotMatch(withMap.stdout, /vulnerable files not in the build|at module level/);
   assert.match(withMap.stderr, /no Pro files/);
   assert.ok(!existsSync(join(dir, 'r.html')));
 

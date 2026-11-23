@@ -173,7 +173,7 @@ to identify the repository and the run. It never sets any.
 | 1 | The `--fail-on` gate tripped. The VEX was still written. |
 | 2 | vexproof stopped: a missing or unknown option, an unreadable or unrecognised input, an incomplete module map, or a lookup that failed after retries. Nothing was written. For `vexproof dependabot`, 2 also means that some alert updates failed after others were made; the summary lists each alert and what happened to it. |
 
-The summary goes to standard output; diagnostics, warnings and hints go to standard error, and so does progress: a stage that runs longer than a few seconds (reading a large deployment, its digest, the content check) says how far it is.
+The summary goes to standard output: the open findings by package with the reason each stays open, the settled ones counted per package, and last a line of totals that starts `vexproof: <n> finding(s) →`. Its layout above that last line may change in a minor release. Diagnostics, warnings and hints go to standard error, and so does progress: a stage that runs longer than a few seconds (reading a large deployment, its digest, the content check) says how far it is.
 
 ## Inputs
 
