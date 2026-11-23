@@ -226,7 +226,7 @@ details, commented "CycloneDX VEX". Two things to know:
 ## GitHub Action
 
 ```yaml
-- uses: septakis/vexproof@v1.0.0-beta.18      # after your build and SBOM steps
+- uses: septakis/vexproof@v1.0.0      # after your build and SBOM steps
   with:
     lockfile: bom.lockfile.json
     bundle: dist/bom.bundle.json
@@ -277,7 +277,7 @@ vexproof dependabot --vex vex.cdx.json --lockfile bom.lockfile.json --dry-run
 The Action does this after it writes the VEX, including when `fail-on` stops the job:
 
 ```yaml
-- uses: septakis/vexproof@v1.0.0-beta.18
+- uses: septakis/vexproof@v1.0.0
   with:
     lockfile: bom.lockfile.json
     bundle: dist/bom.bundle.json
@@ -547,9 +547,22 @@ vexproof runs in one of them. The repository comes from `GITHUB_REPOSITORY`, Git
 nearest `.git/config`. Elsewhere the key runs free features and says which repositories it
 covers. Still no network calls. Help for open-source keys is through GitHub issues.
 
+## What stays stable
+
+[The contract](https://github.com/septakis/vexproof/blob/main/docs/CONTRACT.md) lists everything that is
+stable for the whole 1.x line: the commands and their options, exit codes, environment variables, the plugins'
+options, the GitHub Action's inputs, and every property vexproof writes into a VEX file. A test checks it
+against the code. Two things it says are worth knowing before you put vexproof in a pipeline:
+
+- A verdict can get stricter in a minor release. When a release finds a case where the proof was not enough,
+  a finding that was settled goes back to `in_triage`, or a build that was accepted is refused, and the
+  changelog names it. A `--fail-on` gate can trip after an update for that reason.
+- The JavaScript API (`import … from 'vexproof'`) is not covered. Build on the command line and the files
+  it writes.
+
 ## Tests
 
-`npm test` runs 357 tests, including schema validation of both output formats. Most fixtures are
+`npm test` runs 360 tests, including schema validation of both output formats. Most fixtures are
 real builds, slimmed down:
 
 - two Angular 20 apps, one using only `capitalize` and one also using `template` and `omit`,

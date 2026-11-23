@@ -61,3 +61,49 @@ test('every VEXPROOF_* variable and SOURCE_DATE_EPOCH the code reads is in the c
 
   same(read, listed, 'environment variables');
 });
+
+const section = (title) => {
+  const start = contract.indexOf(`\n## ${title}\n`);
+  assert.ok(start >= 0, `docs/CONTRACT.md has no "${title}" section`);
+  const end = contract.indexOf('\n## ', start + 1);
+
+  return contract.slice(start, end < 0 ? undefined : end);
+};
+const firstColumn = (text) => [...text.matchAll(/^\| `([A-Za-z-]+)` \|/gm)].map((match) => match[1]);
+
+test('every plugin entry point and plugin option is in the contract', () => {
+  const plugins = section('Bundler plugins');
+  const manifest = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
+  const entryPoints = Object.keys(manifest.exports).filter((key) => key !== '.' && key !== './package.json').map((key) => `vexproof/${key.slice(2)}`);
+  const listedEntryPoints = [...plugins.matchAll(/`(vexproof\/[a-z]+)`/g)].map((match) => match[1]);
+
+  same(entryPoints, listedEntryPoints, 'plugin entry points');
+
+  // the options each plugin's types declare
+  const declared = ['src/vite.d.ts', 'src/webpack.d.cts']
+    .flatMap((file) => [...readFileSync(join(ROOT, file), 'utf8').matchAll(/^\s+([A-Za-z]+)\?:/gm)].map((match) => match[1]));
+
+  same(declared, firstColumn(plugins), 'plugin options');
+});
+
+test('every input and output of the GitHub Action is in the contract', () => {
+  const action = readFileSync(join(ROOT, 'action.yml'), 'utf8');
+  const block = (from, to) => action.slice(action.indexOf(`\n${from}:\n`), action.indexOf(`\n${to}:\n`));
+  const names = (text) => [...text.matchAll(/^ {2}([a-z-]+):\s*$/gm)].map((match) => match[1]);
+  const documented = section('GitHub Action');
+
+  same(names(block('inputs', 'outputs')), firstColumn(documented), 'Action inputs');
+
+  const outputsLine = documented.split('\n').find((line) => line.startsWith('Outputs:'));
+
+  same(names(block('outputs', 'runs')), [...outputsLine.matchAll(/`([a-z-]+)`/g)].map((match) => match[1]), 'Action outputs');
+});
+
+test('the contract says what may change within 1.x and what it does not cover', () => {
+  const changes = section('What can change within 1.x');
+
+  assert.match(changes, /A stricter verdict/);
+  assert.match(changes, /A fix for a wrong\s+`not_affected` is never held back for a major release/);
+  assert.match(changes, /The JavaScript API/);
+  assert.match(section('Inputs'), /Rules files[\s\S]*`schema` 1/);
+});

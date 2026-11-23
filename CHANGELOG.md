@@ -6,6 +6,22 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-23
+
+The first stable release. The code is that of 1.0.0-beta.18; what changes is the promise: from here, everything
+`docs/CONTRACT.md` lists is stable for the whole 1.x line.
+
+### Changed
+- **The contract (`docs/CONTRACT.md`) says what can change within 1.x.** A stricter verdict is never a breaking
+  change: when a release finds that a proof was not enough, a finding it used to settle stays `in_triage`, and
+  a build it used to accept can be refused, in a minor or patch release, with the change named in the changelog.
+  Listed properties and options can gain new values. The JavaScript API (`import … from 'vexproof'`), the
+  wording of messages, a statement's `detail` text and the report's HTML are not part of the contract.
+- The contract now covers the bundler plugins and their options, the inputs and outputs of the GitHub Action,
+  the rules file format, and that module maps, rules files, baselines and license keys of one 1.x release work
+  with every later one. `test/contract.test.js` checks the plugin options and the Action's inputs against the
+  code.
+
 ## [1.0.0-beta.18] - 2026-11-22
 
 What a run prints is reworked for terminals and long logs: open findings first, by package and with their
@@ -643,7 +659,8 @@ module map; findings from npm, pnpm, yarn and bun audit, osv-scanner, Trivy, Gry
 directly; Vite, Rollup, webpack, Rspack, esbuild, bun and Angular inputs; `--deploy` for server-rendered apps;
 `vexproof review` and `vexproof rules derive`; Pro module-level analysis, baselines and the evidence report.
 
-[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.18...HEAD
+[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/septakis/vexproof/releases/tag/v1.0.0
 [1.0.0-beta.18]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.18
 [1.0.0-beta.17]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.17
 [1.0.0-beta.16]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.16

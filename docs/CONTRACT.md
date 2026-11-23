@@ -5,8 +5,35 @@ removes or renames any of it, or changes its meaning, is a 2.0. Additions (a new
 land in a minor release. Anything *not* listed here, including the exact wording of messages on standard error,
 may change in any release.
 
-`test/contract.test.js` checks this file against the code: every flag the CLI reads, every property it writes
-and every exit code it uses must be listed here, and nothing listed here may be missing from the code.
+`test/contract.test.js` checks this file against the code: every flag the CLI reads, every property it writes,
+every exit code it uses, every plugin option and every input of the GitHub Action must be listed here, and
+nothing listed here may be missing from the code.
+
+## What can change within 1.x
+
+Three kinds of change are not breaking, and can land in any minor or patch release:
+
+- **A stricter verdict.** vexproof exists to say `not_affected` only when the build proves it. When a release
+  finds a case where that proof was not enough, a finding it used to settle stays `in_triage` from then on, and
+  a build it used to accept can be refused with exit 2 and a message saying what is missing. A fix for a wrong
+  `not_affected` is never held back for a major release. The changelog names every such change. It follows that
+  a `--fail-on` gate can trip, or a run can stop, after an update without any change of yours.
+- **A new value.** A property, option or field listed here can gain a value it did not have (a new
+  `vexproof:level`, a new findings format, a new `--fail-on` mode). Readers should treat a value they don't
+  know as unknown, not as an error.
+- **What vexproof knows.** The hand-checked module rules, the list of advisories about code a build tool
+  writes into the output (`src/generated-code.json`), and the lists of frameworks, servers and CDNs it
+  recognises all grow with releases.
+
+Not part of the contract, and free to change in any release:
+
+- **The JavaScript API.** `import … from 'vexproof'` exposes the functions the command line is built from
+  (`triage`, `toCycloneDxVex` and the rest), with types. They are there to be read and experimented with. Their
+  names, arguments and results can change in a minor release; build on the command line and the files it
+  writes. The plugin entry points below are the exception.
+- The wording of messages, on either stream, and the layout of the summary above its last line.
+- The text of a statement's `detail`. Its properties carry what a program should read.
+- The HTML of the evidence report.
 
 ## Commands
 
@@ -153,6 +180,69 @@ Exit 0 when the signature checks, 1 when it does not, 2 when the input cannot be
 | `--out <prefix>` | Writes `<prefix>.pem` (private) and `<prefix>.pub.pem` (public). Default `vexproof-signing`. Never overwrites. |
 | `--type <t>` | `ed25519` (default) or `p256`. |
 
+## Bundler plugins
+
+Four entry points write a module map while your bundler builds:
+
+| Import | Use |
+|---|---|
+| `vexproof/vite`, `vexproof/rollup` | `vexproof(options)`, default and named export, in `plugins`. |
+| `vexproof/webpack`, `vexproof/rspack` | `new VexproofPlugin(options)`, in `plugins`. CommonJS, so it loads from either kind of config. |
+
+| Option | Plugins | Meaning |
+|---|---|---|
+| `output` | all | Where the module map is written, relative to the project root (Vite, Rollup) or the compiler's context (webpack, Rspack). Default `vexproof-modules.json`. |
+| `includeServer` | Vite, Rollup | Record server (SSR) builds too. Default `false`: they are counted and left out. |
+| `root` | Vite, Rollup | The project root. Default: Vite's `root`, or the current directory under plain Rollup. |
+
+A module map written by the plugin of any 1.x release is read by the command of that release and of every later
+1.x release. The other way round is not promised: update the command with the plugin, which one install does,
+since they are one package. The module map is for vexproof to read; its fields are not part of the contract.
+
+## GitHub Action
+
+`septakis/vexproof@v<version>` runs the main command, and `vexproof dependabot` when asked. Each input sets the
+option of the same name unless the table says otherwise. Inputs that take several values take them
+comma-separated.
+
+| Input | Sets |
+|---|---|
+| `lockfile` | `--lockfile`. Required. |
+| `bundle` | `--bundle` |
+| `findings` | `--findings` |
+| `modules` | `--modules` |
+| `deploy` | `--deploy` |
+| `root` | `--root` |
+| `browser-only` | `--browser-only`, when `true` |
+| `product` | `--product` |
+| `out` | `--out`. Default `vex.cdx.json`. |
+| `spec-version` | `--spec-version`. Default `1.6`. |
+| `openvex` | `--openvex`. Default `vex.openvex.json`; empty to skip. |
+| `openvex-package-products` | `--openvex-package-products`, when `true` |
+| `report` | `--report` |
+| `baseline` | `--baseline` |
+| `review-max-age` | `--review-max-age` |
+| `rules` | `--rules` |
+| `accept-derived` | `--accept-derived`, when `true` |
+| `fail-on` | `--fail-on` |
+| `csaf` | `--csaf` |
+| `csaf-namespace` | `--csaf-namespace` |
+| `csaf-url` | `--csaf-url` |
+| `csaf-publisher` | `--csaf-publisher` |
+| `csaf-id` | `--csaf-id` |
+| `csaf-status` | `--csaf-status` |
+| `csaf-tlp` | `--csaf-tlp` |
+| `csaf-previous` | `--csaf-previous` |
+| `signing-key` | `--sign`, with the key given as text (a secret), not as a path |
+| `signer` | `--signer` |
+| `license` | `--license` |
+| `dependabot` | When `true`, runs `vexproof dependabot` with the VEX just written. Only a run of the default branch changes alerts. |
+| `dependabot-token` | `--token` of `vexproof dependabot` |
+| `dependabot-manifest` | `--manifest` of `vexproof dependabot` |
+| `version` | The vexproof release to run from npm. Default: the release the action's tag names. |
+
+Outputs: `vex`, `openvex` and `csaf`, the paths of the files written.
+
 ## Environment
 
 | Variable | Meaning |
@@ -186,6 +276,20 @@ Module maps: `vexproof-modules.json` from the `vexproof/vite`, `vexproof/rollup`
 Anything else fails with exit 2 and a message naming these.
 
 SBOMs: CycloneDX JSON, 1.4 or later.
+
+Rules files (`--rules`, and what `rules derive` writes): JSON with `schema` 1 and a `packages` object. Each
+package has `advisories`, keyed by an advisory id or, for a derived rule, by `<id>@<version>`. An advisory entry
+has `files` (the files that hold the vulnerable code; an entry ending in `/` is a folder), and may have `id`,
+`aliases`, `versions`, `affects`, `source`, `origin` and `derivedFrom`. A package may also have `monoliths` and
+`monolithDirs` (full builds that contain everything) and `injected` (a build tool's helpers). A rules file
+written by any 1.x release is read by every later 1.x release with the same result or a stricter one; fields a
+release does not know are ignored.
+
+License keys: a key issued for 1.x works with every 1.x release until it expires or is revoked.
+
+Baselines: a CycloneDX VEX written by any 1.x release can be the `--baseline` of every later 1.x release. A review
+in it carries forward while its evidence is unchanged; when a release changes how evidence is recorded, the
+review comes back for re-confirming, which is the stricter outcome and not a breaking change.
 
 ## Network
 
