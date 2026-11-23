@@ -6,6 +6,11 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+## [1.0.0-beta.18] - 2026-11-22
+
+What a run prints is reworked for terminals and long logs: open findings first, by package and with their
+reasons, in lines no wider than 80 columns, and the totals last.
+
 ### Changed
 - **What a run prints reads in a terminal.** Until now it was one line per finding, in the order the scanner
   gave them, with the reason appended to the right: on a real build that was hundreds of lines, a third of them
@@ -638,7 +643,8 @@ module map; findings from npm, pnpm, yarn and bun audit, osv-scanner, Trivy, Gry
 directly; Vite, Rollup, webpack, Rspack, esbuild, bun and Angular inputs; `--deploy` for server-rendered apps;
 `vexproof review` and `vexproof rules derive`; Pro module-level analysis, baselines and the evidence report.
 
-[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.17...HEAD
+[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.18...HEAD
+[1.0.0-beta.18]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.18
 [1.0.0-beta.17]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.17
 [1.0.0-beta.16]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.16
 [1.0.0-beta.15]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.15
