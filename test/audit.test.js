@@ -11,7 +11,7 @@ import { readModuleMap, attachVersions, bundleSbomFromModules, ungroupStats } fr
 import { strayOutputs, accountFor, runtimeLoads, CoverageError } from '../src/coverage.js';
 import { readDeployment, loadedSpecifiers, runtimeImports, isGlue, findMap, missingHalves } from '../src/deploy.js';
 import { copyFinder } from '../src/copies.js';
-import { findPackageText, contentCheck, markersOf } from '../src/content-check.js';
+import { findPackageText, findCdnLoads, contentCheck, markersOf } from '../src/content-check.js';
 import { triage } from '../src/index.js';
 import { temporaryFolder, temporaryFolderForFile } from './lib/temporary.js';
 
@@ -98,6 +98,42 @@ test('content check: strings of an absent package found in the shipped files kee
     [results[0].state, results[1].state, checked.kept.map((kept) => kept.name), checked.uncheckable],
     ['in_triage', 'not_affected', ['ms'], ['absent']],
   );
+});
+
+test('content check: a package the shipped pages load from a CDN keeps its findings open', () => {
+  const root = project({
+    'dist/index.html': [
+      '<script src="https://unpkg.com/lodash@4.17.20/lodash.min.js"></script>',
+      '<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>',
+      '<script type="importmap">{"imports":{"@scope/widget":"https://esm.sh/@scope/widget@1.2.3"}}</script>',
+      '<a href="https://www.npmjs.com/package/left-pad">left-pad on npm</a>',
+      '<script src="https://unpkg.com/lodash-es@4.17.21/lodash.js"></script>',
+    ].join('\n'),
+    'dist/app.js': 'const chart = await import("https://cdn.jsdelivr.net/npm/Chart.js@4.4.0/+esm");',
+    'dist/node_modules/skipped/index.js': 'import "https://unpkg.com/skipped@1.0.0/index.js";',
+  });
+  const options = { root, bases: [root], shippedDirs: [join(root, 'dist')] };
+  const absent = ['lodash', 'moment', '@scope/widget', 'left-pad', 'chart.js', 'skipped', 'react'];
+
+  const loads = findCdnLoads(absent, options);
+
+  assert.deepEqual([...loads.keys()].sort(), ['@scope/widget', 'chart.js', 'lodash', 'moment']);
+  assert.deepEqual(loads.get('lodash'), { url: 'unpkg.com/lodash', file: 'dist/index.html' });
+  assert.deepEqual(loads.get('chart.js'), { url: 'cdn.jsdelivr.net/npm/Chart.js', file: 'dist/app.js' });
+  assert.equal(findCdnLoads(['lodash'], { root, shippedDirs: [] }).size, 0);
+
+  const verdict = (name) => ({ key: `npm/${name}`, state: 'not_affected', level: 'package', origin: 'auto', justification: 'code_not_present' });
+  const results = [verdict('lodash'), verdict('left-pad'), { ...verdict('moment'), level: 'module' }, { ...verdict('@scope/widget'), origin: 'reviewed' }];
+
+  const checked = contentCheck(results, options);
+
+  // only an automatic package-level verdict is taken back: a file-level one and a person's review stand
+  assert.deepEqual(results.map((result) => result.state), ['in_triage', 'not_affected', 'not_affected', 'not_affected']);
+  assert.deepEqual(checked.loaded, [{ name: 'lodash', url: 'unpkg.com/lodash', file: 'dist/index.html' }]);
+  assert.equal(results[0].justification, undefined);
+  assert.equal(results[0].level, null);
+  assert.equal(results[0].moduleReason, 'dist/index.html loads lodash from a CDN (unpkg.com/lodash)');
+  assert.match(results[0].detail, /the shipped file dist\/index\.html loads it from a CDN \(unpkg\.com\/lodash\), so it runs in production from there/);
 });
 
 test('runtime loads: the forms bundlers leave in their output, and a package the output loads counts as shipped', () => {

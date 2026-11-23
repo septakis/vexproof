@@ -128,6 +128,10 @@ HTML that ship; a minifier keeps what a string says. If some are there, and no f
 holds them too, the finding stays open and a line says which string was found where. The check can
 only keep a finding open, needs `node_modules` installed, and looks only at packages with a finding.
 
+The same pass reads the shipped HTML and JavaScript for a package loaded from a public npm CDN (unpkg,
+jsDelivr, esm.sh, Skypack, JSPM, cdnjs): a script tag, an import map or an import of a URL. Such a
+package runs in production whatever the bundle holds, so its findings stay open, with the file and URL.
+
 Packages are named by the `package.json` in their folder, not by the folder: `"tiny": "npm:ms@2"` ships
 `ms`. So run vexproof where `node_modules` is installed. Without it, a shipped folder whose name the
 lockfile SBOM doesn't have stops the run, since it may be another package under an alias.
@@ -217,7 +221,7 @@ details, commented "CycloneDX VEX". Two things to know:
 ## GitHub Action
 
 ```yaml
-- uses: septakis/vexproof@v1.0.0-beta.16      # after your build and SBOM steps
+- uses: septakis/vexproof@v1.0.0-beta.17      # after your build and SBOM steps
   with:
     lockfile: bom.lockfile.json
     bundle: dist/bom.bundle.json
@@ -268,7 +272,7 @@ vexproof dependabot --vex vex.cdx.json --lockfile bom.lockfile.json --dry-run
 The Action does this after it writes the VEX, including when `fail-on` stops the job:
 
 ```yaml
-- uses: septakis/vexproof@v1.0.0-beta.16
+- uses: septakis/vexproof@v1.0.0-beta.17
   with:
     lockfile: bom.lockfile.json
     bundle: dist/bom.bundle.json
@@ -309,9 +313,11 @@ in_triage   GHSA-gcx4-mw62-g8wm   pkg:npm/rollup@4.20.0  ← GHSA-gcx4-mw62-g8wm
                                                            writes into a build, which its own files don't show
 ```
 
-The list holds the DOM clobbering advisories of Vite, Rollup, webpack, Rspack and tsup, Babel's
-`.replace` helper, seven Angular template compiler advisories, and the SvelteKit, adapter and Astro
-advisories about what a build writes. Each entry names its source. A person can still settle one with
+The list holds 29 advisories on 16 packages: the DOM clobbering advisories of Vite, Rollup, webpack,
+Rspack and tsup; Babel's `.replace` helper; seven Angular template compiler
+advisories; the SvelteKit, adapter and Astro advisories about what a build writes; and the advisories
+about code that orval, swagger-typescript-api, @hey-api/openapi-ts and protobufjs-cli generate. Each
+entry names its source. A person can still settle one with
 `vexproof review`, for instance because the build writes ES modules only.
 
 The list is hand-kept, so an advisory published after a release is not on it until the next one. If you
@@ -429,7 +435,9 @@ can't be checked. Several `--modules` and `--deploy` folders combine into one mo
 marked and semver stay open, because the server runs them. Nuxt: 4 of 11.
 
 Without a server deployment, vexproof refuses to run when the module map records a skipped server
-build or the lockfile includes one of these frameworks. `--browser-only` writes VEX for the browser
+build, the lockfile includes one of these frameworks, or the project's own dependencies include a server
+(Express, Fastify, Hono, Electron…) or something only a server uses (a database driver such as `pg` or
+`mongoose`, a queue, `nodemailer`, Express middleware). `--browser-only` writes VEX for the browser
 bundle alone (`vexproof:scope` = `browser-bundle`); give that artifact its own identifier with `--product`.
 
 ## Recording decisions
@@ -533,7 +541,7 @@ covers. Still no network calls. Help for open-source keys is through GitHub issu
 
 ## Tests
 
-`npm test` runs 345 tests, including schema validation of both output formats. Most fixtures are
+`npm test` runs 348 tests, including schema validation of both output formats. Most fixtures are
 real builds, slimmed down:
 
 - two Angular 20 apps, one using only `capitalize` and one also using `template` and `omit`,
@@ -577,6 +585,15 @@ VEX there validates against the CycloneDX 1.6 JSON schema.
 - Advisories about code a build tool writes into the output are kept open from a hand-kept list
   (`src/generated-code.json`). One that is not on the list yet, on a tool that is not in the bundle, is
   settled like any other absent package.
+- A package-level verdict is about the package version in your lockfile and its own files. A copy that
+  another package carries inside its own published files (Next.js's `dist/compiled`, a library that
+  bundles its dependencies) is that package's to report, and vexproof does not look for it.
+- "Not in the build" says the package's code doesn't ship. It says nothing about what the package did
+  while the build ran: a sanitizer or Markdown renderer used at build time leaves its output in your
+  pages, not its code.
 - For apps that also run on a server, vexproof needs the deployment (`--deploy`), with source maps on.
+  A server is recognised by its framework or by a direct dependency only a server uses (Express, a
+  database driver, a queue); one written with Node's own modules alone is not, so pass `--deploy` or
+  `--browser-only` yourself there.
 - `npm audit` and `bun audit` don't report installed versions; vexproof takes every version of the
   package in the lockfile SBOM that falls inside each advisory's range.

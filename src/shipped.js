@@ -15,9 +15,18 @@ import { NO_PROGRESS } from './progress.js';
 // Frameworks whose apps also run code on a server. Their packages can be missing from the browser bundle and
 // still run in production, so a browser module map cannot stand for the whole product.
 const SERVER_FRAMEWORKS = ['next', 'nuxt', '@sveltejs/kit', '@remix-run/server-runtime', '@react-router/node', '@angular/ssr', 'vike', '@solidjs/start', '@tanstack/react-start', '@astrojs/node', '@analogjs/platform'];
-// Servers a project writes beside its front end (an Express API, an Electron main process). These are in many
-// lockfiles as someone's dependency, so only the project's own dependencies count.
-const SERVERS = ['express', 'fastify', 'koa', '@hapi/hapi', '@nestjs/core', 'hono', 'restify', 'polka', 'h3', 'electron', 'socket.io', '@apollo/server', '@trpc/server'];
+// Servers a project writes beside its front end (an Express API, an Electron main process), and packages only a
+// server has a use for. These are in many lockfiles as someone's dependency, so only the project's own
+// dependencies count.
+const SERVERS = [
+  'express', 'fastify', 'koa', '@hapi/hapi', '@nestjs/core', 'hono', '@hono/node-server', 'restify', 'polka', 'h3', 'connect', 'micro',
+  'elysia', 'sails', 'moleculer', '@adonisjs/core', 'electron', 'socket.io', '@apollo/server', 'apollo-server', 'apollo-server-express',
+  'graphql-yoga', '@trpc/server',
+  // what only a server uses: its middleware, its mail and password hashing, its databases and queues
+  'body-parser', 'cookie-parser', 'express-session', 'multer', 'helmet', 'cors', 'morgan', 'compression', 'passport', 'nodemailer',
+  'bcrypt', 'argon2', 'pg', 'mysql', 'mysql2', 'mongodb', 'mongoose', 'redis', 'ioredis', 'sqlite3', 'better-sqlite3', '@prisma/client',
+  'sequelize', 'knex', 'tedious', 'bullmq', 'bull', 'amqplib', 'kafkajs',
+];
 
 const MAX_LISTED = 8; // how many files or folders a message names before it says "and N more"
 const listed = (items, show = (item) => item) => [

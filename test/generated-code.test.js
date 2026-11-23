@@ -7,7 +7,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { triage, GENERATED_CODE } from '../src/index.js';
+import { triage, applyRuleAliases, normalizeFindings, GENERATED_CODE } from '../src/index.js';
 import { diffForRule } from '../src/derive.js';
 import { temporaryFolder } from './lib/temporary.js';
 
@@ -212,4 +212,20 @@ test('the command says why such a finding stays open, with no module map, and wr
   assert.equal(generated.analysis.justification, undefined);
   assert.match(generated.analysis.detail, /is about what rollup writes into a build's output/);
   assert.equal(statements.find((statement) => statement.id === 'GHSA-mw96-cpmx-2vgc').analysis.state, 'not_affected');
+});
+
+test('a derived rule adds the advisory\'s other names to a finding, never its own key', () => {
+  const derivedRules = { packages: { nanoid: { advisories: {
+    'GHSA-mwcw-c2x4-8c55@3.3.3': { id: 'GHSA-mwcw-c2x4-8c55', versions: ['3.3.3'], files: ['index.browser.js'], aliases: ['CVE-2024-55565'], origin: 'derived' },
+    'GHSA-mwcw-c2x4-8c55@4.0.2': { id: 'GHSA-mwcw-c2x4-8c55', versions: ['4.0.2'], files: ['index.browser.js'], aliases: ['CVE-2024-55565'], origin: 'derived' },
+  } } } };
+  const findings = applyRuleAliases(normalizeFindings([{ purl: 'pkg:npm/nanoid@3.3.3', ids: ['GHSA-mwcw-c2x4-8c55'] }]), derivedRules);
+
+  assert.deepEqual(findings, [{ purl: 'pkg:npm/nanoid@3.3.3', id: 'GHSA-mwcw-c2x4-8c55', aliases: ['CVE-2024-55565'] }]);
+
+  // a hand-checked rule is keyed by the advisory itself, and still links a CVE to its GHSA
+  const handChecked = { packages: { lodash: { advisories: { 'GHSA-35jh-r3h4-6jhm': { files: ['template.js'], aliases: ['CVE-2021-23337'] } } } } };
+  const byCve = applyRuleAliases(normalizeFindings([{ purl: 'pkg:npm/lodash@4.17.20', ids: ['CVE-2021-23337'] }]), handChecked);
+
+  assert.deepEqual(byCve[0].aliases, ['GHSA-35jh-r3h4-6jhm']);
 });

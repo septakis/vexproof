@@ -312,6 +312,61 @@ export function findPackageText(absent, { root, bases, shippedDirs, recorded = (
   return out;
 }
 
+// A page can load a package from a public npm CDN instead of from the bundle: a script tag, an import map, or
+// an import of a URL. The build's records then show nothing of the package, and it still runs in production.
+// Each pattern ends where the package name starts.
+const CDN_PREFIXES = [
+  'unpkg\\.com/',
+  'npmcdn\\.com/',
+  '(?:cdn|fastly|gcore|testingcf)\\.jsdelivr\\.net/npm/',
+  'esm\\.run/',
+  '(?:cdn\\.)?esm\\.sh/(?:v\\d+/|stable/|gh/)?',
+  'cdn\\.skypack\\.dev/(?:-/|pin/)?',
+  'ga\\.jspm\\.io/npm:',
+  'jspm\\.dev/(?:npm:)?',
+  'cdnjs\\.cloudflare\\.com/ajax/libs/',
+  'cdn\\.bootcdn\\.net/ajax/libs/',
+];
+const CDN_URL = new RegExp(`//(?:${CDN_PREFIXES.join('|')})((?:@[a-z0-9~._-]+/)?[a-z0-9~._-]+)`, 'gi');
+
+/**
+ * The packages in `absent` (names) that a shipped HTML or JavaScript file loads from a public npm CDN, as
+ * Map<name, { url, file }> with the first place each one was seen. cdnjs names some libraries with a ".js"
+ * the npm name lacks (lodash.js), so a name is also compared without it. The version in the URL is not
+ * compared: any copy of the package loaded this way leaves its absence from the bundle meaningless.
+ */
+export function findCdnLoads(absent, { root, shippedDirs }) {
+  const loads = new Map();
+  const wanted = new Map([...new Set(absent)].map((name) => [npmName(name), name]));
+  if (!wanted.size || !shippedDirs.length) {
+    return loads;
+  }
+
+  for (const file of shippedFiles(shippedDirs)) {
+    let text;
+    try {
+      if (statSync(file).size > 64 * 1024 * 1024) {
+        continue;
+      }
+      text = readFileSync(file, 'utf8');
+    } catch {
+      continue;
+    }
+
+    for (const match of text.matchAll(CDN_URL)) {
+      // a name ends at the version or the next path step, so "lodash@4.17.21" and "lodash.js" both name lodash
+      const written = npmName(match[1].replace(/@[^/@]*$/, ''));
+      const name = wanted.get(written) ?? wanted.get(written.replace(/\.js$/, ''));
+
+      if (name && !loads.has(name)) {
+        loads.set(name, { url: match[0].slice(2), file: posix(relative(root, file)) });
+      }
+    }
+  }
+
+  return loads;
+}
+
 /** How many of a package's strings must be found before its absence is doubted. */
 const enoughHits = (search) => search.hits.length >= (search.markers <= 3 ? 1 : 2);
 
@@ -353,7 +408,26 @@ export function contentCheck(results, options) {
     }
   }
 
+  // a package the shipped pages load from a CDN runs in production whatever the bundle holds
+  const loaded = [];
+  for (const [name, load] of findCdnLoads(names, options)) {
+    loaded.push({ name, ...load });
+    for (const result of closing) {
+      if (result.key !== `npm/${name}` || result.state !== 'not_affected') {
+        continue;
+      }
+
+      result.state = 'in_triage';
+      result.justification = undefined;
+      result.level = null;
+      result.evidence = null;
+      result.moduleReason = `${load.file} loads ${name} from a CDN (${load.url})`;
+      result.detail = `The build's own records do not show ${result.key}, but the shipped file ${load.file} loads it from a CDN ` +
+        `(${load.url}), so it runs in production from there. Which version that is was not compared; requires manual review.`;
+    }
+  }
+
   const uncheckable = [...new Set(names)].filter((name) => !found.has(name));
 
-  return { checked: found.size, uncheckable, kept };
+  return { checked: found.size, uncheckable, kept, loaded };
 }

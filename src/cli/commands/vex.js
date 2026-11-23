@@ -62,6 +62,9 @@ function checkContent(results, { moduleMap, shippedDirs, selfVouched, root, prog
   for (const kept of check.kept) {
     log(`vexproof: ${kept.name} is not in the build's records, but ${kept.hits.length} string(s) from its own files are in the shipped output (e.g. "${kept.hits[0].text}" in ${kept.hits[0].file}): its findings stay open`);
   }
+  for (const loaded of check.loaded) {
+    log(`vexproof: ${loaded.name} is not in the build's records, but ${loaded.file} loads it from a CDN (${loaded.url}): its findings stay open`);
+  }
   if (check.checked || check.uncheckable.length) {
     const found = check.kept.length ? `, found ${check.kept.length}` : '';
     const uncheckable = check.uncheckable.length ? `; ${check.uncheckable.length} are not installed here and were not looked for` : '';

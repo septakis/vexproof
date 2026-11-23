@@ -188,6 +188,21 @@ test('refused: a browser module map for an app whose own dependencies include a 
   refuses(run(root, ['--modules', 'meta.json']), /express is a dependency of this package/);
 });
 
+test('refused: a server that uses no framework is known by what only a server depends on', (testContext) => {
+  // a hand-written node:http server with a database: nothing of it is in the browser bundle, and all of it runs
+  const root = app(testContext, { 'package.json': { name: 'app', version: '1.0.0', dependencies: { pg: '^8.0.0', nodemailer: '^6.0.0', clsx: '^2.0.0' } } },
+    { pkgs: [['victim', '1.0.0'], ['clsx', '2.1.1'], ['pg', '8.11.0'], ['nodemailer', '6.9.0']] });
+
+  refuses(run(root, ['--modules', 'meta.json']), /nodemailer is a dependency of this package; pg is a dependency of this package/);
+  assert.equal(run(root, ['--modules', 'meta.json', '--browser-only']).status, 0);
+
+  // the same packages as someone else's dependency, or the project's development tools, say nothing
+  const frontEnd = app(testContext, { 'package.json': { name: 'app', version: '1.0.0', dependencies: { clsx: '^2.0.0' }, devDependencies: { pg: '^8.0.0' } } },
+    { pkgs: [['victim', '1.0.0'], ['clsx', '2.1.1'], ['pg', '8.11.0']] });
+
+  assert.equal(run(frontEnd, ['--modules', 'meta.json']).status, 0);
+});
+
 // ---------- Pro decisions ----------
 
 test('Pro: a derived rule only suggests a verdict until --accept-derived', (testContext) => {

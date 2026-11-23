@@ -236,7 +236,8 @@ export function applyRuleAliases(findings, rules) {
     const findingNames = [finding.id, ...finding.aliases];
 
     for (const [key, rule] of Object.entries(advisories)) {
-      const ruleNames = [key, ...(rule.aliases ?? [])];
+      // a derived rule's key carries the version it was derived for (GHSA-…@1.2.3); the advisory's name is its id
+      const ruleNames = [rule.id ?? key, ...(rule.aliases ?? [])];
       if (ruleNames.some((name) => findingNames.includes(name))) {
         for (const alias of ruleNames) {
           if (alias !== finding.id && !finding.aliases.includes(alias)) finding.aliases.push(alias);

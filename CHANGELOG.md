@@ -6,6 +6,35 @@ public API, so a breaking change to either is a major release.
 
 ## [Unreleased]
 
+## [1.0.0-beta.17] - 2026-11-22
+
+Three more ways a package could be called absent while it runs in production, closed: loaded from a CDN, used
+only by a server written without a framework, or the generator of code that ships.
+
+### Fixed
+- **A package the shipped pages load from a public npm CDN is no longer called absent.** A script tag, an import
+  map or an import of a URL on unpkg, jsDelivr, esm.sh, Skypack, JSPM or cdnjs runs the package in production
+  whatever the bundle holds. The content check now reads the shipped HTML and JavaScript for such URLs and keeps
+  the package's findings open, naming the file and the URL. The version in the URL is not compared.
+- **A server written without a framework is recognised by what only a server depends on.** vexproof already
+  refused a browser module map for a project whose own dependencies include Express, Fastify and the like. The
+  list now also has more servers (`connect`, `micro`, `@hono/node-server`, `elysia`, `graphql-yoga`…) and
+  server-only libraries: database drivers and ORMs, queues, `nodemailer`, password hashing and Express
+  middleware. Until now such a project's server packages were written `not_affected` because they are not in
+  the browser bundle. `--browser-only` and `--deploy` work as before.
+- With a derived rules file (`--rules`), the VEX no longer carries entries named after a rule's key, such as
+  `GHSA-mwcw-c2x4-8c55@3.3.3`. The rule's key holds the version it was derived for; only the advisory's id and
+  its aliases are added to a finding now.
+- Eleven more advisories about generated code are listed and stay open: the code injection advisories of
+  `orval`, `swagger-typescript-api` and `protobufjs-cli` (written into the API client or static module they
+  generate) and the helper `@hey-api/openapi-ts` copies into every client. The list now holds 29 advisories on 16
+  packages. An advisory about compiling source written to attack the compiler (Babel's SystemJS transform) is
+  not listed: source that hostile is in the build either way.
+
+### Changed
+- The README's limits name two things a package-level verdict does not cover: a copy of a package that another
+  package carries inside its own published files, and what a package did to your pages while the build ran.
+
 ## [1.0.0-beta.16] - 2026-11-22
 
 An advisory about code a build tool writes into the output is no longer settled because the tool itself is not
@@ -596,7 +625,8 @@ module map; findings from npm, pnpm, yarn and bun audit, osv-scanner, Trivy, Gry
 directly; Vite, Rollup, webpack, Rspack, esbuild, bun and Angular inputs; `--deploy` for server-rendered apps;
 `vexproof review` and `vexproof rules derive`; Pro module-level analysis, baselines and the evidence report.
 
-[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.16...HEAD
+[Unreleased]: https://github.com/septakis/vexproof/compare/v1.0.0-beta.17...HEAD
+[1.0.0-beta.17]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.17
 [1.0.0-beta.16]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.16
 [1.0.0-beta.15]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.15
 [1.0.0-beta.14]: https://github.com/septakis/vexproof/releases/tag/v1.0.0-beta.14

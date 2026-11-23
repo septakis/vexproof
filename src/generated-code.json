@@ -1,13 +1,15 @@
 {
   "schema": 1,
-  "version": "2026-11-22",
-  "note": "Packages that write into a build's output, and the advisories that are about what they write. For such an advisory the package's own files say nothing: a bundler's runtime code, a compiler's output or a generated config is in the build whether or not the tool is. vexproof never settles a listed advisory by itself, and never applies a rule derived from a fix's changed files to a listed package. Each entry was read at its source.",
+  "version": "2026-11-23",
+  "note": "Packages that write into a build's output, and the advisories that are about what they write. For such an advisory the package's own files say nothing: a bundler's runtime code, a compiler's output, a generated API client or a generated config is in the build whether or not the tool is. vexproof never settles a listed advisory by itself, and never applies a rule derived from a fix's changed files to a listed package. Each entry was read at its source.",
   "packages": {
     "vite": {
       "writes": "the import.meta.url code of cjs, iife and umd output",
       "advisories": {
         "GHSA-64vr-g452-qvp3": {
-          "aliases": ["CVE-2024-45812"],
+          "aliases": [
+            "CVE-2024-45812"
+          ],
           "affects": "a DOM clobbering gadget in the code Vite writes into cjs, iife and umd output",
           "source": "https://github.com/advisories/GHSA-64vr-g452-qvp3"
         }
@@ -17,7 +19,9 @@
       "writes": "the import.meta.url and asset-URL code of cjs, umd and iife output",
       "advisories": {
         "GHSA-gcx4-mw62-g8wm": {
-          "aliases": ["CVE-2024-47068"],
+          "aliases": [
+            "CVE-2024-47068"
+          ],
           "affects": "a DOM clobbering gadget in the code Rollup writes into cjs, umd and iife output",
           "source": "https://github.com/advisories/GHSA-gcx4-mw62-g8wm"
         }
@@ -27,7 +31,9 @@
       "writes": "its runtime modules",
       "advisories": {
         "GHSA-4vvj-4cpr-p986": {
-          "aliases": ["CVE-2024-43788"],
+          "aliases": [
+            "CVE-2024-43788"
+          ],
           "affects": "a DOM clobbering gadget in the automatic public path code webpack writes into a build",
           "source": "https://github.com/advisories/GHSA-4vvj-4cpr-p986"
         }
@@ -47,7 +53,9 @@
       "writes": "the import.meta.url shim of cjs output",
       "advisories": {
         "GHSA-3mv9-4h5g-vhg3": {
-          "aliases": ["CVE-2024-53384"],
+          "aliases": [
+            "CVE-2024-53384"
+          ],
           "affects": "a DOM clobbering gadget in the import.meta.url shim tsup writes into cjs output",
           "source": "https://github.com/advisories/GHSA-3mv9-4h5g-vhg3"
         }
@@ -57,7 +65,9 @@
       "writes": "helper functions, inlined into every file Babel compiles",
       "advisories": {
         "GHSA-968p-4wvh-cqc8": {
-          "aliases": ["CVE-2025-27789"],
+          "aliases": [
+            "CVE-2025-27789"
+          ],
           "affects": "the .replace helper Babel writes into code that uses named capturing groups",
           "source": "https://github.com/advisories/GHSA-968p-4wvh-cqc8"
         }
@@ -67,7 +77,9 @@
       "writes": "the minified code",
       "advisories": {
         "GHSA-34r7-q49f-h37c": {
-          "aliases": ["CVE-2015-8857"],
+          "aliases": [
+            "CVE-2015-8857"
+          ],
           "affects": "minification that changes what a non-boolean comparison does",
           "source": "https://github.com/advisories/GHSA-34r7-q49f-h37c"
         }
@@ -77,37 +89,51 @@
       "writes": "the compiled templates, with the sanitizer each binding gets",
       "advisories": {
         "GHSA-v4hv-rgfq-gp49": {
-          "aliases": ["CVE-2025-66412"],
+          "aliases": [
+            "CVE-2025-66412"
+          ],
           "affects": "compiled templates that leave SVG animation, SVG URL and MathML attributes unsanitized",
           "source": "https://github.com/advisories/GHSA-v4hv-rgfq-gp49"
         },
         "GHSA-jrmj-c5cx-3cw6": {
-          "aliases": ["CVE-2026-22610"],
+          "aliases": [
+            "CVE-2026-22610"
+          ],
           "affects": "compiled templates that leave the href of an SVG script element unsanitized",
           "source": "https://github.com/advisories/GHSA-jrmj-c5cx-3cw6"
         },
         "GHSA-g93w-mfhg-p222": {
-          "aliases": ["CVE-2026-32635"],
+          "aliases": [
+            "CVE-2026-32635"
+          ],
           "affects": "compiled templates that leave an i18n attribute binding unsanitized",
           "source": "https://github.com/advisories/GHSA-g93w-mfhg-p222"
         },
         "GHSA-f3m7-gqxr-g87x": {
-          "aliases": ["CVE-2026-50557"],
+          "aliases": [
+            "CVE-2026-50557"
+          ],
           "affects": "compiled templates that keep namespaced script elements and leave namespaced attributes unsanitized",
           "source": "https://github.com/advisories/GHSA-f3m7-gqxr-g87x"
         },
         "GHSA-58w9-8g37-x9v5": {
-          "aliases": ["CVE-2026-54265"],
+          "aliases": [
+            "CVE-2026-54265"
+          ],
           "affects": "compiled templates that leave a two-way property binding unsanitized",
           "source": "https://github.com/advisories/GHSA-58w9-8g37-x9v5"
         },
         "GHSA-jj27-h5hq-8x99": {
-          "aliases": ["CVE-2026-69151"],
+          "aliases": [
+            "CVE-2026-69151"
+          ],
           "affects": "compiled templates that let a translation set an event-handler attribute",
           "source": "https://github.com/advisories/GHSA-jj27-h5hq-8x99"
         },
         "GHSA-hh8m-fm6v-7cvg": {
-          "aliases": ["CVE-2026-88057"],
+          "aliases": [
+            "CVE-2026-88057"
+          ],
           "affects": "compiled directive host bindings whose sanitizer was chosen without the element they end up on",
           "source": "https://github.com/advisories/GHSA-hh8m-fm6v-7cvg"
         }
@@ -121,12 +147,17 @@
       "writes": "the client bundle's replaced environment values and the prerendered pages",
       "advisories": {
         "GHSA-m9j8-jcmv-hp69": {
-          "aliases": ["CVE-2026-128118"],
+          "aliases": [
+            "CVE-2026-128118"
+          ],
           "affects": "server-only values written into the client bundle at build time",
           "source": "https://github.com/advisories/GHSA-m9j8-jcmv-hp69"
         },
         "GHSA-27mw-82g8-phjj": {
-          "aliases": ["CVE-2026-114061", "GHSA-85pr-xr59-r75h"],
+          "aliases": [
+            "CVE-2026-114061",
+            "GHSA-85pr-xr59-r75h"
+          ],
           "affects": "an unescaped cache-control value written into prerendered pages",
           "source": "https://github.com/advisories/GHSA-27mw-82g8-phjj"
         }
@@ -136,7 +167,9 @@
       "writes": "the deployment's route configuration",
       "advisories": {
         "GHSA-jf9x-2fg2-hx4w": {
-          "aliases": ["CVE-2026-128121"],
+          "aliases": [
+            "CVE-2026-128121"
+          ],
           "affects": "prerendered paths written into the Vercel route configuration as regular expressions",
           "source": "https://github.com/advisories/GHSA-jf9x-2fg2-hx4w"
         }
@@ -146,7 +179,9 @@
       "writes": "the deployment's route configuration",
       "advisories": {
         "GHSA-jf9x-2fg2-hx4w": {
-          "aliases": ["CVE-2026-128121"],
+          "aliases": [
+            "CVE-2026-128121"
+          ],
           "affects": "prerendered paths written into the Vercel route configuration as regular expressions",
           "source": "https://github.com/advisories/GHSA-jf9x-2fg2-hx4w"
         }
@@ -156,9 +191,108 @@
       "writes": "the build's public folder",
       "advisories": {
         "GHSA-49w6-73cw-chjr": {
-          "aliases": ["CVE-2024-56159"],
+          "aliases": [
+            "CVE-2024-56159"
+          ],
           "affects": "the server code's source maps, written into the public folder of a build",
           "source": "https://github.com/advisories/GHSA-49w6-73cw-chjr"
+        }
+      }
+    },
+    "protobufjs-cli": {
+      "writes": "the static JavaScript pbjs generates from a schema",
+      "advisories": {
+        "GHSA-6r35-46g8-jcw9": {
+          "aliases": [
+            "CVE-2026-44295"
+          ],
+          "affects": "unsafe identifiers written into pbjs static output from the names in a schema",
+          "source": "https://github.com/advisories/GHSA-6r35-46g8-jcw9"
+        },
+        "GHSA-pr59-h9ph-3fr8": {
+          "aliases": [
+            "CVE-2026-54271"
+          ],
+          "affects": "unsafe references written into pbjs static output from the names in a JSON descriptor",
+          "source": "https://github.com/advisories/GHSA-pr59-h9ph-3fr8"
+        }
+      }
+    },
+    "@hey-api/openapi-ts": {
+      "writes": "the generated API client, with runtime helpers copied into it",
+      "advisories": {
+        "GHSA-hhx9-57xq-r5rw": {
+          "aliases": [
+            "CVE-2026-48819"
+          ],
+          "affects": "the buildClientParams helper copied into every generated client, which follows the prototype chain for an unknown key",
+          "source": "https://github.com/advisories/GHSA-hhx9-57xq-r5rw"
+        }
+      }
+    },
+    "orval": {
+      "writes": "the generated API client, its zod schemas and its mocks",
+      "advisories": {
+        "GHSA-6437-gxhq-pqv8": {
+          "aliases": [
+            "CVE-2026-71864"
+          ],
+          "affects": "header parameter names written unescaped into the generated zod client",
+          "source": "https://github.com/advisories/GHSA-6437-gxhq-pqv8"
+        },
+        "GHSA-653q-5476-x79g": {
+          "aliases": [
+            "CVE-2026-71865"
+          ],
+          "affects": "query parameter names written unescaped into the generated zod client",
+          "source": "https://github.com/advisories/GHSA-653q-5476-x79g"
+        },
+        "GHSA-6mr6-jvcr-2f25": {
+          "aliases": [
+            "CVE-2026-71866"
+          ],
+          "affects": "schema property names written unescaped into the generated zod client",
+          "source": "https://github.com/advisories/GHSA-6mr6-jvcr-2f25"
+        },
+        "GHSA-2w86-xfrc-g85r": {
+          "aliases": [
+            "CVE-2026-71867"
+          ],
+          "affects": "schema property names written unescaped into the generated MSW mocks",
+          "source": "https://github.com/advisories/GHSA-2w86-xfrc-g85r"
+        }
+      }
+    },
+    "swagger-typescript-api": {
+      "writes": "the generated API client",
+      "advisories": {
+        "GHSA-38c3-wv3c-v3xj": {
+          "aliases": [
+            "CVE-2026-54661"
+          ],
+          "affects": "the server URL written unescaped into the generated axios client",
+          "source": "https://github.com/advisories/GHSA-38c3-wv3c-v3xj"
+        },
+        "GHSA-hqj5-cw9f-rx67": {
+          "aliases": [
+            "CVE-2026-54662"
+          ],
+          "affects": "the server URL written unescaped into the generated fetch client",
+          "source": "https://github.com/advisories/GHSA-hqj5-cw9f-rx67"
+        },
+        "GHSA-5f94-x226-ccpm": {
+          "aliases": [
+            "CVE-2026-54664"
+          ],
+          "affects": "enum values written unescaped into the generated enum declarations",
+          "source": "https://github.com/advisories/GHSA-5f94-x226-ccpm"
+        },
+        "GHSA-w284-33mx-6g9v": {
+          "aliases": [
+            "CVE-2026-54666"
+          ],
+          "affects": "path strings written unescaped into the generated method bodies",
+          "source": "https://github.com/advisories/GHSA-w284-33mx-6g9v"
         }
       }
     }
